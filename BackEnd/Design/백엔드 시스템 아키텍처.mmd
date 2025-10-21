@@ -1,0 +1,67 @@
+---
+config:
+  layout: elk
+---
+graph TD
+    subgraph "사용자 환경"
+        P["웹 페이지 (Frontend)<br/>부모용 웹/앱"]
+        subgraph "아이의 집 (오리 로봇)"
+            direction LR
+            D["로봇 S/W"]
+            Edge_AI["온디바이스 AI<br/>(간단한 처리)"]
+        end
+    end
+
+    subgraph "클라우드 인프라 (Backend)"
+        GW[API Gateway / Nginx]
+
+        BE["<b>백엔드 서버 (FastAPI)</b><br/>API / WebSocket / WebRTC 시그널링"]
+        AI_SVC["<b>AI 처리 서버</b><br/>(STT/LLM) 분석 및 리포트 생성"]
+        
+        DB_PG["<b>관계형 DB (PostgreSQL)</b><br/>사용자, 로봇, 대화 리포트(텍스트)"]
+        S3["<b>오브젝트 스토리지 (S3)</b><br/>아이 음성 파일 (임시 저장)"]
+        R["<b>[Cache & MQ] Redis</b><br/>- AI 응답 캐시<br/>- 비동기 작업 큐"]
+    end
+
+    subgraph "상용 AI 서비스 (External)"
+        AI["<b>상용 AI API</b><br/>STT / LLM / TTS"]
+    end
+
+    %% --- 1. 기본 연결 ---
+    P -- "HTTPS (API, WebRTC 시그널링)" --> GW
+    D -- "WSS (명령, WebRTC 시그널링, API)" --> GW
+    GW --- BE
+
+    %% --- 2. 백엔드 핵심 로직 (DB/Cache) ---
+    BE <-- "DB CRUD (사용자, 리포트 조회)" --> DB_PG
+    BE <-- "캐시 (세션, AI응답)" --> R
+
+    %% --- 3. 실시간 P2P 스트리밍 ---
+    D <-. "실시간 영상/음성 스트림 (WebRTC P2P)" .-> P
+
+    %% --- 4. 실시간 TTS 메시지 흐름 (부모 -> 로봇) ---
+    P -- "i. (WS) TTS 메시지 전송" --> BE
+    BE -- "ii. (API) 음성 합성 요청" --> AI
+    AI -- "iii. 음성 데이터" --> BE
+    BE -- "iv. (WS) 음성 명령 전송" --> D
+
+    %% --- 5. [흐름 1: 온디바이스 처리] 로봇이 처리한 데이터 (가벼움) ---
+    Edge_AI -- "a. 간단한 대화 처리" --> D
+    D -- "b. (API) [처리된 리포트] 전송" --> BE
+    BE -- "c. [리포트] 즉시 저장" --> DB_PG
+    BE -- "d. (WSS/Push) 부모에게 알림" --> P
+
+    %% --- 6. [흐름 2: AI 서버 처리] 로봇이 감당 못하는 데이터 (무거움) ---
+    D -- "a. (판단) 무거운 음성 데이터" --> Edge_AI
+    D -- "b. 음성 파일 업로드 (FR-S02.12)" --> S3
+    D -- "c. (WSS) [무거운] 처리 요청" --> BE
+    BE -- "d. [MQ] AI 처리 작업 발행 (Publish)" --> R
+    R -- "e. [MQ] 작업 수신 (Subscribe)" --> AI_SVC
+    AI_SVC -- "f. 음성 파일 다운로드" --> S3
+    AI_SVC -- "g. (API) STT/LLM 분석 요청 (FR-S02.13)" --> AI
+    AI -- "h. 분석 결과 (JSON)" --> AI_SVC
+    AI_SVC -- "i. 리포트(텍스트) 저장 (FR-S02.14)" --> DB_PG
+    AI_SVC -- "j. 원본 음성 파일 삭제 (FR-S02.15)" --> S3
+    AI_SVC -- "k. [MQ] 생성 완료 발행" --> R
+    R -- "l. [MQ] 알림 수신" --> BE
+    BE -- "m. (WSS/Push) 부모에게 알림 전송 (FR-U02.1S1)" --> P

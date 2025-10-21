@@ -1,0 +1,47 @@
+---
+config:
+  layout: elk
+---
+graph TD
+    subgraph "사용자 (Client)"
+        P["웹 페이지 (Frontend)"]
+        D["로봇 (Device)"]
+    end
+
+    subgraph "인프라 (Infrastructure)"
+        DB["DB"]
+        R["Redis 캐시"]
+    end
+
+    subgraph "AI 서비스 (External)"
+        note["백엔드와만 통신"]
+        AI["상용 AI (STT/LLM/TTS)"]
+    end
+
+    B["백엔드 (API + WS + Worker + Push)"]
+
+    %% --- 흐름 정의 ---
+
+    %% 웹 페이지 <-> 백엔드 (인증, 리포트 조회/제어)
+    P -- "API 요청 (로그인, 리포트 조회)" --> B
+    P -- "WebRTC 세션 접속" --> B
+    B -- "푸시 알림 (리포트 생성)" --> P
+    P -- "음성 메세지 서비스 요청" --> B
+
+    %% 로봇 <-> 백엔드 (핵심 통신)
+    D -- "WebRTC 세션 등록" --> B
+    B -- "TTS 기반 음성 메세지 전송" --> D
+    D -- "아이의 대화 데이터 전송" --> B
+
+    %% 백엔드 <-> 인프라 (데이터 저장)
+    B -- "데이터 조회/저장 (계정, 리포트)" --> DB
+    B -- "캐시 조회/저장 (AI응답, 세션)" --> R
+
+    %% 백엔드 <-> AI (지능 처리)
+    B -- "아이 대화 기록 분석 요청" --> AI
+    AI -- "대화 분석 리포트 반환" --> B
+    B -- "음성 합성 요청 (TTS)" --> AI
+    AI -- "음성 데이터 반환" --> B
+
+    %% P2P 스트리밍 (백엔드는 중계만)
+    P <-. "실시간 자녀 모니터링 (WebRTC)" .-> D

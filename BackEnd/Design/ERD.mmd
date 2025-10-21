@@ -1,0 +1,43 @@
+erDiagram
+    User {
+        int user_id PK "사용자 ID (PK)"
+        string email UK "이메일 (UK, FR-U01.1)"
+        string password_hash "비밀번호 해시"
+        datetime created_at "가입일"
+    }
+
+    Child {
+        int child_id PK "아이 ID (PK)"
+        int user_id FK "사용자 ID (FK)"
+        string name "아이 이름 (호칭용, FR-U01.1)"
+    }
+
+    Robot {
+        int robot_id PK "로봇 ID (PK)"
+        int user_id FK "사용자 ID (FK)"
+        string serial_number UK "시리얼 번호 (UK, FR-U01.5)"
+        string status "연결 상태 (FR-U01.6)"
+        time dnd_start_time "방해금지 시작 (FR-S01.4)"
+        time dnd_end_time "방해금지 종료 (FR-S01.4)"
+    }
+
+    DialogueReport {
+        int report_id PK "리포트 ID (PK)"
+        %% --- 수정된 부분 ---
+        int child_id FK "아이 ID (FK)"
+        %% -------------------
+        datetime timestamp "대화 발생 시간"
+        text original_text "원본 대화 (STT, FR-U02.4)"
+        text summary "AI 요약 (FR-U02.3)"
+        text positive_keywords "긍정 키워드 (FR-U02.3)"
+        text special_notes "특이 사항 (FR-U02.3)"
+        string source_type "대화 출처 (e.g., 아이/부모질문)"
+    }
+
+    %% --- 관계 정의 (1:1 관계는 동일) ---
+    User ||--|| Child : "has one (FR-U01.1)"
+    User ||--|| Robot : "registers one (FR-U01.5)"
+
+    %% --- 수정된 부분 ---
+    %% 1명의 아이는 여러 개의 대화 리포트를 가짐
+    Child ||--o{ DialogueReport : "has many"
