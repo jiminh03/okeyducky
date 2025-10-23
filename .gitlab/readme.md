@@ -5,6 +5,23 @@
 
 ## git-flow 전략을 위한 깃 가이드
 
+### 중요!: A408 브랜치 관리 가이드 요약
+
+1. **기능 브랜치 이름은 feature/<본인 파트(BE,FE,RO)>/<기능 이름(ex:login-api)>**
+
+    기능 브랜치는 반드시 develop로부터 생성해야합니다.(git branch 명령어를 반드시 develop에서 실행하라는 것)
+
+    - ex: feature/BE/login-api
+
+2. **커밋 제목 형식에 반드시 본인 파트를 스코프에 작성**
+
+    파트별로 브랜치를 만들 수 없기 때문에 파트별로 커밋을 구분하기 위해 작성해야합니다.
+
+3. **간단 요약**
+
+    새로운 기능 만들때는 develop로부터 새 브랜치를 만들고 기능을 다 만들었으면 깃랩에서 develop으로 Merge Request를 신청하기
+    
+
 ### git flow branch
 
 1. **Git Flow 브랜치 전략**
