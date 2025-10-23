@@ -7,7 +7,7 @@
 
 ### 중요!: A408 브랜치 관리 가이드 요약
 
-1. **기능 브랜치 이름은 feature/<본인 파트(BE,FE,RO)>/<기능 이름(ex:login-api)>**
+1. **기능 브랜치 이름은 feature/<본인 파트(BE,FE,RB)>/<기능 이름(ex:login-api)>**
 
     기능 브랜치는 반드시 develop로부터 생성해야합니다.(git branch 명령어를 반드시 develop에서 실행하라는 것)
 
