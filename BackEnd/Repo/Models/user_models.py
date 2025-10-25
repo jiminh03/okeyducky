@@ -1,7 +1,11 @@
 from datetime import date, datetime
+from enum import Enum
 from typing import List, Optional
 
+from sqlalchemy import Column, Enum as SAEnum
 from sqlmodel import Field, Relationship, SQLModel
+
+from Repo.Models.enums import Gender
 
 
 class User(SQLModel, table=True):
@@ -17,7 +21,7 @@ class Child(SQLModel, table=True):
     child_id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     birth_date: date
-    gender: str
+    gender: Gender = Field(sa_column=Column(SAEnum(Gender), nullable=False))
     school: Optional[str] = None
 
     user_id: Optional[int] = Field(default=None, foreign_key="user.user_id")
