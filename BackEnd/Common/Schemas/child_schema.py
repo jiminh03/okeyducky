@@ -1,9 +1,8 @@
-# schemas/child_schemas.py
 from sqlmodel import SQLModel
 from datetime import date
 from typing import Optional
-from .robot_schemas import RobotInfoResponse # robot_schemas.py 필요
-from Repo.Models.enums import Gender
+from Common.Schemas.robot_schema import RobotInfoResponse # robot_schemas.py 필요
+from Common.Models.enums import Gender
 
 class ChildRegisterRequest(SQLModel):
     name: str
