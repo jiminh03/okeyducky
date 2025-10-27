@@ -29,3 +29,20 @@ class ParentUpdateRequest(BaseModel):
     parent_name: Optional[str] = None
     password: Optional[str] = None
 
+class ChildRegisterRequest(BaseModel):
+    name: str
+    gender: str
+    birth_date: str
+    school: Optional[str] = None
+    parent_id: int
+
+class ChildInfoResponse(BaseModel):
+    child_id: int
+    name: str
+
+class ChildUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    gender: Optional[str] = None
+    birth_date: Optional[str] = None
+    school: Optional[str] = None
+
