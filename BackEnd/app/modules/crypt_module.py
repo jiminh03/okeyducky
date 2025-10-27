@@ -6,6 +6,16 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+from common.schemas.user_schema import TokenPayload
+
+class InvalidCredentialsError(Exception):
+    """
+    인증 정보가 유효하지 않을 때 발생하는 사용자 정의 예외입니다.
+    """
+    def __init__(self, detail: str = "인증 정보를 찾을 수 없거나 유효하지 않습니다."):
+        self.detail = detail
+        super().__init__(self.detail)
+
 class CryptModule:
     """
     인증(Auth) 관련 설정과 핵심 객체들을 관리하는 싱글톤 클래스입니다.
@@ -51,7 +61,7 @@ class CryptModule:
         """
         return self.pwd_context.verify(plain_password, hashed_password) 
     
-    def create_access_jwt(self, data: dict, expires_delta: Optional[timedelta] = None) -> str: 
+    def create_access_jwt(self, data: TokenPayload, expires_delta: Optional[timedelta] = None) -> str: 
         """
         새로운 JWT 액세스 토큰을 생성합니다.
 
@@ -74,7 +84,7 @@ class CryptModule:
         return jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM) 
 
 
-    def decode_jwt_payload(self, token: str) -> dict: 
+    def decode_jwt_payload(self, token: str) -> TokenPayload: 
         """
         JWT 토큰을 디코딩하여 페이로드를 반환합니다.
 
