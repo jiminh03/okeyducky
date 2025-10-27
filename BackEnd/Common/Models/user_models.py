@@ -1,20 +1,20 @@
 from datetime import date, datetime
-from enum import Enum
 from typing import List, Optional
 
 from sqlalchemy import Column, Enum as SAEnum
 from sqlmodel import Field, Relationship, SQLModel
 
-from Repo.Models.enums import Gender
+from common.models.enums import Gender
 
 
-class User(SQLModel, table=True):
-    user_id: Optional[int] = Field(default=None, primary_key=True)
+class Parent(SQLModel, table=True):
+    parent_id: Optional[int] = Field(default=None, primary_key=True)
+    parent_name: str
     email: str = Field(unique=True, index=True)
     password_hash: str
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
-    children: List["Child"] = Relationship(back_populates="user")
+    children: List["Child"] = Relationship(back_populates="parent")
 
 
 class Child(SQLModel, table=True):
@@ -24,5 +24,5 @@ class Child(SQLModel, table=True):
     gender: Gender = Field(sa_column=Column(SAEnum(Gender), nullable=False))
     school: Optional[str] = None
 
-    user_id: Optional[int] = Field(default=None, foreign_key="user.user_id")
-    user: Optional[User] = Relationship(back_populates="children")
+    parent_id: Optional[int] = Field(default=None, foreign_key="parent.parent_id")
+    parent: Optional[Parent] = Relationship(back_populates="children")
