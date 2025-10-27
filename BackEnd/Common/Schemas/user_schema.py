@@ -20,6 +20,11 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     access_token: str
 
+class TokenPayload(BaseModel):
+    parent_id: int
+    parent_name: str
+    email: str
+
 class ParentInfoResponse(BaseModel):
     user_id: int
     parent_name: str
