@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import SplashScreen from '@/components/SplashScreen';
+import LoginScreen from '@/components/LoginScreen';
 import SignUpScreen from '@/components/SignUpScreen';
 
 export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState<'splash' | 'signup' | 'main'>('splash');
+  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main'>('splash');
 
   const handleLogin = () => {
     console.log('로그인 버튼 클릭');
-    setCurrentScreen('main');
+    setCurrentScreen('login');
   };
 
   const handleSignUp = () => {
@@ -21,6 +22,11 @@ export default function Home() {
     setCurrentScreen('splash');
   };
 
+  const handleLoginComplete = () => {
+    console.log('로그인 완료');
+    setCurrentScreen('main');
+  };
+
   const handleSignUpComplete = () => {
     console.log('회원가입 완료');
     setCurrentScreen('main');
@@ -28,6 +34,10 @@ export default function Home() {
 
   if (currentScreen === 'splash') {
     return <SplashScreen onLogin={handleLogin} onSignUp={handleSignUp} />;
+  }
+
+  if (currentScreen === 'login') {
+    return <LoginScreen onBack={handleBackToSplash} onLoginComplete={handleLoginComplete} onSignUp={handleSignUp} />;
   }
 
   if (currentScreen === 'signup') {

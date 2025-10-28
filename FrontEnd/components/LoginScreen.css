@@ -1,0 +1,345 @@
+.login-container {
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 상단 헤더 */
+.login-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.back-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.header-spacer {
+  width: 40px;
+}
+
+/* 메인 콘텐츠 */
+.login-content {
+  flex: 1;
+  padding: 5px 20px 20px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 오키더키 로고 */
+.login-logo {
+  margin-bottom: 0;
+}
+
+.login-title-img {
+  width: 320px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  min-height: 100px;
+}
+
+/* 브랜드 제목 */
+.login-brand-title {
+  font-family: 'OkDanDan', sans-serif;
+  font-size: 54px;
+  font-weight: 700;
+  color: #FFE300;
+  margin: -60px 0 0 0;
+  text-align: center;
+  min-height: 54px;
+  display: block;
+}
+
+/* 페이지 제목 */
+.login-page-title {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin: 20px 0 40px 0;
+  text-align: center;
+}
+
+/* 폼 */
+.login-form {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 30px;
+}
+
+/* 폼 그룹 */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 16px;
+  color: #333;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #FFE300;
+  box-shadow: 0 0 0 3px rgba(255, 227, 0, 0.1);
+}
+
+.form-input::placeholder {
+  color: #999;
+}
+
+/* 로그인 버튼 */
+.login-submit-btn {
+  width: 100%;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 16px 24px;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.login-submit-btn:hover {
+  background: #333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.login-submit-btn:active {
+  transform: translateY(0);
+}
+
+/* 회원가입 링크 섹션 */
+.signup-link-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.signup-text {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 14px;
+  color: #666;
+}
+
+.signup-link-btn {
+  background: none;
+  border: none;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 14px;
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.signup-link-btn:hover {
+  color: #0052a3;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  .login-content {
+    padding: 16px;
+  }
+  
+  .login-form {
+    max-width: 100%;
+  }
+  
+  .login-title-img {
+    max-width: 260px;
+  }
+  
+  .login-brand-title {
+    font-size: 36px;
+    margin: -15px 0 0 0;
+  }
+  
+  .login-page-title {
+    font-size: 28px;
+    margin-bottom: 30px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-input {
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+  
+  .login-submit-btn {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-header {
+    padding: 12px 16px;
+  }
+  
+  .login-content {
+    padding: 12px;
+  }
+  
+  .login-title-img {
+    max-width: 220px;
+  }
+  
+  .login-brand-title {
+    font-size: 32px;
+    margin: -10px 0 0 0;
+  }
+  
+  .login-page-title {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .form-group {
+    margin-bottom: 18px;
+  }
+  
+  .form-input {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  
+  .login-submit-btn {
+    font-size: 16px;
+  }
+}
+
+/* 태블릿 */
+@media (min-width: 768px) {
+  .login-content {
+    padding: 32px;
+  }
+  
+  .login-form {
+    max-width: 500px;
+  }
+  
+  .login-title-img {
+    max-width: 350px;
+  }
+  
+  .login-brand-title {
+    font-size: 44px;
+    margin: -20px 0 0 0;
+  }
+  
+  .login-page-title {
+    font-size: 36px;
+    margin-bottom: 50px;
+  }
+  
+  .form-group {
+    margin-bottom: 28px;
+  }
+  
+  .form-input {
+    padding: 14px 18px;
+    font-size: 17px;
+  }
+  
+  .login-submit-btn {
+    padding: 18px 24px;
+    font-size: 18px;
+  }
+}
+
+/* 데스크톱 */
+@media (min-width: 1024px) {
+  .login-content {
+    padding: 40px;
+  }
+  
+  .login-form {
+    max-width: 600px;
+  }
+  
+  .login-title-img {
+    max-width: 400px;
+  }
+  
+  .login-brand-title {
+    font-size: 52px;
+    margin: -25px 0 0 0;
+  }
+  
+  .login-page-title {
+    font-size: 40px;
+    margin-bottom: 60px;
+  }
+  
+  .form-group {
+    margin-bottom: 32px;
+  }
+  
+  .form-input {
+    padding: 16px 20px;
+    font-size: 18px;
+  }
+  
+  .login-submit-btn {
+    padding: 20px 32px;
+    font-size: 20px;
+  }
+}
+

@@ -60,10 +60,10 @@
 }
 
 .signup-title-img {
-  width: auto;
-  max-width: 200px;
+  width: 200px;
   height: auto;
   object-fit: contain;
+  display: block;
 }
 
 /* 브랜드 제목 */
@@ -74,6 +74,8 @@
   color: #FFE300;
   margin: 0 0 8px 0;
   text-align: center;
+  min-height: 28px;
+  display: block;
 }
 
 /* 페이지 제목 */

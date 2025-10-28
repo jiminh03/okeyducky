@@ -28,16 +28,16 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onLogin, onSignUp }) => {
             />
           </div>
         </div>
+      </div>
 
-        {/* 하단 버튼들 */}
-        <div className="button-container">
-          <button className="login-btn" onClick={onLogin}>
-            로그인
-          </button>
-          <button className="signup-btn" onClick={onSignUp}>
-            회원가입
-          </button>
-        </div>
+      {/* 하단 버튼들 */}
+      <div className="button-container">
+        <button className="login-btn" onClick={onLogin}>
+          로그인
+        </button>
+        <button className="signup-btn" onClick={onSignUp}>
+          회원가입
+        </button>
       </div>
     </div>
   );

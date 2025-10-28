@@ -8,85 +8,6 @@
   overflow: hidden;
 }
 
-.time {
-  font-weight: 700;
-}
-
-.status-icons {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.signal-icons {
-  display: flex;
-  gap: 4px;
-}
-
-.wifi-icon {
-  width: 16px;
-  height: 12px;
-  background: #000;
-  border-radius: 0 0 2px 2px;
-  position: relative;
-}
-
-.wifi-icon::before {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: 2px;
-  width: 12px;
-  height: 8px;
-  border: 2px solid #000;
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
-}
-
-.cellular-icon {
-  width: 16px;
-  height: 12px;
-  display: flex;
-  align-items: end;
-  gap: 2px;
-}
-
-.cellular-icon::before,
-.cellular-icon::after {
-  content: '';
-  background: #000;
-  border-radius: 1px;
-}
-
-.cellular-icon::before {
-  width: 3px;
-  height: 8px;
-}
-
-.cellular-icon::after {
-  width: 3px;
-  height: 12px;
-}
-
-.battery-icon {
-  width: 20px;
-  height: 10px;
-  border: 2px solid #000;
-  border-radius: 2px;
-  position: relative;
-}
-
-.battery-icon::after {
-  content: '';
-  position: absolute;
-  right: -3px;
-  top: 2px;
-  width: 2px;
-  height: 4px;
-  background: #000;
-  border-radius: 0 1px 1px 0;
-}
-
 /* 메인 콘텐츠 */
 .main-content {
   flex: 1;
@@ -108,7 +29,7 @@
 }
 
 .logo-container {
-  margin-bottom: 60px;
+  margin-bottom: 0px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -117,7 +38,7 @@
 
 .title-img {
   width: auto;
-  max-width: 280px;
+  max-width: 450px;
   height: auto;
   object-fit: contain;
 }
@@ -129,8 +50,8 @@
 }
 
 .duck-img {
-  width: 250px;
-  height: 250px;
+  width: 320px;
+  height: 320px;
   object-fit: contain;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
   animation: float 3s ease-in-out infinite;
@@ -147,99 +68,73 @@
 
 /* 하단 버튼들 */
 .button-container {
-  padding: 20px;
+  padding: 0 20px 30px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-width: 300px;
+  gap: 12px;
   width: 100%;
+  max-width: 420px;
   margin: 0 auto;
+  box-sizing: border-box;
+  margin-top: auto;
+  margin-bottom: 0;
+}
+
+/* 모든 해상도에서 세로 배치 유지 */
+.button-container {
+  flex-direction: column !important;
+}
+
+.login-btn,
+.signup-btn {
+  border: none;
+  border-radius: 10px;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 14px 20px;
 }
 
 .login-btn {
   background: #fff;
   color: #000;
-  border: none;
-  border-radius: 12px;
-  padding: 16px 24px;
-  font-family: 'AppleSDGothicNeo', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .login-btn:hover {
-  background: #f5f5f5;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  background: #f8f8f8;
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .login-btn:active {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
 .signup-btn {
   background: #000;
   color: #fff;
-  border: none;
-  border-radius: 12px;
-  padding: 16px 24px;
-  font-family: 'AppleSDGothicNeo', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .signup-btn:hover {
   background: #333;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .signup-btn:active {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
-/* 반응형 디자인 */
-@media (max-width: 480px) {
-  .app-title {
-    font-size: 2.5rem;
-  }
-  
-  .title-img {
-    max-width: 200px;
-  }
-  
-  .logo-container {
-    gap: 20px;
-  }
-  
-  .duck-img {
-    width: 150px;
-    height: 150px;
-  }
-  
-  .button-container {
-    padding: 16px;
-    max-width: 280px;
-  }
-  
-  .login-btn,
-  .signup-btn {
-    padding: 14px 20px;
-    font-size: 15px;
-  }
-}
+/* 반응형 디자인 - 모바일 우선 */
 
+/* 작은 모바일 (360px 이하) */
 @media (max-width: 360px) {
-  .app-title {
-    font-size: 2rem;
-  }
-  
   .title-img {
     max-width: 160px;
   }
@@ -249,28 +144,73 @@
     height: 120px;
   }
   
-  .main-content {
-    padding: 16px;
+  .button-container {
+    padding: 0 16px 24px;
+    max-width: 100%;
+    gap: 10px;
   }
   
-  .logo-container {
-    margin-bottom: 40px;
-    gap: 15px;
+  .login-btn,
+  .signup-btn {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 15px;
   }
 }
 
-/* 태블릿 */
-@media (min-width: 768px) {
-  .app-title {
-    font-size: 4rem;
-  }
-  
+/* 일반 모바일 (361px ~ 480px) */
+@media (max-width: 480px) {
   .title-img {
-    max-width: 350px;
+    max-width: 200px;
   }
   
-  .logo-container {
-    gap: 40px;
+  .duck-img {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .button-container {
+    padding: 0 18px 28px;
+    max-width: 340px;
+  }
+  
+  .login-btn,
+  .signup-btn {
+    width: 100%;
+    padding: 13px 18px;
+    font-size: 16px;
+  }
+}
+
+/* 태블릿 (481px ~ 767px) */
+@media (min-width: 481px) and (max-width: 767px) {
+  .title-img {
+    max-width: 280px;
+  }
+  
+  .duck-img {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .button-container {
+    padding: 0 24px 32px;
+    max-width: 380px;
+    gap: 14px;
+  }
+  
+  .login-btn,
+  .signup-btn {
+    width: 100%;
+    padding: 15px 22px;
+    font-size: 17px;
+  }
+}
+
+/* 태블릿 (768px ~ 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .title-img {
+    max-width: 320px;
   }
   
   .duck-img {
@@ -279,31 +219,23 @@
   }
   
   .button-container {
-    max-width: 400px;
-    flex-direction: row;
-    gap: 20px;
+    padding: 0 24px 40px;
+    max-width: 420px;
+    gap: 14px;
   }
   
   .login-btn,
   .signup-btn {
-    flex: 1;
-    padding: 18px 24px;
-    font-size: 18px;
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 17px;
   }
 }
 
-/* 데스크톱 */
+/* 데스크톱 (1024px 이상) */
 @media (min-width: 1024px) {
-  .app-title {
-    font-size: 5rem;
-  }
-  
   .title-img {
-    max-width: 400px;
-  }
-  
-  .logo-container {
-    gap: 50px;
+    max-width: 360px;
   }
   
   .duck-img {
@@ -312,12 +244,29 @@
   }
   
   .button-container {
+    padding: 0 32px 48px;
     max-width: 500px;
+    gap: 16px;
   }
   
   .login-btn,
   .signup-btn {
-    padding: 20px 32px;
+    width: 100%;
+    padding: 18px 32px;
+    font-size: 18px;
+  }
+}
+
+/* 대형 데스크톱 (1440px 이상) */
+@media (min-width: 1440px) {
+  .button-container {
+    max-width: 600px;
+    gap: 20px;
+  }
+  
+  .login-btn,
+  .signup-btn {
+    padding: 20px 40px;
     font-size: 20px;
   }
 }
