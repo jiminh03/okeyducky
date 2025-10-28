@@ -1,0 +1,61 @@
+from fastapi import Depends
+from typing import List, Optional
+from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from common.modules.database import get_session
+
+from common.models.dialogue_model import *
+from common.schemas.dialogue_schema import *
+
+class DialogueRepo:
+    def __init__(self, session: AsyncSession = Depends(get_session)):
+        self.session = session
+
+    async def create_daily_report(self, report: DailyReportCreate) -> DailyReportResponse:
+        new_report = DailyReport(
+            date=report.date,
+            daily_summary=report.daily_summary,
+            analysis_summary=report.analysis_summary,
+            positive_keywords=report.positive_keywords,
+            special_notes=report.special_notes,
+            child_id=report.child_id,
+        )
+        self.session.add(new_report)
+        await self.session.commit()
+        await self.session.refresh(new_report)
+
+        for log_data in report.dialogue_logs:
+            dialogue_log = DialogueLog(
+                speaker=log_data.speaker,
+                message=log_data.message,
+                report_id=new_report.report_id,
+            )
+            self.session.add(dialogue_log)
+        await self.session.commit()
+        await self.session.refresh(new_report)
+        return new_report
+
+    async def get_daily_report_by_id(self, report_id: int) -> Optional[DailyReportResponse]:
+        query = text("SELECT * FROM DailyReport WHERE report_id = :report_id")
+        result = await self.session.execute(query, {"report_id": report_id})
+        report = result.scalar_one_or_none()
+        return report
+
+    async def get_daily_reports_by_child_id(self, child_id: int) -> List[DailyReportResponse]:
+        query = text("SELECT * FROM DailyReport WHERE child_id = :child_id")
+        result = await self.session.execute(query, {"child_id": child_id})
+        reports = result.scalars().all()
+        return reports
+
+    async def create_dialogue_log(self, log: DialogueLogCreate) -> DialogueLogResponse:
+        new_log = DialogueLog(
+            speaker=log.speaker,
+            message=log.message,
+            report_id=log.report_id,
+        )
+        self.session.add(new_log)
+        await self.session.commit()
+        await self.session.refresh(new_log)
+        return new_log
