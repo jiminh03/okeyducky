@@ -1,12 +1,14 @@
 import React from 'react';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import './MainScreen.css';
 
 interface MainScreenProps {
   onLogout: () => void;
+  onConversationDetail?: () => void;
 }
 
-const MainScreen: React.FC<MainScreenProps> = ({ onLogout }) => {
+const MainScreen: React.FC<MainScreenProps> = ({ onLogout, onConversationDetail }) => {
   return (
     <div className="main-screen">
       {/* 상단 헤더 */}
@@ -33,7 +35,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ onLogout }) => {
         <div className="content-card today-conversation-card">
           <div className="card-header">
             <h3 className="card-title">오늘 대화</h3>
-            <span className="card-link">자세히 보기 {'>'}</span>
+            <span 
+              className="card-link" 
+              onClick={onConversationDetail}
+              style={{ cursor: 'pointer' }}
+            >
+              자세히 보기 {'>'}
+            </span>
           </div>
           <div className="card-content">
             <div className="highlight-text">대화 요약</div>
@@ -62,28 +70,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ onLogout }) => {
       </div>
 
       {/* 하단 네비게이션 */}
-      <div className="bottom-nav">
-        <div className="nav-item active">
-          <span className="nav-icon">🏠</span>
-          <span className="nav-label">홈</span>
-        </div>
-        <div className="nav-item">
-          <span className="nav-icon">🎥</span>
-          <span className="nav-label">영상</span>
-        </div>
-        <div className="nav-item">
-          <span className="nav-icon">📅</span>
-          <span className="nav-label">달력</span>
-        </div>
-        <div className="nav-item">
-          <span className="nav-icon">📖</span>
-          <span className="nav-label">가이드</span>
-        </div>
-        <div className="nav-item">
-          <span className="nav-icon">⚙️</span>
-          <span className="nav-label">설정</span>
-        </div>
-      </div>
+      <Footer />
     </div>
   );
 };

@@ -5,9 +5,10 @@ import SplashScreen from '@/screens/SplashScreen';
 import LoginScreen from '@/screens/LoginScreen';
 import SignUpScreen from '@/screens/SignUpScreen';
 import MainScreen from '@/screens/MainScreen';
+import TodayConversationDetailScreen from '@/screens/TodayConversationDetailScreen';
 
 export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main'>('splash');
+  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail'>('splash');
 
   const handleLogin = () => {
     console.log('로그인 버튼 클릭');
@@ -38,6 +39,16 @@ export default function Home() {
     setCurrentScreen('splash');
   };
 
+  const handleConversationDetail = () => {
+    console.log('오늘 대화 상세 보기');
+    setCurrentScreen('conversation-detail');
+  };
+
+  const handleBackToMain = () => {
+    console.log('메인으로 돌아가기');
+    setCurrentScreen('main');
+  };
+
   if (currentScreen === 'splash') {
     return <SplashScreen onLogin={handleLogin} onSignUp={handleSignUp} />;
   }
@@ -50,5 +61,9 @@ export default function Home() {
     return <SignUpScreen onBack={handleBackToSplash} onSignUpComplete={handleSignUpComplete} />;
   }
 
-  return <MainScreen onLogout={handleLogout} />;
+  if (currentScreen === 'conversation-detail') {
+    return <TodayConversationDetailScreen onBack={handleBackToMain} />;
+  }
+
+  return <MainScreen onLogout={handleLogout} onConversationDetail={handleConversationDetail} />;
 }
