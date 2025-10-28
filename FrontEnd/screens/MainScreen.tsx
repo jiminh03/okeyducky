@@ -30,7 +30,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ onLogout }) => {
         </div>
 
         {/* 오늘 대화 카드 */}
-        <div className="content-card">
+        <div className="content-card today-conversation-card">
           <div className="card-header">
             <h3 className="card-title">오늘 대화</h3>
             <span className="card-link">자세히 보기 {'>'}</span>
@@ -46,7 +46,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ onLogout }) => {
         </div>
 
         {/* 일일 리포트 카드 */}
-        <div className="content-card">
+        <div className="content-card report-card">
           <div className="card-header">
             <h3 className="card-title">일일 리포트</h3>
             <span className="card-link">자세히 보기 {'>'}</span>
