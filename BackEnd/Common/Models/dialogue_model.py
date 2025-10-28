@@ -10,10 +10,10 @@ if TYPE_CHECKING:
 class DailyReport(SQLModel, table=True):
     report_id: Optional[int] = Field(default=None, primary_key=True)
     date: date
-    daily_summary: str
-    analysis_summary: str
-    positive_keywords: str
-    special_notes: str
+    daily_summary: Optional[str] = None
+    analysis_summary: Optional[str] = None
+    positive_keywords: Optional[str] = None
+    special_notes: Optional[str] = None
 
     child_id: Optional[int] = Field(default=None, foreign_key="child.child_id")
     child: Optional["Child"] = Relationship(back_populates="daily_reports")
