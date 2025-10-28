@@ -12,7 +12,7 @@
 .main-content-area {
   flex: 1;
   overflow: hidden;
-  padding: 12px 12px 80px 12px;
+  padding: 12px 12px 100px 12px;
   display: flex;
   flex-direction: column;
 }
@@ -181,7 +181,7 @@
 /* 반응형 디자인 */
 @media (max-width: 480px) {
   .main-content-area {
-    padding: 12px;
+    padding: 12px 12px 100px 12px;
   }
   
   .profile-card {
