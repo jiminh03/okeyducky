@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './LoginScreen.css';
+import '@/screens/LoginScreen.css';
 
 interface LoginScreenProps {
   onBack: () => void;

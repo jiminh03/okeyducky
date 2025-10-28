@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './SignUpScreen.css';
+import '@/screens/SignUpScreen.css';
 
 interface SignUpScreenProps {
   onBack: () => void;
@@ -58,7 +58,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete })
         <form onSubmit={handleSubmit} className="signup-form">
           {/* 이름 */}
           <div className="form-group">
-            <label className="form-label">이름</label>
+            <label className="form-label">이름 <span className="required-star">*</span></label>
             <input
               type="text"
               name="name"
@@ -72,7 +72,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete })
 
           {/* 아이디(이메일) */}
           <div className="form-group">
-            <label className="form-label">아이디(이메일)</label>
+            <label className="form-label">아이디(이메일) <span className="required-star">*</span></label>
             <input
               type="email"
               name="email"
@@ -86,7 +86,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete })
 
           {/* 비밀번호 */}
           <div className="form-group">
-            <label className="form-label">비밀번호</label>
+            <label className="form-label">비밀번호 <span className="required-star">*</span></label>
             <input
               type="password"
               name="password"
@@ -100,7 +100,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete })
 
           {/* 비밀번호 확인 */}
           <div className="form-group">
-            <label className="form-label">비밀번호 확인</label>
+            <label className="form-label">비밀번호 확인 <span className="required-star">*</span></label>
             <input
               type="password"
               name="confirmPassword"

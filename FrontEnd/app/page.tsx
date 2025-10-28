@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import SplashScreen from '@/components/SplashScreen';
-import LoginScreen from '@/components/LoginScreen';
-import SignUpScreen from '@/components/SignUpScreen';
+import SplashScreen from '@/screens/SplashScreen';
+import LoginScreen from '@/screens/LoginScreen';
+import SignUpScreen from '@/screens/SignUpScreen';
+import MainScreen from '@/screens/MainScreen';
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main'>('splash');
@@ -32,6 +33,11 @@ export default function Home() {
     setCurrentScreen('main');
   };
 
+  const handleLogout = () => {
+    console.log('로그아웃');
+    setCurrentScreen('splash');
+  };
+
   if (currentScreen === 'splash') {
     return <SplashScreen onLogin={handleLogin} onSignUp={handleSignUp} />;
   }
@@ -44,13 +50,5 @@ export default function Home() {
     return <SignUpScreen onBack={handleBackToSplash} onSignUpComplete={handleSignUpComplete} />;
   }
 
-  return (
-    <div className="main-app">
-      <h1>오키더키 메인 화면</h1>
-      <p>스플래시 화면에서 로그인 또는 회원가입을 완료했습니다!</p>
-      <button onClick={() => setCurrentScreen('splash')}>
-        스플래시 화면으로 돌아가기
-      </button>
-    </div>
-  );
+  return <MainScreen onLogout={handleLogout} />;
 }
