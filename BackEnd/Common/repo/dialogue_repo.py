@@ -9,11 +9,14 @@ from common.modules.database import get_session
 from common.models.dialogue_model import *
 from common.schemas.dialogue_schema import *
 
+
 class DialogueRepo:
     def __init__(self, session: AsyncSession = Depends(get_session)):
         self.session = session
 
-    async def create_daily_report(self, report: DailyReportCreate) -> DailyReportResponse:
+    async def create_daily_report(
+        self, report: DailyReportCreate
+    ) -> DailyReportResponse:
         new_report = DailyReport(
             date=report.date,
             daily_summary=report.daily_summary,
@@ -36,14 +39,33 @@ class DialogueRepo:
         await self.session.commit()
         await self.session.refresh(new_report)
         return new_report
+    
+    async def update_daily_report(
+        self, report_id: int, report_update: DailyReportUpdateRequest
+    ) -> Optional[DailyReportResponse]:
+        report = await self.get_daily_report_by_id(report_id)
+        if not report:
+            return None
 
-    async def get_daily_report_by_id(self, report_id: int) -> Optional[DailyReportResponse]:
+        update_data = report_update.model_dump(exclude_none=True)
+        for key, value in update_data.items():
+            setattr(report, key, value)
+
+        await self.session.commit()
+        await self.session.refresh(report)
+        return report
+
+    async def get_daily_report_by_id(
+        self, report_id: int
+    ) -> Optional[DailyReportResponse]:
         query = text("SELECT * FROM DailyReport WHERE report_id = :report_id")
         result = await self.session.execute(query, {"report_id": report_id})
         report = result.scalar_one_or_none()
         return report
 
-    async def get_daily_reports_by_child_id(self, child_id: int) -> List[DailyReportResponse]:
+    async def get_daily_reports_by_child_id(
+        self, child_id: int
+    ) -> List[DailyReportResponse]:
         query = text("SELECT * FROM DailyReport WHERE child_id = :child_id")
         result = await self.session.execute(query, {"child_id": child_id})
         reports = result.scalars().all()

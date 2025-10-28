@@ -16,12 +16,15 @@ class DialogueLogResponse(DialogueLogBase):
         from_attributes=True
     )
 
+class DialogueLogCreate(DialogueLogBase):
+    report_id: int
+
 class DailyReportBase(BaseModel):
     date: date
-    daily_summary: str
-    analysis_summary: str
-    positive_keywords: str
-    special_notes: str
+    daily_summary: Optional[str] = None
+    analysis_summary: Optional[str] = None
+    positive_keywords: Optional[str] = None
+    special_notes: Optional[str] = None
 
 class DailyReportResponse(DailyReportBase):
     report_id: int
@@ -35,5 +38,8 @@ class DailyReportCreate(DailyReportBase):
     child_id: int
     dialogue_logs: List[DialogueLogBase] = []
 
-class DialogueLogCreate(DialogueLogBase):
-    report_id: int
+class DailyReportUpdateRequest(BaseModel):
+    daily_summary: Optional[str] = None
+    analysis_summary: Optional[str] = None
+    positive_keywords: Optional[str] = None
+    special_notes: Optional[str] = None
