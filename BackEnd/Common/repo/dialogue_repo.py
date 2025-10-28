@@ -39,7 +39,7 @@ class DialogueRepo:
         await self.session.commit()
         await self.session.refresh(new_report)
         return new_report
-    
+
     async def update_daily_report(
         self, report_id: int, report_update: DailyReportUpdateRequest
     ) -> Optional[DailyReportResponse]:
@@ -63,13 +63,31 @@ class DialogueRepo:
         report = result.scalar_one_or_none()
         return report
 
-    async def get_daily_reports_by_child_id(
-        self, child_id: int
+    async def get_daily_reports_by_child_id_and_date_range(  # 함수 이름 변경 및 파라미터 추가
+        self, child_id: int, start_date: date, end_date: date
     ) -> List[DailyReportResponse]:
-        query = text("SELECT * FROM DailyReport WHERE child_id = :child_id")
-        result = await self.session.execute(query, {"child_id": child_id})
-        reports = result.scalars().all()
-        return reports
+        """
+        특정 아이의 지정된 기간 동안의 일일 리포트 목록을 조회합니다.
+        """
+
+        query = text(
+            "SELECT * FROM DailyReport "
+            "WHERE child_id = :child_id "
+            "AND date >= :start_date AND date <= :end_date "
+            "ORDER BY date ASC"  # 날짜순 정렬 추가 (선택 사항)
+        )
+
+        result = await self.session.execute(
+            query,
+            {"child_id": child_id, "start_date": start_date, "end_date": end_date},
+        )
+
+        db_reports = result.fetchall()
+        response_reports = [
+            DailyReportResponse.model_validate(report) for report in db_reports
+        ]
+
+        return response_reports
 
     async def create_dialogue_log(self, log: DialogueLogCreate) -> DialogueLogResponse:
         new_log = DialogueLog(
