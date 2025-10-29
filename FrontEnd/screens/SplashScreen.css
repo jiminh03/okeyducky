@@ -109,6 +109,7 @@
 
 .logo-container {
   margin-bottom: 150px;
+  margin-top: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -234,6 +235,10 @@
 
 /* 일반 모바일 (361px ~ 480px) */
 @media (max-width: 480px) {
+  .logo-container {
+    margin-top: 60px;
+  }
+  
   .title-img {
     max-width: 200px;
   }
