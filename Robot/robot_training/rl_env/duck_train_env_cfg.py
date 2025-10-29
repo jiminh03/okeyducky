@@ -31,7 +31,7 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
     # robot(s)
     ENV_REGEX_NS = "/World/envs/env_.*"
     robot_cfg: ArticulationCfg = DUCK_CFG.replace(
-            prim_path=f"{ENV_REGEX_NS}/Open_Duck_Mini_v2",
+            prim_path=f"{ENV_REGEX_NS}/Robot",
    )    
 
     # scene
@@ -42,12 +42,13 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
     )
     
     scene.imu = ImuCfg(
-            prim_path=f"{ENV_REGEX_NS}/Open_Duck_Mini_v2/body_assembly/trunk_assembly/BNO055",
-            update_period=sim.dt,
+        prim_path=f"{ENV_REGEX_NS}/Robot/Open_Duck_Mini_v2/Open_Duck_Mini_v2/body_assembly",
+        update_period=sim.dt,
     )
+
     
     scene.contact_forces = ContactSensorCfg(
-        prim_path=f"{ENV_REGEX_NS}/Open_Duck_Mini_v2/Open_Duck_Mini_v2/.*foot_bottom_tpu",
+        prim_path=f"{ENV_REGEX_NS}/Robot/Open_Duck_Mini_v2/Open_Duck_Mini_v2/foot.*",
         update_period=0.0,
         history_length=6,
         filter_prim_paths_expr=["/World/GroundPlane"],

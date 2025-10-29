@@ -6,7 +6,7 @@ from isaaclab.assets.articulation import ArticulationCfg
 DUCK_CFG = ArticulationCfg(
     # 로봇 스폰 설정
     spawn=sim_utils.UsdFileCfg(
-        usd_path="C:/Users/SSAFY/S13P31A408/Robot/robot_training/usd/duck_robot.usd", # 로봇 usd 파일 링크
+        usd_path="C:/Users/bmj42/Duck_Robot_Project/S13P31A408/Robot/robot_training/usd/duck_robot.usd", # 로봇 usd 파일 링크
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             rigid_body_enabled=True,            # 로봇에 링크를 시뮬에 넣음
             max_linear_velocity=10.0,         # 링크 선속도 상한
@@ -22,6 +22,7 @@ DUCK_CFG = ArticulationCfg(
             sleep_threshold=0.005,              # 링크가 sleep(계산에서 제외)되는 임계값
             stabilization_threshold=0.001,      # 작은 노이즈 감쇠 임계값(미세한 떨림 억제)
         ),
+        activate_contact_sensors=True,
     ),
     init_state=ArticulationCfg.InitialStateCfg( # 조인트 초기값
         joint_pos={

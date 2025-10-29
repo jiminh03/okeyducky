@@ -41,6 +41,11 @@ class DuckTrainEnv(DirectRLEnv):
 
         # 캐시
         self._zeros_action = torch.zeros((self.num_envs, self.num_actions), device=self.device)
+        
+        # -- 센서 값 가져오기 --
+        self._imu = self.scene["imu"]
+        self._feet_contact = self.scene["contact_forces"]
+
 
     def _setup_scene(self):
         # 로봇
@@ -63,10 +68,7 @@ class DuckTrainEnv(DirectRLEnv):
         light = sim_utils.DomeLightCfg(intensity=1500.0)
         light.func("/World/Light", light)
         
-        # -- 센서 값 가져오기 --
-        self._imu = self.scene["imu"]
-        self._feet_contact = self.scene["contact_forces"]
-
+        
     def _pre_physics_step(self, actions: torch.Tensor) -> None:
         # 액션 크기/NaN 방지
         if actions is None:
@@ -94,19 +96,22 @@ class DuckTrainEnv(DirectRLEnv):
         lin_acc_b = getattr(imu_data, "lin_acc_b")
         if lin_acc_b is None: 
             raise RuntimeError("IMU: cannot find lin_acc_b")
-        upright = getattr(imu_data, "quat_b")
+        upright = getattr(imu_data, "quat_w")
         if upright is None: 
-            raise RuntimeError("IMU: cannot find upright")
+               raise RuntimeError("IMU: cannot find upright")
         
         imu_obs = []
         imu_obs.append(ang_vel_b)
         imu_obs.append(lin_acc_b) 
         imu_obs.append(upright) 
-        # ------------------ contact sensor ------------------
+        # # ------------------ contact sensor ------------------
         contact_data = self._feet_contact.data
         net_forces_w = getattr(contact_data, "net_forces_w")
         if net_forces_w is None: 
             raise RuntimeError("ContactSensor: cannot find net_forces_w")
+        if net_forces_w.dim() == 4:
+            net_forces_w = net_forces_w[..., -1, :] 
+        
         f_n = torch.clamp(net_forces_w[...,2], min=0.0) # 평탄화
         
         # 히스테리시스 이진화
@@ -121,9 +126,11 @@ class DuckTrainEnv(DirectRLEnv):
         
         
         obs = torch.cat(
-            [q, qd, foot_bin.unsqueeze(-1), foot_force_norm.unsqueeze(-1)] + imu_obs,
+            [q, qd, foot_bin, foot_force_norm] + imu_obs,
             dim=-1
         )
+        
+       # obs = torch.cat([q, qd], dim=-1)
         
         # 수치 안정화(초기 폭주 방지)
         obs = torch.nan_to_num(obs, nan=0.0, posinf=1e6, neginf=-1e6).clamp_(-20.0, 20.0)
