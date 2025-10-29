@@ -1,20 +1,19 @@
 .detail-header {
   background: #FFE300;
-  padding: 24px 8px;
+  padding: 24px 16px 24px 12px;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  height: 88px;
 }
 
 .detail-header-bottom {
   display: flex;
   align-items: center;
   gap: 0px;
-  min-height: 64px;
+  min-height: 56px;
 }
 
 .detail-back-button {
@@ -23,14 +22,14 @@
   color: #ffffff;
   cursor: pointer;
   padding: 0;
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
   transition: transform 0.2s ease;
-  margin-right: -2px;
+  margin-right: 0;
 }
 
 .detail-back-button svg {
@@ -48,22 +47,21 @@
   font-weight: 700;
   color: #ffffff;
   margin: 0;
-  margin-left: -8px;
-  margin-top: 2px;
+  margin-left: 0;
+  margin-top: 0;
   flex: 1;
   text-align: left;
   line-height: 1.2;
 }
 
 .detail-header-spacer {
-  width: 48px;
+  width: 56px;
 }
 
 /* 반응형 디자인 */
 @media (max-width: 480px) {
   .detail-header {
-    padding: 20px 8px;
-    height: 88px;
+    padding: 20px 12px 20px 8px;
   }
 
   .detail-header-bottom {
@@ -81,7 +79,7 @@
   }
 
   .detail-header-spacer {
-    width: 40px;
+    width: 48px;
   }
 }
 

@@ -16,9 +16,9 @@ const DailyReportScreen: React.FC<DailyReportScreenProps> = ({ onBack }) => {
       {/* 메인 콘텐츠 */}
       <div className="report-content-area">
         {/* 리포트 카드 */}
-        <div className="report-card">
+        <div className="daily-report-detail-card">
           {/* 리포트 헤더 */}
-          <div className="report-card-header">
+          <div className="daily-report-card-header">
             <div className="report-date">
               <span className="calendar-icon">📅</span>
               <span>10월 18일 리포트</span>
