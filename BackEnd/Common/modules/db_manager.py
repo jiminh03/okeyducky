@@ -1,4 +1,5 @@
 import os
+import json
 from typing import AsyncGenerator, Callable
 
 from common.models import *
@@ -19,19 +20,33 @@ class MysqlSessionManager:
     aiomysql 드라이버를 사용합니다.
     """
 
-    def __init__(self, db_user, db_password, db_host, db_port, db_name):
+    def __init__(self, db_user, db_password, db_host, db_port, db_name, db_ssl_config):
         self.db_user = db_user
         self.db_password = db_password
         self.db_host = db_host
         self.db_port = db_port
         self.db_name = db_name
+        self.db_ssl_config = db_ssl_config
 
-        # 1. (변경) DB URL을 mysql+aiomysql 형식으로 수정
         self.db_url = (
-            f"mysql+aiomysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+            f"mysql+asyncmy://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
-        self.engine = create_async_engine(self.db_url, echo=False)
+        connect_args = {}
+        if self.db_ssl_config:
+            try:
+                # DB_SSL_CONFIG 환경 변수(문자열)를 JSON으로 파싱하여 connect_args에 추가합니다.
+                ssl_config = json.loads(self.db_ssl_config)
+                connect_args["ssl"] = ssl_config
+            except json.JSONDecodeError:
+                # 단순 "true" 문자열일 경우 True 불리언으로 변환합니다.
+                if self.db_ssl_config.lower() == "true":
+                    connect_args["ssl"] = True
+                else:
+                    # 유효하지 않은 형식의 값일 경우 에러를 발생시킵니다.
+                    raise ValueError(f"Invalid DB_SSL_CONFIG format: {self.db_ssl_config}")
+
+        self.engine = create_async_engine(self.db_url, echo=False, connect_args=connect_args)
         self.AsyncSessionMaker = async_sessionmaker(
             self.engine, class_=AsyncSession, expire_on_commit=False
         )
