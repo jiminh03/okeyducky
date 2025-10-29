@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Footer from '@/components/Footer';
+import DetailHeader from '@/components/DetailHeader';
 import './TodayConversationDetailScreen.css';
 
 interface TodayConversationDetailScreenProps {
@@ -12,29 +13,7 @@ const TodayConversationDetailScreen: React.FC<TodayConversationDetailScreenProps
   return (
     <div className="conversation-detail-screen">
       {/* 상단 헤더 */}
-      <div className="conversation-header">
-        <div className="header-bottom">
-          <button className="back-button" onClick={onBack}>
-            <svg 
-              width="36" 
-              height="36" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path 
-                d="M15 18L9 12L15 6" 
-                stroke="currentColor" 
-                strokeWidth="3" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <h1 className="page-title">오늘 대화</h1>
-          <div className="header-spacer"></div>
-        </div>
-      </div>
+      <DetailHeader title="오늘 대화" onBack={onBack} />
 
       {/* 메인 콘텐츠 */}
       <div className="conversation-content-area">

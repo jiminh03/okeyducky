@@ -1,0 +1,87 @@
+.detail-header {
+  background: #FFE300;
+  padding: 24px 8px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 88px;
+}
+
+.detail-header-bottom {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  min-height: 64px;
+}
+
+.detail-back-button {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: transform 0.2s ease;
+  margin-right: -2px;
+}
+
+.detail-back-button svg {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.detail-back-button:hover {
+  transform: translateX(-2px);
+}
+
+.detail-page-title {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  margin-left: -8px;
+  margin-top: 2px;
+  flex: 1;
+  text-align: left;
+  line-height: 1.2;
+}
+
+.detail-header-spacer {
+  width: 48px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  .detail-header {
+    padding: 20px 8px;
+    height: 88px;
+  }
+
+  .detail-header-bottom {
+    min-height: 48px;
+  }
+
+  .detail-back-button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .detail-back-button svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .detail-header-spacer {
+    width: 40px;
+  }
+}
+
