@@ -23,8 +23,6 @@ class DailyReportBase(BaseModel):
     date: date
     daily_summary: Optional[str] = None
     analysis_summary: Optional[str] = None
-    positive_keywords: Optional[str] = None
-    special_notes: Optional[str] = None
 
 class DailyReportResponse(DailyReportBase):
     report_id: int
@@ -41,5 +39,3 @@ class DailyReportCreate(DailyReportBase):
 class DailyReportUpdateRequest(BaseModel):
     daily_summary: Optional[str] = None
     analysis_summary: Optional[str] = None
-    positive_keywords: Optional[str] = None
-    special_notes: Optional[str] = None

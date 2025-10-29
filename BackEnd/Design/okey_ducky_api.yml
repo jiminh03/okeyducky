@@ -247,16 +247,6 @@ components:
         analysis_summary:
           type: string
           description: "AI가 분석한 주요 대화 주제 요약"
-        positive_keywords:
-          type: array
-          items:
-            type: string
-          example: ["공룡", "신난다", "좋아"]
-        special_notes:
-          type: array
-          items:
-            type: string
-          example: ["'할머니 보고 싶다' 3회 언급"]
 
 paths:
   # --- 인증 (Authentication) ---

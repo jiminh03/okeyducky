@@ -21,8 +21,6 @@ class DialogueRepo:
             date=report.date,
             daily_summary=report.daily_summary,
             analysis_summary=report.analysis_summary,
-            positive_keywords=report.positive_keywords,
-            special_notes=report.special_notes,
             child_id=report.child_id,
         )
         self.session.add(new_report)
