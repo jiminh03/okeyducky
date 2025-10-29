@@ -11,6 +11,7 @@ from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sim import SimulationCfg
 from isaaclab.utils import configclass
 
+from isaaclab.sensors import ImuCfg, ContactSensorCfg
 
 @configclass
 class DuckTrainEnvCfg(DirectRLEnvCfg):
@@ -19,21 +20,40 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
     decimation = 2
     episode_length_s = 5.0
     # - spaces definition
-    action_scale = 100.0 # [N]
-    action_space = 1
-    observation_space = 4
+    action_scale = 0.1 # [N]
+    action_space = 14
+    observation_space = 6
     state_space = 0
 
     # simulation
     sim: SimulationCfg = SimulationCfg(dt=1 / 120, render_interval=decimation)
 
     # robot(s)
-    robot_cfg: ArticulationCfg = DUCK_CFG.replace(prim_path="/World/Open_Duck_Mini_v2/Open_Duck_Mini_v2")
+    ENV_REGEX_NS = "/World/envs/env_.*"
+    robot_cfg: ArticulationCfg = DUCK_CFG.replace(
+            prim_path=f"{ENV_REGEX_NS}/Open_Duck_Mini_v2",
+   )    
 
     # scene
-    scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=4096, env_spacing=4.0, replicate_physics=True)
+    scene: InteractiveSceneCfg = InteractiveSceneCfg(
+        num_envs=10, 
+        env_spacing=4.0, 
+        replicate_physics=True,
+    )
+    
+    scene.imu = ImuCfg(
+            prim_path=f"{ENV_REGEX_NS}/Open_Duck_Mini_v2/body_assembly/trunk_assembly/BNO055",
+            update_period=sim.dt,
+    )
+    
+    scene.contact_forces = ContactSensorCfg(
+        prim_path=f"{ENV_REGEX_NS}/Open_Duck_Mini_v2/Open_Duck_Mini_v2/.*foot_bottom_tpu",
+        update_period=0.0,
+        history_length=6,
+        filter_prim_paths_expr=["/World/GroundPlane"],
+    )
 
-
+    observe_extra_dof_names: list[str] = []
     # 학습에서 제어할 DOF (RL 정책 정하기 쉽게 그룹화 하기)
     # --- semantic DOF groups ---
     left_leg_names  = ["dof_left_hip_yaw","dof_left_hip_roll","dof_left_hip_pitch",
@@ -67,9 +87,12 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
     }
 
     # 보상/종료 조건 스케일(예시)
-    rew_w_upright = 2.0     # 직립(roll/pitch) 보상 가중치
-    rew_w_pose    = 1.0     # 목표 포즈 근접 보상
+    rew_alive = 0.2
+    rew_w_upright = 1.0     # 직립(roll/pitch) 보상 가중치
+    # rew_w_pose    = 1.0     # 목표 포즈 근접 보상
     rew_w_vel     = 0.02    # 관절 속도 패널티
-    rew_w_tau     = 0.002   # 토크 L2 패널티
+    # rew_w_tau     = 0.002   # 토크 L2 패널티
+    rew_w_action_rate = 0.01
     term_max_tilt = 0.7     # [rad] |roll| or |pitch| > 0.7 rad이면 종료
     term_min_base_z = 0.15  # [m] 베이스가 너무 낮아지면 종료
+

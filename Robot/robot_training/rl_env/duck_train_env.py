@@ -1,166 +1,161 @@
-# Copyright (c) 2022-2025, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
-# All rights reserved.
-#
+# duck_train_env.py
 # SPDX-License-Identifier: BSD-3-Clause
 
-from __future__ import annotations
+# duck_train_env.py  (최소 동작 버전)
 
+from __future__ import annotations
 import math
+from typing import Sequence
+
 import torch
-from collections.abc import Sequence
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import Articulation
 from isaaclab.envs import DirectRLEnv
 from isaaclab.sim.spawners.from_files import GroundPlaneCfg, spawn_ground_plane
-from isaaclab.utils.math import sample_uniform
-
-from .duck_train_env_cfg import DuckTrainEnvCfg
-
+from isaaclab.utils.math import sample_uniform, quat_apply
 
 class DuckTrainEnv(DirectRLEnv):
-    cfg: DuckTrainEnvCfg
+    """Minimal env: 제어 DOF (q, qd)만 관측 / 위치제어 / 서있기 보상 / 기울기 종료"""
 
-    def __init__(self, cfg: DuckTrainEnvCfg, render_mode: str | None = None, **kwargs):
+    cfg: "DuckTrainEnvCfg"
+
+    def __init__(self, cfg: "DuckTrainEnvCfg", render_mode: str | None = None, **kwargs):
         super().__init__(cfg, render_mode, **kwargs)
-        
-        self.action_scale = self.cfg.action_scale
 
+        # --- 인덱스/스케일/차원 초기화 ---
+        # 제어할 조인트들
+        self._ctrl_idx, _ = self.robot.find_joints(self.cfg.control_dof_names)
+        if not self._ctrl_idx:
+            raise RuntimeError(f"[duck] control_dof_names not found on stage: {self.cfg.control_dof_names}")
 
-        # 조인트의 위치와 속도를 가져옴
-        self.joint_pos = self.duck.data.joint_pos
-        self.joint_vel = self.duck.data.joint_vel
+        # 액션 스케일 (없으면 작은 값)
+        self.action_scale = float(getattr(self.cfg, "action_scale", 0.05))
 
+        # 관측 차원: (q, qd)만 — 2 * (#ctrl)
+        self.num_actions = len(self._ctrl_idx)
+        self.num_obs = 2 * len(self._ctrl_idx)
 
+        # 종료 기준(라디안): 없으면 45도
+        self._max_tilt = float(getattr(self.cfg, "max_tilt_rad", math.pi / 4))
 
-    # ---- scene ----
+        # 캐시
+        self._zeros_action = torch.zeros((self.num_envs, self.num_actions), device=self.device)
+
     def _setup_scene(self):
-        self.duck = Articulation(self.cfg.robot_cfg)
+        # 로봇
+        self.robot = Articulation(self.cfg.robot_cfg)
 
-        # ground
-        spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg())
+        # 바닥
+        spawn_ground_plane(prim_path="/World/GroundPlane", cfg=GroundPlaneCfg())
 
-        # 복제
+        # 씬 복제
         self.scene.clone_environments(copy_from_source=False)
+
+        # CPU일 땐 충돌 필터
         if self.device == "cpu":
             self.scene.filter_collisions(global_prim_paths=[])
 
         # 등록
         self.scene.articulations["robot"] = self.robot
 
-        # 조명
-        light_cfg = sim_utils.DomeLightCfg(intensity=2000.0, color=(0.75, 0.75, 0.75))
-        light_cfg.func("/World/Light", light_cfg)
+        # 기본 라이트(선택)
+        light = sim_utils.DomeLightCfg(intensity=1500.0)
+        light.func("/World/Light", light)
+        
+        # -- 센서 값 가져오기 --
+        self._imu = self.scene["imu"]
+        self._feet_contact = self.scene["contact_forces"]
 
-        # 데이터 뷰
-        self.joint_pos = self.robot.data.joint_pos
-        self.joint_vel = self.robot.data.joint_vel
-
-        # DOF 인덱스 매핑
-        names = self.robot.dof_names
-        def idx_of(nlist):
-            return torch.tensor([names.index(n) for n in nlist if n in names], device=self.device, dtype=torch.long)
- 
-        self._ctrl_idx = idx_of(self.cfg.control_dof_names)
-        self._obs_idx_extra = idx_of(self.cfg.observe_extra_dof_names)
-
-        # 액션/관측 차원 업데이트(선택)
-        self.num_actions = int(self._ctrl_idx.numel())
-        self.num_obs = 2 + 3 + self.num_actions*2 + int(self._obs_idx_extra.numel())*2
-        # 2 (roll,pitch) + 3 (base ang vel xyz) + q_rel/dq for control + q_rel/dq for extra
-
-    # ---- step hooks ----
     def _pre_physics_step(self, actions: torch.Tensor) -> None:
-        # [-1,1] → 증분 목표(rad)
-        self.actions = actions.clamp(-1.0, 1.0)
+        # 액션 크기/NaN 방지
+        if actions is None:
+            self.actions = self._zeros_action
+        else:
+            # 정책 출력이 더 커도 제어 DOF 개수에 맞춰 슬라이스
+            self.actions = actions[..., : self.num_actions].clamp_(-1.0, 1.0)
 
     def _apply_action(self) -> None:
-        # 현재 q, 기본자세 q0
-        q = self.joint_pos
-        q0 = self.robot.data.default_joint_pos
+        # 간단한 위치 제어: q_target = q + action * scale
+        q = self.robot.data.joint_pos
+        q_t = q[:, self._ctrl_idx] + self.actions * self.action_scale
+        self.robot.set_joint_position_target(q_t, joint_ids=self._ctrl_idx)
 
-        # 증분 목표 생성
-        target = q.clone()
-        target[:, self._ctrl_idx] = (q[:, self._ctrl_idx]
-                                     + self.actions * self.cfg.action_scale)
-
-        # 조인트 리미트로 클램프
-        jmin = self.robot.data.joint_pos_limits[..., 0]
-        jmax = self.robot.data.joint_pos_limits[..., 1]
-        target = torch.max(torch.min(target, jmax), jmin)
-
-        # 위치 드라이브 목표로 적용 (로봇 cfg에서 position actuator 사용 가정)
-        self.robot.set_joint_position_target(target)
-
-    # ---- obs/reward/done/reset ----
     def _get_observations(self) -> dict:
-        # 베이스 roll/pitch 추출(쿼터니언 → body-up 기준)
-        base_quat = self.robot.data.root_quat
-        up_world = torch.tensor([0, 0, 1], device=self.device, dtype=base_quat.dtype).repeat(base_quat.shape[0], 1)
-        # body z축(로컬 up)을 월드로
-        body_z_world = quat_apply(base_quat, torch.tensor([0,0,1], device=self.device, dtype=base_quat.dtype))
-        # 롤/피치 근사
-        pitch = torch.atan2(-body_z_world[:,0], body_z_world[:,2])
-        roll  = torch.atan2( body_z_world[:,1], body_z_world[:,2])
-
-        base_ang_vel = self.robot.data.root_ang_vel  # (N,3)
-
-        q = self.joint_pos
-        dq = self.joint_vel
-        q0 = self.robot.data.default_joint_pos
-
-        q_rel_ctrl = (q[:, self._ctrl_idx] - q0[:, self._ctrl_idx])
-        dq_ctrl    = dq[:, self._ctrl_idx]
-
-        if self._obs_idx_extra.numel() > 0:
-            q_rel_extra = (q[:, self._obs_idx_extra] - q0[:, self._obs_idx_extra])
-            dq_extra    = dq[:, self._obs_idx_extra]
-            obs = torch.cat([roll.unsqueeze(1), pitch.unsqueeze(1),
-                             base_ang_vel,
-                             q_rel_ctrl, dq_ctrl,
-                             q_rel_extra, dq_extra], dim=-1)
-        else:
-            obs = torch.cat([roll.unsqueeze(1), pitch.unsqueeze(1),
-                             base_ang_vel,
-                             q_rel_ctrl, dq_ctrl], dim=-1)
-
+        q = self.robot.data.joint_pos[:, self._ctrl_idx]
+        qd = self.robot.data.joint_vel[:, self._ctrl_idx]
+        # obs = torch.cat([q, qd], dim=-1)
+        
+        # ------------------ IMU ------------------
+        imu_data = self._imu.data
+        ang_vel_b = getattr(imu_data, "ang_vel_b")
+        if ang_vel_b is None: 
+            raise RuntimeError("IMU: cannot find ang_vel_b")
+        lin_acc_b = getattr(imu_data, "lin_acc_b")
+        if lin_acc_b is None: 
+            raise RuntimeError("IMU: cannot find lin_acc_b")
+        upright = getattr(imu_data, "quat_b")
+        if upright is None: 
+            raise RuntimeError("IMU: cannot find upright")
+        
+        imu_obs = []
+        imu_obs.append(ang_vel_b)
+        imu_obs.append(lin_acc_b) 
+        imu_obs.append(upright) 
+        # ------------------ contact sensor ------------------
+        contact_data = self._feet_contact.data
+        net_forces_w = getattr(contact_data, "net_forces_w")
+        if net_forces_w is None: 
+            raise RuntimeError("ContactSensor: cannot find net_forces_w")
+        f_n = torch.clamp(net_forces_w[...,2], min=0.0) # 평탄화
+        
+        # 히스테리시스 이진화
+        th_on, th_off = 3.0, 1.5 # 튜닝 포인트
+        prev = getattr(self, "_foot_bin_prev", torch.zeros_like(f_n))
+        foot_bin = torch.where(prev > 0.5, (f_n > th_off).float(), (f_n > th_on).float())
+        self._foot_bin_prev = foot_bin
+        
+        # 연속 힘(정규화)
+        Fmax = 50.0
+        foot_force_norm = torch.clamp(f_n / Fmax, 0.0, 1.0)
+        
+        
+        obs = torch.cat(
+            [q, qd, foot_bin.unsqueeze(-1), foot_force_norm.unsqueeze(-1)] + imu_obs,
+            dim=-1
+        )
+        
+        # 수치 안정화(초기 폭주 방지)
+        obs = torch.nan_to_num(obs, nan=0.0, posinf=1e6, neginf=-1e6).clamp_(-20.0, 20.0)
         return {"policy": obs}
 
     def _get_rewards(self) -> torch.Tensor:
-        # 업라이트(몸체 z축과 월드 z축 코사인)
-        base_quat = self.robot.data.root_quat
-        body_z_world = quat_apply(base_quat, torch.tensor([0,0,1], device=self.device, dtype=base_quat.dtype))
-        upright = body_z_world[:, 2].clamp(0.0, 1.0)  # 1=완전 직립
+        # 서있기: z_body.z 가 1에 가까울수록 좋음
+        _, base_quat, _, _ = self._get_root_state()
+        z_body = self._body_z(base_quat)
+        upright = z_body[:, 2].clamp(0.0, 1.0)  # 0~1
 
-        # 토크/액션 패널티 (로봇 핸들이 최근 적용한 명령/토크를 노출한다면 사용)
-        # 여기선 액션 변화율만 사용
-        if not hasattr(self, "_prev_actions"):
-            self._prev_actions = torch.zeros_like(self.actions)
-        action_rate = (self.actions - self._prev_actions)
-        self._prev_actions = self.actions.clone()
+        # 속도 패널티 살짝
+        qd = self.robot.data.joint_vel[:, self._ctrl_idx]
+        vel_pen = torch.sum(qd * qd, dim=-1)
 
-        # 합성
-        rew = (
-            self.cfg.rew_alive
-            + self.cfg.rew_upright * upright
-            + self.cfg.rew_joint_vel * torch.sum(torch.square(self.joint_vel[:, self._ctrl_idx]), dim=-1)
-            + self.cfg.rew_action_rate * torch.sum(torch.square(action_rate), dim=-1)
-        )
+        rew = 1.0 * upright - 0.001 * vel_pen
+        # 수치 안전화
+        rew = torch.nan_to_num(rew, nan=0.0, posinf=-1.0, neginf=-1.0).clamp_(-10.0, 10.0)
         return rew
 
     def _get_dones(self) -> tuple[torch.Tensor, torch.Tensor]:
-        # 넘어짐/타임아웃
-        base_pos = self.robot.data.root_pos
-        base_quat = self.robot.data.root_quat
-        body_z_world = quat_apply(base_quat, torch.tensor([0,0,1], device=self.device, dtype=base_quat.dtype))
-        pitch = torch.atan2(-body_z_world[:,0], body_z_world[:,2])
-        roll  = torch.atan2( body_z_world[:,1],  body_z_world[:,2])
-
-        tipped = (torch.abs(pitch) > self.cfg.max_tilt_rad) | (torch.abs(roll) > self.cfg.max_tilt_rad)
-        too_low = base_pos[:, 2] < self.cfg.min_base_height
-
-        out_of_bounds = tipped | too_low
+        # 에피소드 타임아웃
         time_out = self.episode_length_buf >= self.max_episode_length - 1
+
+        # 큰 기울기면 종료
+        _, base_quat, _, _ = self._get_root_state()
+        z_body = self._body_z(base_quat)
+        # pitch/roll 근사
+        pitch = torch.atan2(-z_body[:, 0], z_body[:, 2])
+        roll = torch.atan2( z_body[:, 1], z_body[:, 2])
+        out_of_bounds = (torch.abs(pitch) > self._max_tilt) | (torch.abs(roll) > self._max_tilt)
+
         return out_of_bounds, time_out
 
     def _reset_idx(self, env_ids: Sequence[int] | None):
@@ -168,23 +163,59 @@ class DuckTrainEnv(DirectRLEnv):
             env_ids = self.robot._ALL_INDICES
         super()._reset_idx(env_ids)
 
-        # 기본 상태
+        # 기본 상태로 리셋
         q0 = self.robot.data.default_joint_pos[env_ids]
-        dq0 = self.robot.data.default_joint_vel[env_ids]
-
-        # 작은 노이즈
-        q0[:, self._ctrl_idx] += (torch.rand_like(q0[:, self._ctrl_idx]) - 0.5) * 0.05  # ±0.025 rad
-        dq0[:, self._ctrl_idx] = 0.0
-
+        qd0 = self.robot.data.default_joint_vel[env_ids]
         root0 = self.robot.data.default_root_state[env_ids]
-        root0[:, :3] += self.scene.env_origins[env_ids]  # 배치 오프셋
+        root0[:, :3] += self.scene.env_origins[env_ids]  # 각 env 위치로 평행이동
+        root0[:, 2] += 0.20
 
-        # 버퍼/시뮬에 기록
-        self.joint_pos[env_ids] = q0
-        self.joint_vel[env_ids] = dq0
+        # 썩소량 초기 랜덤 약간(너무 크지 않게)
+        # q0[:, self._ctrl_idx] += 0.0
+
         self.robot.write_root_pose_to_sim(root0[:, :7], env_ids)
         self.robot.write_root_velocity_to_sim(root0[:, 7:], env_ids)
-        self.robot.write_joint_state_to_sim(q0, dq0, None, env_ids)
-        # 액션 버퍼 리셋
-        if hasattr(self, "_prev_actions"):
-            self._prev_actions[env_ids] =  torch.zeros_like(self._prev_actions[env_ids])
+        self.robot.write_joint_state_to_sim(q0, qd0, None, env_ids)
+
+    # ----------------------------- 유틸 -----------------------------
+
+    def _body_z(self, base_quat: torch.Tensor) -> torch.Tensor:
+        """(N,4[wxyz]) 쿼터니언 기준 body z-axis (N,3)"""
+        n = base_quat.shape[0]
+        unit_z = torch.zeros((n, 3), device=self.device, dtype=base_quat.dtype)
+        unit_z[:, 2] = 1.0
+        return quat_apply(base_quat, unit_z)
+
+
+    def _get_root_state(self):
+        """ArticulationData에서 루트 pos/quat/lin/ang을 안전하게 꺼낸다."""
+        d = self.robot.data
+        if hasattr(d, "root_state_w"):      # (N,13): pos[0:3], quat[3:7], lin[7:10], ang[10:13]
+            rs = d.root_state_w
+            pos = rs[:, 0:3]
+            quat = rs[:, 3:7]
+            lin  = rs[:, 7:10]
+            ang  = rs[:, 10:13]
+            return pos, quat, lin, ang
+        if hasattr(d, "root_state"):
+            rs = d.root_state
+            pos = rs[:, 0:3]
+            quat = rs[:, 3:7]
+            lin  = rs[:, 7:10]
+            ang  = rs[:, 10:13]
+            return pos, quat, lin, ang
+        if hasattr(d, "root_pose_w") and hasattr(d, "root_vel_w"):
+            pos  = d.root_pose_w[:, 0:3]
+            quat = d.root_pose_w[:, 3:7]
+            lin  = d.root_vel_w[:, 0:3]
+            ang  = d.root_vel_w[:, 3:6]
+            return pos, quat, lin, ang
+        if hasattr(d, "body_state_w"):
+            bs = d.body_state_w  # (N, num_bodies, 13) → 루트링크를 0번으로 가정
+            rs = bs[:, 0, :]
+            pos = rs[:, 0:3]
+            quat = rs[:, 3:7]
+            lin  = rs[:, 7:10]
+            ang  = rs[:, 10:13]
+            return pos, quat, lin, ang
+        raise RuntimeError("No root state tensors found on ArticulationData.")
