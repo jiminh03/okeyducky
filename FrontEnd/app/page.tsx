@@ -6,9 +6,10 @@ import LoginScreen from '@/screens/LoginScreen';
 import SignUpScreen from '@/screens/SignUpScreen';
 import MainScreen from '@/screens/MainScreen';
 import TodayConversationDetailScreen from '@/screens/TodayConversationDetailScreen';
+import DailyReportScreen from '@/screens/DailyReportScreen';
 
 export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail'>('splash');
+  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report'>('splash');
 
   const handleLogin = () => {
     console.log('로그인 버튼 클릭');
@@ -49,6 +50,11 @@ export default function Home() {
     setCurrentScreen('main');
   };
 
+  const handleDailyReport = () => {
+    console.log('일일 리포트 상세 보기');
+    setCurrentScreen('daily-report');
+  };
+
   if (currentScreen === 'splash') {
     return <SplashScreen onLogin={handleLogin} onSignUp={handleSignUp} />;
   }
@@ -65,5 +71,9 @@ export default function Home() {
     return <TodayConversationDetailScreen onBack={handleBackToMain} />;
   }
 
-  return <MainScreen onLogout={handleLogout} onConversationDetail={handleConversationDetail} />;
+  if (currentScreen === 'daily-report') {
+    return <DailyReportScreen onBack={handleBackToMain} />;
+  }
+
+  return <MainScreen onLogout={handleLogout} onConversationDetail={handleConversationDetail} onDailyReport={handleDailyReport} />;
 }

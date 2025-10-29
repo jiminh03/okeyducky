@@ -6,9 +6,10 @@ import './MainScreen.css';
 interface MainScreenProps {
   onLogout: () => void;
   onConversationDetail?: () => void;
+  onDailyReport?: () => void;
 }
 
-const MainScreen: React.FC<MainScreenProps> = ({ onLogout, onConversationDetail }) => {
+const MainScreen: React.FC<MainScreenProps> = ({ onLogout, onConversationDetail, onDailyReport }) => {
   return (
     <div className="main-screen">
       {/* 상단 헤더 */}
@@ -59,7 +60,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ onLogout, onConversationDetail 
           <div className="content-card report-card">
             <div className="card-header">
               <h3 className="card-title">일일 리포트</h3>
-              <span className="card-link">자세히 보기 {'>'}</span>
+              <span 
+                className="card-link" 
+                onClick={onDailyReport}
+                style={{ cursor: 'pointer' }}
+              >
+                자세히 보기 {'>'}
+              </span>
             </div>
             <div className="card-content">
               <div className="report-date">📅 10월 18일 일일 리포트</div>
