@@ -11,10 +11,16 @@
 /* 메인 콘텐츠 영역 */
 .main-content-area {
   flex: 1;
-  overflow: hidden;
-  padding: 12px 12px 100px 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+  padding-bottom: 120px; /* 푸터 높이 여유 공간 */
+  margin-top: 104px; /* 헤더 높이 (padding 24px * 2 + logo 56px = 104px) */
   display: flex;
   flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch; /* iOS 스크롤 부드럽게 */
 }
 
 /* 프로필 카드 */
@@ -79,20 +85,38 @@
   background: #fff;
   border-radius: 12px;
   padding: 18px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
 }
 
+/* 카드 컨테이너 - 오늘 대화와 일일 리포트를 1:1로 맞춤 */
+.cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .today-conversation-card {
   padding: 16px;
-  flex: 0.75;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .report-card {
   padding: 16px;
-  flex: 0.75;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.today-conversation-card .card-content,
+.report-card .card-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .report-card .card-title {
@@ -181,7 +205,9 @@
 /* 반응형 디자인 */
 @media (max-width: 480px) {
   .main-content-area {
-    padding: 12px 12px 100px 12px;
+    padding: 12px;
+    padding-bottom: 120px;
+    margin-top: 88px; /* 헤더 높이 (padding 20px * 2 + logo 48px = 88px) */
   }
   
   .profile-card {
@@ -224,8 +250,25 @@
 
 @media (min-width: 768px) {
   .main-content-area {
-    max-width: 600px;
-    margin: 0 auto;
+    width: 100%;
     padding: 24px;
+    padding-bottom: 120px;
+    margin-top: 120px; /* 헤더 높이 (padding 28px * 2 + logo 64px = 120px) */
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-content-area {
+    padding: 32px;
+    padding-bottom: 120px;
+    margin-top: 136px; /* 헤더 높이 (padding 32px * 2 + logo 72px = 136px) */
+  }
+}
+
+@media (min-width: 1440px) {
+  .main-content-area {
+    padding: 40px;
+    padding-bottom: 120px;
+    margin-top: 152px; /* 헤더 높이 (padding 36px * 2 + logo 80px = 152px) */
   }
 }
