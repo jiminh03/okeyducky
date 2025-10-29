@@ -5,9 +5,21 @@ import './DailyReportScreen.css';
 
 interface DailyReportScreenProps {
   onBack: () => void;
+  onHome?: () => void;
+  onVideo?: () => void;
+  onCalendar?: () => void;
+  onGuide?: () => void;
+  onSettings?: () => void;
 }
 
-const DailyReportScreen: React.FC<DailyReportScreenProps> = ({ onBack }) => {
+const DailyReportScreen: React.FC<DailyReportScreenProps> = ({ 
+  onBack,
+  onHome,
+  onVideo,
+  onCalendar,
+  onGuide,
+  onSettings
+}) => {
   return (
     <div className="daily-report-screen">
       {/* 상단 헤더 */}
@@ -60,7 +72,14 @@ const DailyReportScreen: React.FC<DailyReportScreenProps> = ({ onBack }) => {
       </div>
 
       {/* 하단 네비게이션 */}
-      <Footer />
+      <Footer 
+        activeTab="home"
+        onHome={onHome}
+        onVideo={onVideo}
+        onCalendar={onCalendar}
+        onGuide={onGuide}
+        onSettings={onSettings}
+      />
     </div>
   );
 };

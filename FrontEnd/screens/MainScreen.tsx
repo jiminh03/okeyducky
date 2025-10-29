@@ -7,9 +7,21 @@ interface MainScreenProps {
   onLogout: () => void;
   onConversationDetail?: () => void;
   onDailyReport?: () => void;
+  onVideo?: () => void;
+  onCalendar?: () => void;
+  onGuide?: () => void;
+  onSettings?: () => void;
 }
 
-const MainScreen: React.FC<MainScreenProps> = ({ onLogout, onConversationDetail, onDailyReport }) => {
+const MainScreen: React.FC<MainScreenProps> = ({ 
+  onLogout, 
+  onConversationDetail, 
+  onDailyReport,
+  onVideo,
+  onCalendar,
+  onGuide,
+  onSettings
+}) => {
   return (
     <div className="main-screen">
       {/* 상단 헤더 */}
@@ -80,7 +92,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ onLogout, onConversationDetail,
       </div>
 
       {/* 하단 네비게이션 */}
-      <Footer />
+      <Footer 
+        activeTab="home"
+        onVideo={onVideo}
+        onCalendar={onCalendar}
+        onGuide={onGuide}
+        onSettings={onSettings}
+      />
     </div>
   );
 };

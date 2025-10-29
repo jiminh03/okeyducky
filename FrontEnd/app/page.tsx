@@ -7,9 +7,10 @@ import SignUpScreen from '@/screens/SignUpScreen';
 import MainScreen from '@/screens/MainScreen';
 import TodayConversationDetailScreen from '@/screens/TodayConversationDetailScreen';
 import DailyReportScreen from '@/screens/DailyReportScreen';
+import VideoScreen from '@/screens/VideoScreen';
 
 export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report'>('splash');
+  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video'>('splash');
 
   const handleLogin = () => {
     console.log('로그인 버튼 클릭');
@@ -55,6 +56,26 @@ export default function Home() {
     setCurrentScreen('daily-report');
   };
 
+  const handleVideo = () => {
+    console.log('영상 페이지로 이동');
+    setCurrentScreen('video');
+  };
+
+  const handleCalendar = () => {
+    console.log('달력 페이지로 이동');
+    // TODO: 달력 페이지 구현
+  };
+
+  const handleGuide = () => {
+    console.log('가이드 페이지로 이동');
+    // TODO: 가이드 페이지 구현
+  };
+
+  const handleSettings = () => {
+    console.log('설정 페이지로 이동');
+    // TODO: 설정 페이지 구현
+  };
+
   if (currentScreen === 'splash') {
     return <SplashScreen onLogin={handleLogin} onSignUp={handleSignUp} />;
   }
@@ -68,12 +89,44 @@ export default function Home() {
   }
 
   if (currentScreen === 'conversation-detail') {
-    return <TodayConversationDetailScreen onBack={handleBackToMain} />;
+    return <TodayConversationDetailScreen 
+      onBack={handleBackToMain}
+      onHome={() => setCurrentScreen('main')}
+      onVideo={handleVideo}
+      onCalendar={handleCalendar}
+      onGuide={handleGuide}
+      onSettings={handleSettings}
+    />;
   }
 
   if (currentScreen === 'daily-report') {
-    return <DailyReportScreen onBack={handleBackToMain} />;
+    return <DailyReportScreen 
+      onBack={handleBackToMain}
+      onHome={() => setCurrentScreen('main')}
+      onVideo={handleVideo}
+      onCalendar={handleCalendar}
+      onGuide={handleGuide}
+      onSettings={handleSettings}
+    />;
   }
 
-  return <MainScreen onLogout={handleLogout} onConversationDetail={handleConversationDetail} onDailyReport={handleDailyReport} />;
+  if (currentScreen === 'video') {
+    return <VideoScreen 
+      onHome={() => setCurrentScreen('main')}
+      onVideo={handleVideo}
+      onCalendar={handleCalendar}
+      onGuide={handleGuide}
+      onSettings={handleSettings}
+    />;
+  }
+
+  return <MainScreen 
+    onLogout={handleLogout} 
+    onConversationDetail={handleConversationDetail} 
+    onDailyReport={handleDailyReport}
+    onVideo={handleVideo}
+    onCalendar={handleCalendar}
+    onGuide={handleGuide}
+    onSettings={handleSettings}
+  />;
 }

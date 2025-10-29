@@ -5,9 +5,21 @@ import './TodayConversationDetailScreen.css';
 
 interface TodayConversationDetailScreenProps {
   onBack: () => void;
+  onHome?: () => void;
+  onVideo?: () => void;
+  onCalendar?: () => void;
+  onGuide?: () => void;
+  onSettings?: () => void;
 }
 
-const TodayConversationDetailScreen: React.FC<TodayConversationDetailScreenProps> = ({ onBack }) => {
+const TodayConversationDetailScreen: React.FC<TodayConversationDetailScreenProps> = ({ 
+  onBack,
+  onHome,
+  onVideo,
+  onCalendar,
+  onGuide,
+  onSettings
+}) => {
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(true);
 
   return (
@@ -81,7 +93,14 @@ const TodayConversationDetailScreen: React.FC<TodayConversationDetailScreenProps
       </div>
 
       {/* 하단 네비게이션 */}
-      <Footer />
+      <Footer 
+        activeTab="home"
+        onHome={onHome}
+        onVideo={onVideo}
+        onCalendar={onCalendar}
+        onGuide={onGuide}
+        onSettings={onSettings}
+      />
     </div>
   );
 };
