@@ -4,14 +4,14 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.modules.database import get_session
+from common.modules.db_instance import db
 
 from common.models.robot_models import *
 from common.schemas.robot_schema import *
 
 
 class RobotRepo:
-    def __init__(self, session: AsyncSession = Depends(get_session)):
+    def __init__(self, session: AsyncSession = Depends(db.get_session)):
         self.session = session
 
     async def create_robot(self, robot: RobotRegisterRequest) -> RobotInfoResponse:

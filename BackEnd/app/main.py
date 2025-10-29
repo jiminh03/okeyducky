@@ -16,7 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # .env 파일 로드
 load_dotenv()
 
-from common.database import db, red
+from common.modules.db_instance import db, red
 import socketio
 # Lifespan 컨텍스트 매니저 정의
 @asynccontextmanager
