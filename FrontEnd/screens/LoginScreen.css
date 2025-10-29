@@ -47,16 +47,18 @@
 /* 메인 콘텐츠 */
 .login-content {
   flex: 1;
-  padding: 5px 20px 20px 20px;
+  padding: 20px 20px 20px 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
 }
 
 /* 오키더키 로고 */
 .login-logo {
   margin-bottom: 0;
+  margin-top: 0;
 }
 
 .login-title-img {
@@ -197,7 +199,11 @@
 /* 반응형 디자인 */
 @media (max-width: 480px) {
   .login-content {
-    padding: 16px;
+    padding: 5px 16px 16px 16px;
+  }
+  
+  .login-logo {
+    margin-top: -70px;
   }
   
   .login-form {
@@ -217,7 +223,7 @@
   
   .login-page-title {
     font-size: 28px;
-    margin-bottom: 30px;
+    margin: 10px 0 20px 0;
   }
   
   .form-group {
