@@ -1,0 +1,137 @@
+.video-screen {
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 메인 콘텐츠 영역 */
+.video-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 104px; /* 헤더 높이 */
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+/* 비디오 목록 컨테이너 */
+.video-list-container {
+  flex: 1;
+  background: #e0e0e0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  padding-bottom: 80px; /* 입력 바 높이만큼 여유 공간 (padding 16px * 2 + 버튼 48px = 80px) */
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+}
+
+/* 입력 바 */
+.video-input-bar {
+  position: fixed;
+  bottom: 100px; /* 푸터 높이 */
+  left: 0;
+  right: 0;
+  background: #FFFACD;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid #e0e0e0;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  z-index: 9;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.video-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 24px;
+  background: #fff;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 16px;
+  color: #333;
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.video-input::placeholder {
+  color: #999;
+}
+
+.video-send-button {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: #FFE300;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.video-send-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  background: #FFD700;
+}
+
+.video-send-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.video-send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.video-send-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  .video-content-area {
+    margin-top: 88px; /* 헤더 높이 (모바일) */
+    padding-bottom: 0;
+  }
+
+  .video-list-container {
+    padding: 12px;
+    padding-bottom: 76px; /* 입력 바 높이만큼 여유 공간 (모바일: padding 12px * 2 + 버튼 44px = 68px, 약간 여유) */
+  }
+
+  .video-input-bar {
+    padding: 12px;
+    bottom: 92px; /* 푸터 높이 (모바일) */
+  }
+
+  .video-input {
+    font-size: 15px;
+    padding: 10px 14px;
+  }
+
+  .video-send-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .video-send-button svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
