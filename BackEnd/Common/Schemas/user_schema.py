@@ -1,5 +1,5 @@
 # schemas/user_schemas.py
-from datetime import datetime
+from datetime import date, datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
@@ -37,7 +37,7 @@ class ParentUpdateRequest(BaseModel):
 class ChildRegisterRequest(BaseModel):
     name: str
     gender: str
-    birth_date: str
+    birth_date: date
     school: Optional[str] = None
     parent_id: int
 
@@ -48,6 +48,6 @@ class ChildInfoResponse(BaseModel):
 class ChildUpdateRequest(BaseModel):
     name: Optional[str] = None
     gender: Optional[str] = None
-    birth_date: Optional[str] = None
+    birth_date: Optional[date] = None
     school: Optional[str] = None
 
