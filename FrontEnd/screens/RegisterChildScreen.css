@@ -73,8 +73,8 @@
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 22px;
+  gap: 8px; /* 라벨-필드 간격 축소 */
+  margin-bottom: 14px; /* 필드 블록 간 여백 축소 */
 }
 
 .form-label-row {
@@ -93,7 +93,7 @@
 /* 입력 필드 */
 .form-input {
   width: 100%;
-  padding: 18px 20px;
+  padding: 14px 16px; /* 인풋 내부 여백 축소 */
   border: 1px solid #e0e0e0;
   border-radius: 12px;
   font-family: 'AppleSDGothicNeo', sans-serif;
@@ -127,7 +127,7 @@
 
 .gender-btn {
   min-width: 110px;
-  padding: 10px 16px;
+  padding: 8px 14px; /* 버튼 높이 축소 */
   border: none;
   border-radius: 22px;
   background: transparent;
@@ -170,7 +170,7 @@
 .birth-input {
   flex: 1;
   min-width: 80px;
-  padding: 16px 12px;
+  padding: 12px 10px; /* 생년월일 필드 여백 축소 */
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   font-family: 'AppleSDGothicNeo', sans-serif;
