@@ -9,9 +9,10 @@ import TodayConversationDetailScreen from '@/screens/TodayConversationDetailScre
 import DailyReportScreen from '@/screens/DailyReportScreen';
 import VideoScreen from '@/screens/VideoScreen';
 import RegisterChildScreen from '@/screens/RegisterChildScreen';
+import CalendarScreen from '@/screens/CalendarScreen';
 
 export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video' | 'register-child'>('splash');
+  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video' | 'register-child' | 'calendar'>('splash');
   const [hasChild, setHasChild] = useState(false); // 아이 등록 여부
 
   const handleLogin = () => {
@@ -65,7 +66,7 @@ export default function Home() {
 
   const handleCalendar = () => {
     console.log('달력 페이지로 이동');
-    // TODO: 달력 페이지 구현
+    setCurrentScreen('calendar');
   };
 
   const handleGuide = () => {
@@ -125,6 +126,16 @@ export default function Home() {
 
   if (currentScreen === 'video') {
     return <VideoScreen 
+      onHome={() => setCurrentScreen('main')}
+      onVideo={handleVideo}
+      onCalendar={handleCalendar}
+      onGuide={handleGuide}
+      onSettings={handleSettings}
+    />;
+  }
+
+  if (currentScreen === 'calendar') {
+    return <CalendarScreen 
       onHome={() => setCurrentScreen('main')}
       onVideo={handleVideo}
       onCalendar={handleCalendar}
