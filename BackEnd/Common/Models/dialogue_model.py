@@ -12,8 +12,6 @@ class DailyReport(SQLModel, table=True):
     date: date
     daily_summary: Optional[str] = None
     analysis_summary: Optional[str] = None
-    positive_keywords: Optional[str] = None
-    special_notes: Optional[str] = None
 
     child_id: Optional[int] = Field(default=None, foreign_key="child.child_id")
     child: Optional["Child"] = Relationship(back_populates="daily_reports")
