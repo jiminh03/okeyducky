@@ -4,6 +4,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
+from common.models.enums import Gender
+
 class ParentRegisterRequest(BaseModel):
     parent_name: str
     email: str
@@ -26,7 +28,7 @@ class TokenPayload(BaseModel):
     email: str
 
 class ParentInfoResponse(BaseModel):
-    user_id: int
+    parent_id: int
     parent_name: str
     email: str
 
@@ -36,7 +38,7 @@ class ParentUpdateRequest(BaseModel):
 
 class ChildRegisterRequest(BaseModel):
     name: str
-    gender: str
+    gender: Gender
     birth_date: date
     school: Optional[str] = None
     parent_id: int
