@@ -26,3 +26,7 @@ class Child(SQLModel, table=True):
 
     parent_id: Optional[int] = Field(default=None, foreign_key="parent.parent_id")
     parent: Optional[Parent] = Relationship(back_populates="children")
+
+    daily_reports: List["DailyReport"] = Relationship(back_populates="child")
+
+    robot: Optional["Robot"] = Relationship(back_populates="child")
