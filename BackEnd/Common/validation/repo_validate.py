@@ -1,3 +1,8 @@
+import asyncio, platform
+
+if platform.system() == "Windows":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 import asyncio
 import os
 from datetime import date, datetime
@@ -20,7 +25,7 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-# --- 2. 필요한 모듈 임포트 ---
+# --- 3. 필요한 모듈 임포트 ---
 try:
     # DB 인스턴스 (가장 먼저 임포트)
     from common.modules.db_instance import db
@@ -38,9 +43,9 @@ try:
 except ImportError as e:
     print(f"\n--- 🚨 임포트 오류 ---")
     print(f"오류: {e}")
-    print("스크립트가 프로젝트 루트에 있는지,")
-    print("또는 'common', 'user_repo.py' 등의 파일/폴더 구조가 올바른지 확인하세요.")
-    print("가정된 구조: ./common, ./user_repo.py, ./robot_repo.py 등")
+    print("\n[중요] 이 스크립트는 프로젝트 루트(BackEnd) 폴더에서")
+    print("다음과 같은 '모듈' 방식으로 실행해야 합니다:")
+    print("python -m common.validation.repo_validate")
     sys.exit(1)
 
 
