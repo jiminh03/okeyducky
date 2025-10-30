@@ -1,8 +1,10 @@
 # schemas/user_schemas.py
-from datetime import datetime
+from datetime import date, datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
+
+from common.models.enums import Gender
 
 class ParentRegisterRequest(BaseModel):
     parent_name: str
@@ -26,7 +28,7 @@ class TokenPayload(BaseModel):
     email: str
 
 class ParentInfoResponse(BaseModel):
-    user_id: int
+    parent_id: int
     parent_name: str
     email: str
 
@@ -36,8 +38,8 @@ class ParentUpdateRequest(BaseModel):
 
 class ChildRegisterRequest(BaseModel):
     name: str
-    gender: str
-    birth_date: str
+    gender: Gender
+    birth_date: date
     school: Optional[str] = None
     parent_id: int
 
@@ -48,6 +50,6 @@ class ChildInfoResponse(BaseModel):
 class ChildUpdateRequest(BaseModel):
     name: Optional[str] = None
     gender: Optional[str] = None
-    birth_date: Optional[str] = None
+    birth_date: Optional[date] = None
     school: Optional[str] = None
 
