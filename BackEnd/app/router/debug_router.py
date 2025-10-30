@@ -105,7 +105,7 @@ async def run_all_validations(
         # Create
         print(f"Creating parent: {mock_parent_data.email}...")
         new_parent = await parent_repo.create_parent(mock_parent_data)
-        created_parent_id = new_parent.parent_id # user_schema.py: ParentInfoResponse.parent_id
+        created_parent_id = new_parent.parent_id
         assert new_parent.email == mock_parent_data.email
         print(f"✅ [C] Create Parent OK (ID: {created_parent_id})")
 
@@ -122,7 +122,7 @@ async def run_all_validations(
         print(f"✅ [R] Get Parent by Email OK")
 
         # Update
-        update_req = ParentUpdateRequest(parent_name="Updated Test Parent Name")
+        update_req = ParentUpdateRequest(parent_name="Updated Test Parent Name") #
         updated_parent = await parent_repo.update_parent(created_parent_id, update_req)
         assert updated_parent.parent_name == "Updated Test Parent Name"
         print(f"✅ [U] Update Parent OK")
@@ -134,7 +134,7 @@ async def run_all_validations(
         # Create
         print(f"Creating child for parent {created_parent_id}...")
         new_child = await child_repo.create_child(mock_child_data)
-        created_child_id = new_child.child_id # user_schema.py: ChildInfoResponse.child_id
+        created_child_id = new_child.child_id
         assert new_child.name == "Test Child"
         print(f"✅ [C] Create Child OK (ID: {created_child_id})")
 
@@ -150,6 +150,17 @@ async def run_all_validations(
         assert children[0].child_id == created_child_id
         print(f"✅ [R] Get Children by Parent ID OK")
 
+        # ⬇️ [추가된 테스트 1/4] ChildRepo - Update
+        print(f"Updating child {created_child_id} school...")
+        update_child_req = ChildUpdateRequest(school="Updated School Name") #
+        updated_child = await child_repo.update_child(created_child_id, update_child_req)
+        
+        # (참고: 이 테스트가 통과하려면 user_repo.py의 update_child 메서드 구현이 필요합니다)
+        assert updated_child is not None, "Update Child returned None"
+        assert updated_child.school == "Updated School Name", "Child school was not updated"
+        print(f"✅ [U] Update Child OK")
+        # ⬆️ [추가된 테스트 1/4]
+
         # === 7. RobotRepo 검증 ===
         print("\n--- 🧪 RobotRepo 검증 시작 ---")
         mock_robot_data.child_id = created_child_id # 자식 ID 연결
@@ -161,6 +172,23 @@ async def run_all_validations(
         assert new_robot.serial_number == mock_robot_data.serial_number
         print(f"✅ [C] Create Robot OK (ID: {created_robot_id})")
         
+        # ⬇️ [추가된 테스트 2/4] RobotRepo - Get by ID
+        # Get by ID
+        robot_by_id = await robot_repo.get_robot_by_id(created_robot_id)
+        assert robot_by_id is not None, "Robot Get by ID returned None"
+        assert robot_by_id.robot_id == created_robot_id
+        print(f"✅ [R] Get Robot by ID OK")
+        # ⬆️ [추가된 테스트 2/4]
+
+        # ⬇️ [추가된 테스트 3/4] RobotRepo - Get by Child ID
+        # Get by Child ID
+        robot_by_child = await robot_repo.get_robot_by_child_id(created_child_id)
+        assert robot_by_child is not None, "Robot Get by Child ID returned None"
+        assert robot_by_child.robot_id == created_robot_id
+        assert robot_by_child.child_id == created_child_id
+        print(f"✅ [R] Get Robot by Child ID OK")
+        # ⬆️ [추가된 테스트 3/4]
+
         # Get by Serial Number
         robot_by_sn = await robot_repo.get_robot_by_serial_number(mock_robot_data.serial_number)
         assert robot_by_sn is not None
@@ -182,8 +210,7 @@ async def run_all_validations(
         new_report = await dialogue_repo.create_daily_report(mock_report_data)
         created_report_id = new_report.report_id
         assert new_report is not None
-        # (가정: Model의 relationship이 올바르게 설정되어 refresh 시 dialogue_logs가 로드됨)
-        assert len(new_report.dialogue_logs) == 1
+        assert len(new_report.dialogue_logs) == 1 #
         assert new_report.dialogue_logs[0].message == "Hello test message"
         print(f"✅ [C] Create Daily Report OK (ID: {created_report_id})")
 
@@ -202,19 +229,36 @@ async def run_all_validations(
         assert reports_by_date[0].report_id == created_report_id
         print(f"✅ [R] Get Reports by Date Range OK")
 
+        # ⬇️ [추가된 테스트 4/4] DialogueRepo - Get Logs by Report ID
+        # (참고: 이 테스트가 통과하려면 dialogue_repo.py에 get_dialogue_logs_by_report_id 메서드 구현이 필요합니다)
+        print(f"Getting dialogue logs for report {created_report_id}...")
+        report_with_logs = await dialogue_repo.get_daily_report_by_id(created_report_id)
+        
+        assert report_with_logs is not None, "Get Report by ID returned None"
+        assert report_with_logs.dialogue_logs is not None, "dialogue_logs is None"
+        assert len(report_with_logs.dialogue_logs) == 1, "Log count mismatch"
+        assert report_with_logs.dialogue_logs[0].message == "Hello test message", "Log message mismatch"
+        # ⬆️ [추가된 테스트 4/4]
+
         # Update Report
-        report_update = DailyReportUpdateRequest(daily_summary="Updated summary.")
+        report_update = DailyReportUpdateRequest(daily_summary="Updated summary.") #
         updated_report = await dialogue_repo.update_daily_report(created_report_id, report_update)
         assert updated_report.daily_summary == "Updated summary."
         print(f"✅ [U] Update Daily Report OK")
 
         print("\n--- ✨ 모든 리포지토리 검증 성공! ✨ ---")
+        
+        return {"status": "SUCCESS", "message": "All repo validations passed!"}
 
     except Exception as e:
         print(f"\n--- 🚨 VALIDATION FAILED 🚨 ---")
         print(f"Error: {e}")
         traceback.print_exc()
-
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Validation Failed: {str(e)}"
+        )
+    
     finally:
         # === 9. 클린업 ===
         print("\n--- 🧹 데이터 클린업 시작 ---")
@@ -223,10 +267,7 @@ async def run_all_validations(
             deleted = await parent_repo.delete_parent(created_parent_id)
             print(f"✅ Cleanup OK: {deleted}")
 
-        # 'await session.close()'가 필요 없습니다!
-        # 'Depends'가 세션의 시작과 종료를 자동으로 관리합니다.
         print("--- 🏁 검증 스크립트 종료 (세션 자동 반환) ---")
-
 
 # --- 4. 검증 로직을 실행하는 엔드포인트 생성 ---
 @router.post(
