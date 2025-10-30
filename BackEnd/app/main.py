@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+# .env 파일 로드
+load_dotenv()
+
 import asyncio
 from datetime import datetime, timezone
 import os
@@ -9,12 +13,14 @@ from fastapi.staticfiles import StaticFiles
 import redis.asyncio as redis
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from dotenv import load_dotenv
+
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
-# .env 파일 로드
-load_dotenv()
+# ⬇️ 새로 만든 디버그 라우터 임포트
+from app.router.debug_router import router as debug_router
+
+
 
 from common.modules.db_instance import db, red
 import socketio
@@ -42,6 +48,16 @@ app = FastAPI(lifespan=lifespan)
 # --- 라우터 등록 ---
 
 #app.include_router(auth.router)
+
+# ⬇️ (추가) 디버그 라우터를 앱에 포함시킵니다.
+# (선택 사항) 운영 환경에서는 이 라우터를 포함하지 않도록
+# 환경 변수로 분기 처리를 할 수 있습니다.
+IS_DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+if IS_DEBUG:
+    print("--- ⚠️  디버그/검증용 라우터를 포함합니다. ---")
+    app.include_router(debug_router)
+else:
+    print("--- 릴리즈 모드로 실행합니다. (디버그 라우터 제외) ---")
 
 # Socket.IO 앱을 FastAPI 앱에 마운트
 # 이 한 줄이 '/socket.io' 경로로 들어오는
