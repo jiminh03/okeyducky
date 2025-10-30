@@ -3,6 +3,8 @@ from typing import List, Optional
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from sqlalchemy.future import select # SQLAlchemy 1.4+
 
 from common.modules.db_instance import db
 
@@ -17,6 +19,8 @@ class DialogueRepo:
     async def create_daily_report(
         self, report: DailyReportCreate
     ) -> DailyReportResponse:
+        
+        # 1. 부모 객체 생성 (아직 커밋 안 함)
         new_report = DailyReport(
             date=report.date,
             daily_summary=report.daily_summary,
@@ -24,19 +28,42 @@ class DialogueRepo:
             child_id=report.child_id,
         )
         self.session.add(new_report)
-        await self.session.commit()
-        await self.session.refresh(new_report)
 
-        for log_data in report.dialogue_logs:
-            dialogue_log = DialogueLog(
-                speaker=log_data.speaker,
-                message=log_data.message,
-                report_id=new_report.report_id,
-            )
-            self.session.add(dialogue_log)
+        # 2. 부모 객체를 먼저 커밋하여 report_id를 생성합니다.
         await self.session.commit()
-        await self.session.refresh(new_report)
-        return new_report
+        await self.session.refresh(new_report) # new_report.report_id를 가져옴
+
+        # 3. 자식 객체 리스트를 만듭니다.
+        logs_to_add = []
+        for log_data in report.dialogue_logs:
+            logs_to_add.append(
+                DialogueLog(
+                    speaker=log_data.speaker,
+                    message=log_data.message,
+                    report_id=new_report.report_id, # 위에서 얻은 ID 사용
+                )
+            )
+
+        # 4. 자식 객체들을 'add_all'로 한 번에 추가하고 'commit'도 한 번만 합니다.
+        if logs_to_add:
+            self.session.add_all(logs_to_add)
+            await self.session.commit()
+
+        # 5. [가장 중요]
+        #    데이터를 반환하기 전, DB에서 객체를 '즉시 로딩(eager loading)' 옵션으로
+        #    다시 조회합니다. 이렇게 하면 dialogue_logs가 채워진 객체를 얻습니다.
+        
+        stmt = (
+            select(DailyReport)
+            .where(DailyReport.report_id == new_report.report_id)
+            .options(selectinload(DailyReport.dialogue_logs)) # <-- 핵심
+        )
+        result = await self.session.execute(stmt)
+        final_loaded_report = result.scalar_one()
+
+        # 6. '완전히 로드된' 객체를 반환합니다.
+        #    이제 이 객체의 .dialogue_logs에 접근해도 DB I/O가 발생하지 않습니다.
+        return final_loaded_report
 
     async def update_daily_report(
         self, report_id: int, report_update: DailyReportUpdateRequest
@@ -56,8 +83,12 @@ class DialogueRepo:
     async def get_daily_report_by_id(
         self, report_id: int
     ) -> Optional[DailyReportResponse]:
-        query = text("SELECT * FROM DailyReport WHERE report_id = :report_id")
-        result = await self.session.execute(query, {"report_id": report_id})
+        statement = (
+            select(DailyReport)
+            .where(DailyReport.report_id == report_id)
+            .options(selectinload(DailyReport.dialogue_logs))
+        )
+        result = await self.session.execute(statement)
         report = result.scalar_one_or_none()
         return report
 

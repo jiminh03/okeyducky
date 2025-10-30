@@ -1,6 +1,6 @@
 from fastapi import Depends
 from typing import List, Optional
-from sqlalchemy import text
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,27 +27,27 @@ class RobotRepo:
     async def get_robot_by_serial_number(
         self, serial_number: str
     ) -> Optional[RobotInfoResponse]:
-        query = text("SELECT * FROM Robot WHERE serial_number = :serial_number")
-        result = await self.session.execute(query, {"serial_number": serial_number})
+        statement = select(Robot).where(Robot.serial_number == serial_number)
+        result = await self.session.execute(statement)
         robot = result.scalar_one_or_none()
         return robot
 
     async def get_robot_by_id(self, robot_id: int) -> Optional[RobotInfoResponse]:
-        query = text("SELECT * FROM Robot WHERE robot_id = :robot_id")
-        result = await self.session.execute(query, {"robot_id": robot_id})
-        robot = result.scalar_one_or_none()
+        robot = await self.session.get(Robot, robot_id)
         return robot
 
     async def get_robot_by_child_id(self, child_id: int) -> Optional[RobotInfoResponse]:
-        query = text("SELECT * FROM Robot WHERE child_id = :child_id")
-        result = await self.session.execute(query, {"child_id": child_id})
+        statement = select(Robot).where(Robot.child_id == child_id)
+        result = await self.session.execute(statement)
         robot = result.scalar_one_or_none()
         return robot
 
     async def update_robot_child_id(
         self, robot_id: int, child_id: int
     ) -> Optional[RobotInfoResponse]:
-        robot = await self.get_robot_by_id(robot_id)
+        
+        robot = await self.session.get(Robot, robot_id)
+        
         if not robot:
             return None
 
