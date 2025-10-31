@@ -28,10 +28,6 @@ class DialogueRepo:
                 analysis_summary=report.analysis_summary,
                 child_id=report.child_id,
             )
-            self.session.add(new_report)
-
-            await self.session.commit()
-            await self.session.refresh(new_report)
 
             logs_to_add = []
             for log_data in report.dialogue_logs:
@@ -39,35 +35,40 @@ class DialogueRepo:
                     DialogueLog(
                         speaker=log_data.speaker,
                         message=log_data.message,
-                        report_id=new_report.report_id,
+                        # 중요: new_report.report_id가 아닌,'daily_report' 관계(relationship)에 객체를 직접 연결
+                        daily_report=new_report 
                     )
                 )
 
+            self.session.add(new_report)
             if logs_to_add:
                 self.session.add_all(logs_to_add)
-                await self.session.commit()
 
+            await self.session.commit()
+            
+            await self.session.refresh(new_report)
+            
             stmt = (
                 select(DailyReport)
                 .where(DailyReport.report_id == new_report.report_id)
-                .options(
-                    selectinload(DailyReport.dialogue_logs)
-                )  # 즉시 로딩(eager loading)
+                .options(selectinload(DailyReport.dialogue_logs))
             )
             result = await self.session.execute(stmt)
             final_loaded_report = result.scalar_one()
 
             return final_loaded_report
+        
         except IntegrityError as e:
             await self.session.rollback()
-            raise IntegrityViolationError(
-                detail="일일 리포트 생성 중 무결성 오류가 발생했습니다."
-            ) from e
+            # (child_id 외래 키 오류 등)
+            detail = f"리포트 생성 실패: Child ID {report.child_id}가 존재하지 않거나, 날짜({report.date})가 중복될 수 있습니다."
+            # log.warning(f"create_daily_report IntegrityError: {detail} | Error: {e}")
+            raise IntegrityViolationError(detail=detail) from e
         except DBAPIError as e:
             await self.session.rollback()
-            # log.error(f"create_daily_report DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
+            # log.error(f"create_daily_report DB 오류: {e}", exc_info=True)
             raise DatabaseError() from e
-
+        
     async def update_daily_report(
         self, report_id: int, report_update: DailyReportUpdateRequest
     ) -> Optional[DailyReportResponse]:
@@ -112,29 +113,26 @@ class DialogueRepo:
         특정 아이의 지정된 기간 동안의 일일 리포트 목록을 조회합니다.
         """
         try:
-            query = text(
-                "SELECT * FROM DailyReport "
-                "WHERE child_id = :child_id "
-                "AND date >= :start_date AND date <= :end_date "
-                "ORDER BY date ASC"  # 날짜순 정렬 추가 (선택 사항)
+            statement = (
+                select(DailyReport)
+                .where(DailyReport.child_id == child_id)
+                .where(DailyReport.date >= start_date)
+                .where(DailyReport.date <= end_date)
+                .options(selectinload(DailyReport.dialogue_logs)) # <-- 관계 로드
+                .order_by(DailyReport.date.asc())
             )
 
-            result = await self.session.execute(
-                query,
-                {"child_id": child_id, "start_date": start_date, "end_date": end_date},
-            )
+            result = await self.session.execute(statement)
 
-            db_reports = result.fetchall()
-            response_reports = [
-                DailyReportResponse.model_validate(report) for report in db_reports
-            ]
+            db_reports = result.scalars().all()
 
-            return response_reports
+            return db_reports
+        
         except DBAPIError as e:
             await self.session.rollback()
-            # log.error(f"get_daily_reports_by_child_id_and_date_range DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
+            # log.error(f"get_daily_reports DB 오류: {e}", exc_info=True)
             raise DatabaseError() from e
-
+        
     async def create_dialogue_log(self, log: DialogueLogCreate) -> DialogueLogResponse:
         try:
             new_log = DialogueLog(
