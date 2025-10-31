@@ -16,8 +16,9 @@ async def login_parent(
     get_parent_by_email_service=Depends(get_parent_by_email_service),
 ):
     parent = await get_parent_by_email_service(login_request.email)
-    hashed_password  = crypt_module.get_password_hash(login_request.password)
-    if not parent or not crypt_module.verify_password(hashed_password, parent.password_hash):
+    if not parent or not crypt_module.verify_password(
+        login_request.password, parent.password_hash
+    ):
         raise InvalidCredentialsError
     return parent
 
@@ -30,5 +31,3 @@ async def get_current_parent(
     if not parent:
         raise InvalidCredentialsError
     return parent
-
-
