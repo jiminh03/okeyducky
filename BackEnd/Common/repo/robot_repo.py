@@ -28,7 +28,7 @@ class RobotRepo:
             return new_robot
         except IntegrityError as e:
             await self.session.rollback()
-            raise IntegrityViolationError(detail=f"시리얼 넘버 {new_robot.serial_number}은(는) 이미 사용 중입니다.") from e
+            raise IntegrityViolationError(detail=f"시리얼 넘버 {robot.serial_number}은(는) 이미 사용 중입니다.") from e
         except DBAPIError as e:
             await self.session.rollback()
             #log.error(f"create_parent DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
@@ -80,6 +80,11 @@ class RobotRepo:
             await self.session.commit()
             await self.session.refresh(robot)
             return robot
+        except IntegrityError as e:
+            await self.session.rollback()
+            detail = f"Robot {robot_id} 업데이트 실패: 존재하지 않는 Child ID {child_id}일 수 있습니다."
+            #log.warning(f"IntegrityError in update_robot_child_id: {detail} | Error: {e}")
+            raise IntegrityViolationError(detail=detail) from e
         except DBAPIError as e:
             await self.session.rollback()
             #log.error(f"create_parent DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
