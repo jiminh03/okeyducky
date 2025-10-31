@@ -49,3 +49,8 @@ class ReportAlreadyExistsError(CustomException):
     """[409] 특정 날짜에 대한 리포트가 이미 존재할 때 (Service에서 생성 전 확인 시)"""
     def __init__(self, detail: str = "해당 날짜의 리포트가 이미 존재합니다."):
         super().__init__(detail)
+
+class InvalidRequestError(CustomException):
+    """[400] 잘못된 요청 파라미터가 들어왔을 때"""
+    def __init__(self, detail: str = "잘못된 요청입니다. 요청 파라미터를 확인하세요."):
+        super().__init__(detail)
