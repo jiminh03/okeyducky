@@ -73,7 +73,7 @@ class CryptModule:
         Returns:
             인코딩된 JWT 액세스 토큰 문자열입니다.
         """
-        to_encode = data.copy()
+        to_encode = data.model_dump()
         if expires_delta:
             expire = datetime.now(timezone.utc) + expires_delta
         else:
@@ -99,7 +99,7 @@ class CryptModule:
             디코딩된 토큰 페이로드를 담은 TokenPayload 객체입니다.
         """
         try:
-            payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM]) 
+            payload = TokenPayload(**jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM]))
             return payload
         except (JWTError, ValueError, TypeError, KeyError) as e:
             # 참고: InvalidCredentialsError는 이 스니펫에 정의되어 있지 않지만,

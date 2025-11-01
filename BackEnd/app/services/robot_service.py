@@ -13,8 +13,8 @@ async def register_robot(
     if child is None:
         raise ChildNotFound
     
-    child_ids = [child.id for child in child_list]
-    if RobotRegisterRequest.child_id not in child_ids:
+    child_ids = [child.child_id for child in child_list]
+    if robot.child_id not in child_ids:
         raise NotOwnerError(detail="해당 자녀 정보에 접근할 권한이 없습니다.")
     
     return await create_robot_service(robot)
@@ -39,6 +39,6 @@ async def get_robot_info(
     
     if robot is None:
         raise RobotNotFound
-    elif robot.child_id not in [child.id for child in child_list]:
+    elif robot.child_id not in [child.child_id for child in child_list]:
         raise NotOwnerError(detail="해당 로봇 정보에 접근할 권한이 없습니다.")
     return robot

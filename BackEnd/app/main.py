@@ -12,18 +12,27 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import redis.asyncio as redis
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, status
 
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 # ⬇️ 새로 만든 디버그 라우터 임포트
-from app.router.debug_router import router as debug_router
-
-
+from app.router.debug_repo import router as debug_repo
+from app.router.manual_debug_router import router as manual_debug_router
 
 from common.modules.db_instance import db, red
 import socketio
+
+# 1. (가정) app/exceptions.py 파일에서 모든 예외를 임포트합니다.
+#    (경로는 실제 파일 위치에 맞게 수정하세요)
+from app.exceptions import * # ⬆️ (ParentNotFound, ChildNotFound, InvalidTokenError 등)
+
+# ⬇️ (추가) Repo 계층의 예외도 임포트합니다.
+from common.exceptions import CustomException, DatabaseError, IntegrityViolationError
+
+
 # Lifespan 컨텍스트 매니저 정의
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -45,6 +54,82 @@ async def lifespan(app: FastAPI):
 # FastAPI 앱 인스턴스 생성
 app = FastAPI(lifespan=lifespan)
 
+# -----------------------------------------------------------------
+# 🌟 2. 커스텀 비즈니스 예외 핸들러
+# -----------------------------------------------------------------
+@app.exception_handler(CustomException)
+async def custom_exception_handler(request: Request, exc: CustomException):
+    """
+    'exceptions.py'에 정의된 모든 커스텀 예외를 잡아
+    적절한 HTTP 상태 코드로 변환합니다.
+    """
+    
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    
+    # 404 계열 예외 매핑 (Service)
+    if isinstance(exc, (ParentNotFound, ChildNotFound, RobotNotFound, ReportNotFound)):
+        status_code = status.HTTP_404_NOT_FOUND
+    
+    # 401 계열 예외 매핑 (Service)
+    elif isinstance(exc, (InvalidCredentialsError, InvalidTokenError)):
+        status_code = status.HTTP_401_UNAUTHORIZED
+    
+    # 403 계열 예외 매핑 (Service)
+    elif isinstance(exc, NotOwnerError):
+        status_code = status.HTTP_403_FORBIDDEN
+    
+    # 409 계열 예외 매핑 (Service)
+    elif isinstance(exc, ReportAlreadyExistsError):
+        status_code = status.HTTP_409_CONFLICT
+        
+    # 400 계열 예외 매핑 (Service)
+    elif isinstance(exc, InvalidRequestError):
+        status_code = status.HTTP_400_BAD_REQUEST
+    
+    # --- ⬇️ [반영된 코드] Repo 계층 예외 매핑 ---
+    
+    # 409 계열 예외 매핑 (Repo)
+    elif isinstance(exc, IntegrityViolationError):
+        status_code = status.HTTP_409_CONFLICT
+        
+    # 500 계열 예외 매핑 (Repo)
+    elif isinstance(exc, DatabaseError):
+        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        
+    # --- ⬆️ [반영된 코드] ---
+
+    # 3. (요청 사항) 간단한 에러 로그 출력
+    print(f"--- ⚠️  Handled Exception ({status_code}) ---")
+    print(f"Path: {request.url.path}")
+    print(f"Error: {exc.__class__.__name__} | Detail: {exc.detail}")
+    
+    # 4. 클라이언트에 HTTP 에러 응답 전송
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": exc.detail}
+    )
+
+
+# -----------------------------------------------------------------
+# 🌟 (권장) 3. 예상치 못한 모든 오류 핸들러 (Fallback)
+# -----------------------------------------------------------------
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    """
+    'CustomException'이 아닌, 예상치 못한 모든 오류를 처리합니다.
+    """
+    
+    print(f"--- 🚨 UNHANDLED Exception (500) ---")
+    print(f"Path: {request.url.path}")
+    print(f"Error: {exc.__class__.__name__} | Detail: {str(exc)}")
+    
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "서버 내부에서 예상치 못한 오류가 발생했습니다."}
+    )
+
+# -----------------------------------------------------------------
+
 # --- 라우터 등록 ---
 
 #app.include_router(auth.router)
@@ -55,7 +140,8 @@ app = FastAPI(lifespan=lifespan)
 IS_DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 if IS_DEBUG:
     print("--- ⚠️  디버그/검증용 라우터를 포함합니다. ---")
-    app.include_router(debug_router)
+    app.include_router(debug_repo)
+    app.include_router(manual_debug_router)
 else:
     print("--- 릴리즈 모드로 실행합니다. (디버그 라우터 제외) ---")
 
