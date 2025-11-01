@@ -20,7 +20,9 @@ async def login_parent(
         login_request.password, parent.password_hash
     ):
         raise InvalidCredentialsError
-    return parent
+    token_data = TokenPayload.model_validate(parent.model_dump())
+    token = crypt_module.create_access_jwt(token_data)
+    return {"access_token": token, "token_type": "bearer"} #TODO: 스키마 정의해서 반환할 예정
 
 async def get_current_parent(
     token: str = Depends(crypt_module.oauth2_scheme),
