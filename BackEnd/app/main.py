@@ -22,6 +22,8 @@ from fastapi.responses import JSONResponse
 from app.router.debug_repo import router as debug_repo
 from app.router.manual_debug_router import router as manual_debug_router
 
+from app.modules.websocket_module import sio
+
 from common.modules.db_instance import db, red
 import socketio
 
@@ -148,7 +150,7 @@ else:
 # Socket.IO 앱을 FastAPI 앱에 마운트
 # 이 한 줄이 '/socket.io' 경로로 들어오는
 # HTTP 핸드셰이크와 WebSocket 연결을 모두 처리합니다.
-#socket_app = socketio.ASGIApp(sio, app) # 실행시 진입점
+socket_app = socketio.ASGIApp(sio, app) # 실행시 진입점
 
 
 # CORS 미들웨어 설정
