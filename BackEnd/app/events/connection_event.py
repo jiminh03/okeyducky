@@ -1,12 +1,11 @@
-from typing import Dict, Union
-
-from fastapi import Depends
+from typing import Dict
 
 from app.modules.websocket_module import sio
 from app.modules.crypt_module import InvalidCredentialsError, crypt_module
 
 
 from common.modules.session_manager import SessionManager
+from common.modules.db_instance import red
 from common.schemas.socket_event_schema import ConnectEvents
 from common.schemas.session_schema import ConnectionInfo, SessionRequest
 
@@ -14,8 +13,11 @@ from common.schemas.session_schema import ConnectionInfo, SessionRequest
 
 
 @sio.on(ConnectEvents.CONNECT)
-async def connect(sid, environ, auth: Dict[str, str], session_manager: SessionManager = Depends(SessionManager)):
+async def connect(sid, environ, auth: Dict[str, str]):
     print(f"✅ [연결 시도] 클라이언트 접속. sid: {sid}")
+
+    redis_client = await red.get_redis_client()
+    session_manager = SessionManager(redis_client=redis_client)
 
     if not auth:
         print(f"[인증 실패] 인증 정보가 없습니다. sid: {sid}")
@@ -43,8 +45,13 @@ async def connect(sid, environ, auth: Dict[str, str], session_manager: SessionMa
     #TODO: 추후 일정 시간 인증이 안되면 연결을 끊는 기능이 필요
 
 @sio.on(ConnectEvents.DISCONNECT)
-async def disconnect(sid, session_manager: SessionManager = Depends(SessionManager)):
+async def disconnect(sid):
     """연결 종료 시 Redis에서 매핑 정보를 삭제합니다."""
-    await session_manager.delete_session(sid)
+    redis_client = await red.get_redis_client()
+    session_manager = SessionManager(redis_client=redis_client)
+    session_info = await session_manager.get_session_by_sid(sid)
+    if session_info:
+        print(f"👋 [연결 종료] 클라이언트 연결 끊김. sid: {sid}, parent_id: {session_info.parent_id}")
+        await session_manager.delete_session(session_info)
     print(f"👋 [연결 종료] 클라이언트 연결 끊김. sid: {sid}")
 
