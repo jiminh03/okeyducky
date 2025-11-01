@@ -12,6 +12,7 @@ from isaaclab.sim import SimulationCfg
 from isaaclab.utils import configclass
 
 from isaaclab.sensors import ImuCfg, ContactSensorCfg
+import math
 
 @configclass
 class DuckTrainEnvCfg(DirectRLEnvCfg):
@@ -20,10 +21,11 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
     decimation = 2
     episode_length_s = 5.0
     # - spaces definition
-    action_scale = 0.1 # [N]
+    action_scale = 0.01 # [N]
     action_space = 14
     observation_space = 6
     state_space = 0
+    max_tilt_rad = math.pi / 6
 
     # simulation
     sim: SimulationCfg = SimulationCfg(dt=1 / 120, render_interval=decimation)
@@ -32,11 +34,11 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
     ENV_REGEX_NS = "/World/envs/env_.*"
     robot_cfg: ArticulationCfg = DUCK_CFG.replace(
             prim_path=f"{ENV_REGEX_NS}/Robot",
-   )    
+    )
 
     # scene
     scene: InteractiveSceneCfg = InteractiveSceneCfg(
-        num_envs=10, 
+        num_envs=14, 
         env_spacing=4.0, 
         replicate_physics=True,
     )
@@ -48,7 +50,7 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
 
     
     scene.contact_forces = ContactSensorCfg(
-        prim_path=f"{ENV_REGEX_NS}/Robot/Open_Duck_Mini_v2/Open_Duck_Mini_v2/foot.*",
+        prim_path=f"{ENV_REGEX_NS}/Robot/Open_Duck_Mini_v2/Open_Duck_Mini_v2/foot.*$",
         update_period=0.0,
         history_length=6,
         filter_prim_paths_expr=["/World/GroundPlane"],
@@ -67,7 +69,7 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
     passive_dof_names = ["fix_left_antenna","fix_right_antenna"]  # 예시: 장식
 
     # 태스크 따라 선택
-    control_dof_names = left_leg_names + right_leg_names          # 보행/서기
+    control_dof_names = left_leg_names + right_leg_names + neck_names + head_names          # 보행/서기
     observe_dof_names = control_dof_names + neck_names + head_names
 
     # 좌우 대칭 정보(보상/정규화에 유용)
