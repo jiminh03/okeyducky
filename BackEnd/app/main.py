@@ -24,6 +24,8 @@ from app.router.manual_debug_router import router as manual_debug_router
 
 from app.modules.websocket_module import sio
 
+from app.events.connection_event import *
+
 from common.modules.db_instance import db, red
 import socketio
 
@@ -150,6 +152,15 @@ else:
 # Socket.IO 앱을 FastAPI 앱에 마운트
 # 이 한 줄이 '/socket.io' 경로로 들어오는
 # HTTP 핸드셰이크와 WebSocket 연결을 모두 처리합니다.
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 실제 운영 환경에서는 origins 변수 사용 권장
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 socket_app = socketio.ASGIApp(sio, app) # 실행시 진입점
 
 
@@ -160,13 +171,7 @@ socket_app = socketio.ASGIApp(sio, app) # 실행시 진입점
 #     "http://i13a106.p.ssafy.io:8080",
 # ]
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],  # 실제 운영 환경에서는 origins 변수 사용 권장
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+
 
 # 이 파일을 직접 실행할 때를 위한 코드
 if __name__ == "__main__":
