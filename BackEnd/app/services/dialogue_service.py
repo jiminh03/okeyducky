@@ -37,7 +37,7 @@ async def get_daily_report_by_id(
     if child is None:
         raise ChildNotFound
     
-    child_ids = [child.id for child in child_list]
+    child_ids = [child.child_id for child in child_list]
     if daily_report.child_id not in child_ids:
         raise NotOwnerError(detail="해당 자녀 정보에 접근할 권한이 없습니다.")
     
@@ -55,7 +55,7 @@ async def get_daily_report_by_child_id(
     if child is None:
         raise ChildNotFound
     
-    child_ids = [child.id for child in child_list]
+    child_ids = [child.child_id for child in child_list]
     if child_id not in child_ids:
         raise NotOwnerError(detail="해당 자녀 정보에 접근할 권한이 없습니다.")
     
