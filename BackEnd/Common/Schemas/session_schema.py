@@ -2,6 +2,8 @@ import json
 from typing import Optional, Dict, Any
 from enum import Enum
 
+from pydantic import BaseModel
+
 
 # SessionType을 Enum으로 정의합니다.
 class SessionType(Enum):
@@ -86,3 +88,9 @@ class ConnectionInfo:
             parent_id=data.get("parent_id"),  # 키가 존재하지 않으면 None을 반환
             robot_id=data.get("robot_id"),  # 키가 존재하지 않으면 None을 반환
         )
+
+class SessionRequest(BaseModel):
+    """세션 생성 요청 모델"""
+
+    session_type: SessionType
+    token: str
