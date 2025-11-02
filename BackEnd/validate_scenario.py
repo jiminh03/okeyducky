@@ -121,7 +121,7 @@ def run_test_scenario():
             # (B) connection_event.py의 'auth' 매개변수와 동일한 auth 페이로드 구성
             auth_payload = {
                 "token": access_token, 
-                "session_type": "fe" #
+                "session_type": "parent" #
             }
             
             # (C) 서버에 연결 시도

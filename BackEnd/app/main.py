@@ -25,6 +25,7 @@ from app.router.manual_debug_router import router as manual_debug_router
 from app.modules.websocket_module import sio
 
 from app.events.connection_event import *
+from app.events.webrtc_event import *
 
 from common.modules.db_instance import db, red
 import socketio
