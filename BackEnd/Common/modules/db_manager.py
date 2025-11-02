@@ -84,15 +84,30 @@ class MysqlSessionManager:
 
 class RedisSessionManager:
     def __init__(self, host, port, password):
+        """
+        앱 시작 시 'redis.Redis' 클라이언트 풀을 생성합니다.
+        이 인스턴스는 앱 전역에서 공유됩니다.
+        """
         self.redis_client = redis.Redis(
             host=host, port=port, password=password, decode_responses=True
         )
 
-    async def get_client(self):
+    async def get_redis_client(self) -> redis.Redis:
+        """
+        [구현된 메서드]
+        FastAPI 의존성 주입(Depends)에서 사용할 수 있는
+        공유 Redis 클라이언트(풀) 인스턴스를 반환합니다.
+        """
+        # DB 세션과 달리, 클라이언트 풀은 'yield'로 닫을 필요가 없습니다.
+        # 그냥 생성된 인스턴스를 반환하면 됩니다.
         return self.redis_client
 
     async def ping(self):
+        """
+        앱 시작 시 Redis 연결을 테스트합니다.
+        """
         try:
+            # ping은 'get_redis_client'가 아닌 self.redis_client를 직접 사용
             await self.redis_client.ping()
             print("Redis에 성공적으로 연결되었습니다.")
             return True
