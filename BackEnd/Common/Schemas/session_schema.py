@@ -9,7 +9,7 @@ from pydantic import BaseModel
 class SessionType(Enum):
     """세션 타입을 나타내는 열거형"""
 
-    FE = "fe"  # 프론트엔드 (Frontend) 세션
+    PARENT = "parent"  # 부모 (Parent) 세션션
     ROBOT = "robot"  # 로봇 (Robot) 세션
 
 
@@ -50,7 +50,7 @@ class ConnectionInfo:
         """
         data: Dict[str, Any] = {
             "sid": self.sid,
-            # JSON/Redis 등에 저장하기 위해 enum 멤버의 실제 값(예: "fe", "robot")을 사용합니다.
+            # JSON/Redis 등에 저장하기 위해 enum 멤버의 실제 값(예: "parent", "robot")을 사용합니다.
             "session_type": self.session_type.value,
         }
         # 값이 None이 아닌 선택적 필드(parent_id, robot_id)만 딕셔너리에 추가합니다.
@@ -83,7 +83,7 @@ class ConnectionInfo:
         """
         return cls(
             sid=data["sid"],
-            # 문자열 값(예: "fe", "robot")을 다시 SessionType enum 멤버로 변환합니다.
+            # 문자열 값(예: "parent", "robot")을 다시 SessionType enum 멤버로 변환합니다.
             session_type=SessionType(data["session_type"]),
             parent_id=data.get("parent_id"),  # 키가 존재하지 않으면 None을 반환
             robot_id=data.get("robot_id"),  # 키가 존재하지 않으면 None을 반환
