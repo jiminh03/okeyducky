@@ -10,8 +10,8 @@ from common.modules.db_instance import red
 from app.modules.websocket_module import sio
 
 
-rtc_man = WebRTCManager(red)
-sess_man = SessionManager(red)
+
+
 
 # WebRTC 시그널링 이벤트 핸들러 ---
 # 사용 규칙
@@ -21,6 +21,9 @@ sess_man = SessionManager(red)
 async def on_register_offer(sid, offer_data: Dict[str, str]):
     """(로봇 -> 서버) 로봇이 Offer를 등록하는 이벤트"""
     print(f"WebRTC log: Registering Offer ,sid: {sid}")
+    redis_client = await red.get_redis_client()
+    rtc_man = WebRTCManager(redis_client)
+    sess_man = SessionManager(redis_client)
     await rtc_man.register_offer(sid, offer_data)
 
 
@@ -28,6 +31,9 @@ async def on_register_offer(sid, offer_data: Dict[str, str]):
 async def on_check_offer(sid, offer_clnt_type: SessionType, offer_clnt_id: int):
     """(서버 -> FE) 이미 등록된 offer 확인하는 이벤트"""
     print(f"WebRTC log: Checking Offer ,sid: {sid}")
+    redis_client = await red.get_redis_client()
+    rtc_man = WebRTCManager(redis_client)
+    sess_man = SessionManager(redis_client)
     if offer_clnt_type == SessionType.PARENT:
         session_info = await sess_man.get_session_by_parent_id(offer_clnt_id)
     elif offer_clnt_type == SessionType.ROBOT:
@@ -42,6 +48,9 @@ async def on_check_offer(sid, offer_clnt_type: SessionType, offer_clnt_id: int):
 async def on_send_answer(sid, offer_clnt_type: SessionType, offer_clnt_id: int, answer_data: Dict[str, str]):
     """(FE -> 서버) FE가 Answer를 제출하는 이벤트"""
     print(f"WebRTC log: Sending Answer ,sid: {sid}")
+    redis_client = await red.get_redis_client()
+    rtc_man = WebRTCManager(redis_client)
+    sess_man = SessionManager(redis_client)
 
     await rtc_man.register_answer(sid, answer_data)
 
@@ -63,6 +72,10 @@ async def on_send_answer(sid, offer_clnt_type: SessionType, offer_clnt_id: int, 
 async def on_check_answer(sid, answer_clnt_type: SessionType, answer_clnt_id: int):
     """(서버 -> FE) 이미 등록된 offer 확인하는 이벤트"""
     print(f"WebRTC log: Checking Answer ,sid: {sid}")
+    redis_client = await red.get_redis_client()
+    rtc_man = WebRTCManager(redis_client)
+    sess_man = SessionManager(redis_client)
+
     if answer_clnt_type == SessionType.PARENT:
         session_info = await sess_man.get_session_by_parent_id(answer_clnt_id)
     elif answer_clnt_type == SessionType.ROBOT:
@@ -77,6 +90,9 @@ async def on_check_answer(sid, answer_clnt_type: SessionType, answer_clnt_id: in
 async def on_send_ice_candidate(sid, opp_clnt_type: SessionType, opp_clnt_id: int ,data):
     """(로봇/FE -> 서버) ICE Candidate를 중계하는 이벤트"""
     print(f"WebRTC log: ice exchange ,sid: {sid}")
+    redis_client = await red.get_redis_client()
+    rtc_man = WebRTCManager(redis_client)
+    sess_man = SessionManager(redis_client)
     
     if data:
         if opp_clnt_type == SessionType.PARENT:

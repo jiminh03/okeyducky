@@ -25,7 +25,7 @@ class SessionManager:
     def __init__(
         self, 
         # Redis 클라이언트를 FastAPI를 통해 직접 주입받습니다.
-        redis_client: redis.Redis = Depends(red.get_redis_client)
+        redis_client: redis.Redis
     ):
         # 모든 메서드가 'self.redis_client'를 공유합니다.
         self.redis_client = redis_client
