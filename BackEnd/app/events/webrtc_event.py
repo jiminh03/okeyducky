@@ -34,10 +34,15 @@ async def on_check_offer(sid, offer_clnt_type: SessionType, offer_clnt_id: int):
     redis_client = await red.get_redis_client()
     rtc_man = WebRTCManager(redis_client)
     sess_man = SessionManager(redis_client)
+    session_info = None
     if offer_clnt_type == SessionType.PARENT:
         session_info = await sess_man.get_session_by_parent_id(offer_clnt_id)
     elif offer_clnt_type == SessionType.ROBOT:
         session_info = await sess_man.get_session_by_robot_id(offer_clnt_id)
+    
+    if session_info is None:
+        print(f"{offer_clnt_type} {offer_clnt_id} session_info not exist")
+        return
 
     offer = await rtc_man.consume_offer(session_info.sid)
     if offer:
@@ -54,6 +59,7 @@ async def on_send_answer(sid, offer_clnt_type: SessionType, offer_clnt_id: int, 
 
     await rtc_man.register_answer(sid, answer_data)
 
+    session_info = None
     if offer_clnt_type == SessionType.PARENT:
         session_info = await sess_man.get_session_by_parent_id(offer_clnt_id)
     elif offer_clnt_type == SessionType.ROBOT:
@@ -76,6 +82,7 @@ async def on_check_answer(sid, answer_clnt_type: SessionType, answer_clnt_id: in
     rtc_man = WebRTCManager(redis_client)
     sess_man = SessionManager(redis_client)
 
+    session_info = None
     if answer_clnt_type == SessionType.PARENT:
         session_info = await sess_man.get_session_by_parent_id(answer_clnt_id)
     elif answer_clnt_type == SessionType.ROBOT:
@@ -95,6 +102,7 @@ async def on_send_ice_candidate(sid, opp_clnt_type: SessionType, opp_clnt_id: in
     sess_man = SessionManager(redis_client)
     
     if data:
+        session_info = None
         if opp_clnt_type == SessionType.PARENT:
             session_info = await sess_man.get_session_by_parent_id(opp_clnt_id)
         elif opp_clnt_type == SessionType.ROBOT:
