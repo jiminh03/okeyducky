@@ -44,7 +44,7 @@ DUCK_CFG = ArticulationCfg(
             "fix_left_antenna":  math.radians(0.0),
             "fix_right_antenna": math.radians(0.0),
         },
-        pos=(0,0,0), # 로봇 초기 위치
+        pos=(0,0,-0.05), # 로봇 초기 위치
     ),
     actuators={ # actuator의 특성
         # 기본값(다리 전반)

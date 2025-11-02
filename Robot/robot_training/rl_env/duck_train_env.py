@@ -107,13 +107,8 @@ class DuckTrainEnv(DirectRLEnv):
         # Δq 위치제어: q_target = q_now + Δq
         q_now = self.robot.data.joint_pos[:, self._ctrl_idx]
         q_t = q_now + self.actions
-        # (선택) 조인트 한계가 필요하면 여기서 clamp
-        # limits = getattr(self.robot.data, "joint_pos_limits", None)
-        # if limits is not None:
-        #     lo, hi = limits[0, self._ctrl_idx], limits[1, self._ctrl_idx]
-        #     q_t = torch.clamp(q_t, lo, hi)
         self.robot.set_joint_position_target(q_t, joint_ids=self._ctrl_idx)
-
+        
     def _get_observations(self) -> dict:
         # --- 관절 ---
         q  = self.robot.data.joint_pos[:, self._ctrl_idx]
@@ -283,7 +278,7 @@ class DuckTrainEnv(DirectRLEnv):
 
         # h_ref: 리셋 스텝 보정
         self._h_ref = torch.where((self.episode_length_buf == 0), pos[:, 2].detach(), self._h_ref)
-        h_fail = 0.1 * self._h_ref
+        h_fail = 0.3 * self._h_ref
 
         out_of_bounds = (torch.abs(pitch) > self._max_tilt) | (torch.abs(roll) > self._max_tilt) | (pos[:, 2] < h_fail)
         return out_of_bounds, time_out

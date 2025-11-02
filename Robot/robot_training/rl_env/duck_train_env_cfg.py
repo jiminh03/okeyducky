@@ -26,7 +26,7 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
     # - spaces definition
     action_scale = 1 # [N]
     action_space = 14
-    observation_space = 7
+    observation_space = 42
     state_space = 0
     max_tilt_rad = math.pi
 
@@ -41,7 +41,7 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
 
     # scene
     scene: InteractiveSceneCfg = InteractiveSceneCfg(
-        num_envs=1000, 
+        num_envs=512, 
         env_spacing=4.0, 
         replicate_physics=True,
     )
@@ -56,7 +56,7 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
         prim_path=f"{ENV_REGEX_NS}/Robot/Open_Duck_Mini_v2/Open_Duck_Mini_v2/foot.*$",
         update_period=0.0,
         history_length=6,
-        filter_prim_paths_expr=["/World/ground"],
+        #filter_prim_paths_expr=["/World/ground/GroundPlane"],
     )
     
     observe_extra_dof_names: list[str] = []
