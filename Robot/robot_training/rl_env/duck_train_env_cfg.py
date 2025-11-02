@@ -12,6 +12,9 @@ from isaaclab.sim import SimulationCfg
 from isaaclab.utils import configclass
 
 from isaaclab.sensors import ImuCfg, ContactSensorCfg
+from isaaclab.terrains import TerrainImporterCfg, TerrainGeneratorCfg
+from isaaclab.terrains.height_field import hf_terrains_cfg as HF
+
 import math
 
 @configclass
@@ -21,11 +24,11 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
     decimation = 2
     episode_length_s = 5.0
     # - spaces definition
-    action_scale = 0.01 # [N]
+    action_scale = 1 # [N]
     action_space = 14
-    observation_space = 6
+    observation_space = 7
     state_space = 0
-    max_tilt_rad = math.pi / 6
+    max_tilt_rad = math.pi
 
     # simulation
     sim: SimulationCfg = SimulationCfg(dt=1 / 120, render_interval=decimation)
@@ -38,7 +41,7 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
 
     # scene
     scene: InteractiveSceneCfg = InteractiveSceneCfg(
-        num_envs=14, 
+        num_envs=1000, 
         env_spacing=4.0, 
         replicate_physics=True,
     )
@@ -53,9 +56,9 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
         prim_path=f"{ENV_REGEX_NS}/Robot/Open_Duck_Mini_v2/Open_Duck_Mini_v2/foot.*$",
         update_period=0.0,
         history_length=6,
-        filter_prim_paths_expr=["/World/GroundPlane"],
+        filter_prim_paths_expr=["/World/ground"],
     )
-
+    
     observe_extra_dof_names: list[str] = []
     # 학습에서 제어할 DOF (RL 정책 정하기 쉽게 그룹화 하기)
     # --- semantic DOF groups ---
@@ -83,9 +86,9 @@ class DuckTrainEnvCfg(DirectRLEnvCfg):
 
     # 안전/리셋
     default_pose = {
-        "dof_left_hip_pitch": 0.2, "dof_right_hip_pitch": 0.2,
-        "dof_left_knee": 0.6, "dof_right_knee": 0.6,
-        "dof_left_ankle": -0.4, "dof_right_ankle": -0.4,
+        "dof_left_hip_pitch": 0.0, "dof_right_hip_pitch": 0.0,
+        "dof_left_knee": 0.0, "dof_right_knee": 0.0,
+        "dof_left_ankle": 0.0, "dof_right_ankle": 0.0,
         # 나머지는 0
     }
 
