@@ -8,9 +8,12 @@ import MainScreen from '@/screens/MainScreen';
 import TodayConversationDetailScreen from '@/screens/TodayConversationDetailScreen';
 import DailyReportScreen from '@/screens/DailyReportScreen';
 import VideoScreen from '@/screens/VideoScreen';
+import RegisterChildScreen from '@/screens/RegisterChildScreen';
+import CalendarScreen from '@/screens/CalendarScreen';
 
 export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video'>('splash');
+  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video' | 'register-child' | 'calendar'>('splash');
+  const [hasChild, setHasChild] = useState(false); // 아이 등록 여부
 
   const handleLogin = () => {
     console.log('로그인 버튼 클릭');
@@ -63,7 +66,7 @@ export default function Home() {
 
   const handleCalendar = () => {
     console.log('달력 페이지로 이동');
-    // TODO: 달력 페이지 구현
+    setCurrentScreen('calendar');
   };
 
   const handleGuide = () => {
@@ -76,6 +79,17 @@ export default function Home() {
     // TODO: 설정 페이지 구현
   };
 
+  const handleRegisterChild = () => {
+    console.log('아이 등록 페이지로 이동');
+    setCurrentScreen('register-child');
+  };
+
+  const handleRegisterChildComplete = () => {
+    console.log('아이 등록 완료');
+    setHasChild(true);
+    setCurrentScreen('main');
+  };
+
   if (currentScreen === 'splash') {
     return <SplashScreen onLogin={handleLogin} onSignUp={handleSignUp} />;
   }
@@ -85,7 +99,7 @@ export default function Home() {
   }
 
   if (currentScreen === 'signup') {
-    return <SignUpScreen onBack={handleBackToSplash} onSignUpComplete={handleSignUpComplete} />;
+    return <SignUpScreen onBack={handleBackToSplash} onSignUpComplete={handleSignUpComplete} onLogin={handleLogin} />;
   }
 
   if (currentScreen === 'conversation-detail') {
@@ -120,6 +134,27 @@ export default function Home() {
     />;
   }
 
+  if (currentScreen === 'calendar') {
+    return <CalendarScreen 
+      onHome={() => setCurrentScreen('main')}
+      onVideo={handleVideo}
+      onCalendar={handleCalendar}
+      onGuide={handleGuide}
+      onSettings={handleSettings}
+    />;
+  }
+
+  if (currentScreen === 'register-child') {
+    return <RegisterChildScreen 
+      onBack={handleBackToMain}
+      onRegisterComplete={handleRegisterChildComplete}
+      onVideo={handleVideo}
+      onCalendar={handleCalendar}
+      onGuide={handleGuide}
+      onSettings={handleSettings}
+    />;
+  }
+
   return <MainScreen 
     onLogout={handleLogout} 
     onConversationDetail={handleConversationDetail} 
@@ -128,5 +163,7 @@ export default function Home() {
     onCalendar={handleCalendar}
     onGuide={handleGuide}
     onSettings={handleSettings}
+    onRegisterChild={handleRegisterChild}
+    hasChild={hasChild}
   />;
 }

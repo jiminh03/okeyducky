@@ -1,0 +1,488 @@
+.register-child-container {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 메인 콘텐츠 */
+.register-child-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 20px;
+  padding-top: 136px; /* 헤더 여유 보정 (프로필 사진 안잘리게) */
+  padding-bottom: 104px; /* 푸터 여유 보정 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 프로필 사진 섹션 */
+.profile-picture-section {
+  position: relative;
+  margin-top: 4px; /* 헤더와 겹침 방지 */
+  margin-bottom: 28px;
+}
+
+.profile-picture-placeholder {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  /* 기본은 더 밝게 */
+  background: linear-gradient(135deg, #FAFAFA 100%, #F0F0F0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #E0E0E0;
+  transition: all 0.3s ease;
+}
+
+.profile-picture-placeholder:hover {
+  /* border-color: #FFE300; */
+  /* 호버 시 더 어둡게 */
+  background: linear-gradient(135deg, #EDEDED 0%, #DBDBDB 100%);
+}
+
+.camera-icon {
+  position: absolute;
+  bottom: -6px; /* 프로필 원 바깥으로 살짝 */
+  right: -6px;  /* 프로필 원 바깥으로 살짝 */
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: transparent !important; /* 실제 배경은 ::before로 처리 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none !important; /* 검정색/외곽 테두리 제거 */
+  outline: none !important;
+  box-shadow: none; /* 외곽 그림자 제거(검정 테두리처럼 보일 수 있음) */
+  -webkit-tap-highlight-color: transparent; /* 모바일 탭 하이라이트 제거 */
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 카메라 아이콘 뒤 원형 배경 (시각적 대비용) */
+.camera-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55); /* 짙은 배경으로 흰 아이콘 가시성 확보 */
+}
+
+.camera-icon:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: none;
+}
+
+.camera-icon:active {
+  transform: scale(1.0) translateY(0);
+  box-shadow: none;
+}
+
+/* 포커스 시 기본 아웃라인 제거 */
+.camera-icon:focus {
+  outline: none !important;
+}
+
+/* 카메라 아이콘(svg) 자체에도 외곽선이 보이지 않도록 */
+.camera-icon svg {
+  outline: none;
+  position: relative;
+  z-index: 1; /* 배경 원 위에 표시 */
+}
+
+.camera-icon svg:focus {
+  outline: none;
+}
+
+/* 폼 */
+.register-form {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 12px;
+}
+
+/* 폼 그룹 */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.form-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-label {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  letter-spacing: -0.3px;
+}
+
+/* 입력 필드 */
+.form-input {
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  border-bottom: 2px solid #FFE300;
+  border-radius: 0;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 16px;
+  color: #111;
+  background: transparent;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.form-input:hover {
+  border-bottom-color: #FFE300;
+}
+
+.form-input:focus {
+  outline: none !important;
+  border: none !important;
+  border-bottom: 2px solid #FFE300 !important;
+  box-shadow: none !important;
+}
+
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus,
+.form-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  box-shadow: 0 0 0 30px transparent inset !important;
+  -webkit-text-fill-color: #111 !important;
+  border: none !important;
+  border-bottom: 2px solid #FFE300 !important;
+  background-color: transparent !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.form-input::placeholder {
+  color: #999;
+}
+
+/* 성별 버튼 */
+.gender-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  width: fit-content;
+  margin: 0 auto; /* 중앙 정렬 */
+  position: relative;
+}
+
+.gender-btn {
+  min-width: 120px;
+  padding: 14px 24px;
+  border: 2px solid #E8E8E8;
+  border-radius: 12px;
+  background: #fff;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #999;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.gender-btn:hover:not(.active) {
+  border-color: #d0d0d0;
+  color: #666;
+  background: #FAFAFA;
+}
+
+.gender-btn.active.female {
+  background: #FFC8C8;
+  color: #FF0000;
+  border-color: #FFC8C8;
+  box-shadow: 0 2px 8px rgba(255, 200, 200, 0.4);
+  transform: scale(1.02);
+}
+
+.gender-btn.active.female:hover {
+  box-shadow: 0 4px 12px rgba(255, 200, 200, 0.5);
+  transform: scale(1.03);
+}
+
+.gender-btn.active.male {
+  background: #A6D1FF;
+  color: #007AFF;
+  border-color: #A6D1FF;
+  box-shadow: 0 2px 8px rgba(166, 209, 255, 0.4);
+  transform: scale(1.02);
+}
+
+.gender-btn.active.male:hover {
+  box-shadow: 0 4px 12px rgba(166, 209, 255, 0.5);
+  transform: scale(1.03);
+}
+
+.gender-symbol {
+  font-size: 20px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.gender-btn.active .gender-symbol {
+  transform: scale(1.15);
+}
+
+.gender-text {
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+/* 생년월일 입력 */
+.birth-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.birth-input {
+  flex: 1;
+  min-width: 70px;
+  padding: 12px 8px;
+  border: none;
+  border-bottom: 2px solid #FFE300;
+  border-radius: 0;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111;
+  background: transparent;
+  text-align: center;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.birth-input.year {
+  flex: 1.2;
+}
+
+.birth-input:hover {
+  border-bottom-color: #FFE300;
+}
+
+.birth-input:focus {
+  outline: none !important;
+  border: none !important;
+  border-bottom: 2px solid #FFE300 !important;
+  box-shadow: none !important;
+}
+
+.birth-input:-webkit-autofill,
+.birth-input:-webkit-autofill:hover,
+.birth-input:-webkit-autofill:focus,
+.birth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  box-shadow: 0 0 0 30px transparent inset !important;
+  -webkit-text-fill-color: #111 !important;
+  border: none !important;
+  border-bottom: 2px solid #FFE300 !important;
+  background-color: transparent !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.birth-label {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+  min-width: 24px;
+}
+
+/* 학교 입력 */
+.school-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.school-input {
+  padding-right: 32px;
+}
+
+.search-icon {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* 학교 검색 결과 리스트 */
+.school-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #E8E8E8;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 4px;
+}
+
+.school-search-item {
+  padding: 14px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #F5F5F5;
+  transition: background-color 0.2s;
+}
+
+.school-search-item:last-child {
+  border-bottom: none;
+}
+
+.school-search-item:hover {
+  background-color: #F9F9F9;
+}
+
+.school-name {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.school-address {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 2px;
+}
+
+.school-type {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 12px;
+  color: #666;
+  display: inline-block;
+  padding: 2px 8px;
+  background: #F5F5F5;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.school-search-loading,
+.school-search-empty {
+  padding: 16px;
+  text-align: center;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 14px;
+  color: #999;
+}
+
+/* 등록 버튼 */
+.register-submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: #FFE300;
+  border: none;
+  border-radius: 12px;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #FFFFFF;
+  cursor: pointer;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(255, 227, 0, 0.3);
+  letter-spacing: -0.2px;
+}
+
+.register-submit-btn:hover {
+  background: #FFD700;
+  box-shadow: 0 6px 16px rgba(255, 227, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.register-submit-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 227, 0, 0.3);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  .register-child-content {
+    padding: 0 16px;
+    padding-top: 112px; /* 모바일 헤더 여유 보정 (프로필 사진 안잘리게) */
+    padding-bottom: 104px; /* 모바일 푸터 여유 보정 */
+  }
+
+  .profile-picture-section {
+    margin-bottom: 24px;
+  }
+
+  .profile-picture-placeholder {
+    width: 90px;
+    height: 90px;
+  }
+
+  .camera-icon {
+    width: 32px;
+    height: 32px;
+    bottom: -4px;
+    right: -4px;
+  }
+
+  .register-form {
+    gap: 16px;
+  }
+
+  .form-label {
+    font-size: 15px;
+  }
+
+  .form-input {
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+
+  .gender-btn {
+    padding: 12px 16px;
+    font-size: 15px;
+  }
+
+  .birth-input {
+    padding: 14px 10px;
+    font-size: 15px;
+    min-width: 70px;
+  }
+
+  .register-submit-btn {
+    padding: 16px;
+    font-size: 16px;
+  }
+}
+

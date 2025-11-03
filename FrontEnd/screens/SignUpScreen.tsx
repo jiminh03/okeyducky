@@ -4,9 +4,10 @@ import '@/screens/SignUpScreen.css';
 interface SignUpScreenProps {
   onBack: () => void;
   onSignUpComplete: () => void;
+  onLogin: () => void;
 }
 
-const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete }) => {
+const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete, onLogin }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -51,7 +52,6 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete })
         </div>
 
         {/* 페이지 제목 */}
-        <h1 className="signup-brand-title">오키더키</h1>
         <h2 className="signup-page-title">회원가입</h2>
 
         {/* 회원가입 폼 */}
@@ -121,7 +121,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete })
         {/* 하단 로그인 링크 */}
         <div className="login-link-section">
           <span className="login-text">이미 계정이 있으신가요?</span>
-          <button className="login-link-btn" onClick={onBack}>
+          <button className="login-link-btn" onClick={onLogin}>
             로그인하기
           </button>
         </div>
