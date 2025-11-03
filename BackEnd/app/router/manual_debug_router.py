@@ -127,7 +127,7 @@ async def test_get_child_info(
 # 4. RobotService (로봇)
 # ===================================================================
 
-@router.post("/robot", summary="[7] (Robot) register_robot 테스트 (토큰 필요)")
+@router.post("/robot", summary="[7-1] (Robot) register_robot 테스트 (토큰 필요)")
 async def test_register_robot(
     result: RobotInfoResponse = Depends(register_robot)
 ):
@@ -137,6 +137,17 @@ async def test_register_robot(
     - (실패) 404 Not Found (ChildNotFound)
     - (실패) 403 Forbidden (NotOwnerError)
     - (실패) 409 Conflict (Repo가 IntegrityViolationError 발생 시 - 시리얼 중복)
+    """
+    return result
+
+@router.post("/auth/login/robot", summary="[7-2] (Auth) login_robot 테스트")
+async def test_login_robot(
+    result: RobotInfoResponse = Depends(login_robot)
+):
+    """
+    서비스: `login_robot`
+    - (성공) 200 OK
+    - (실패) 401 Unauthorized (InvalidCredentialsError)
     """
     return result
 

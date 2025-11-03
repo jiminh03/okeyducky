@@ -6,8 +6,6 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-from common.schemas.user_schema import TokenPayload
-
 class InvalidCredentialsError(Exception):
     """
     인증 정보가 유효하지 않을 때 발생하는 사용자 정의 예외입니다.
@@ -61,7 +59,7 @@ class CryptModule:
         """
         return self.pwd_context.verify(plain_password, hashed_password) 
     
-    def create_access_jwt(self, data: TokenPayload, expires_delta: Optional[timedelta] = None) -> str: 
+    def create_access_jwt(self, data: dict[str,str], expires_delta: Optional[timedelta] = None) -> str: 
         """
         새로운 JWT 액세스 토큰을 생성합니다.
 
@@ -84,7 +82,7 @@ class CryptModule:
         return jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM) 
 
 
-    def decode_jwt_payload(self, token: str) -> TokenPayload: 
+    def decode_jwt_payload(self, token: str) -> dict[str,str]: 
         """
         JWT 토큰을 디코딩하여 페이로드를 반환합니다.
 
@@ -99,7 +97,7 @@ class CryptModule:
             디코딩된 토큰 페이로드를 담은 TokenPayload 객체입니다.
         """
         try:
-            payload = TokenPayload(**jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM]))
+            payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
             return payload
         except (JWTError, ValueError, TypeError, KeyError) as e:
             # 참고: InvalidCredentialsError는 이 스니펫에 정의되어 있지 않지만,

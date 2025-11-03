@@ -128,7 +128,6 @@ def run_test_scenario():
             sio_client.connect(
                 BASE_URL, 
                 auth=auth_payload, 
-                transports=['websocket']
             )
             
             # (D) 'sio_client.wait()'는 백그라운드 스레드에서 실행되는 클라이언트가

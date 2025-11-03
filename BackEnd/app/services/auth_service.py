@@ -32,7 +32,7 @@ async def login_robot(
     robot = await get_robot_by_id_service(login_request.robot_id)
     if not robot or robot.serial_number != login_request.serial_number:
         raise InvalidCredentialsError
-    token_data = TokenPayload.model_validate(robot.model_dump())
+    token_data = RobotTokenPayload.model_validate(robot.model_dump())
     token = crypt_module.create_access_jwt(token_data)
     return {"access_token": token, "token_type": "bearer"} #TODO: 스키마 정의해서 반환할 예정
 
@@ -41,7 +41,8 @@ async def get_current_parent(
     get_parent_by_id_service=Depends(get_parent_by_id_service),
 ):
     payload = crypt_module.decode_jwt_payload(token)
-    parent = await get_parent_by_id_service(payload.parent_id)
+    parsed_payload = TokenPayload.model_validate(payload)
+    parent = await get_parent_by_id_service(parsed_payload.parent_id)
     if not parent:
         raise InvalidCredentialsError
     return parent

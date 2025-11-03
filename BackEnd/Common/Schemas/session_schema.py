@@ -23,8 +23,7 @@ class ConnectionInfo:
         self,
         sid: str,
         session_type: SessionType,
-        parent_id: Optional[int] = None,
-        robot_id: Optional[int] = None,
+        id: int,  # <--- 변경된 부분 (parent_id, robot_id 대신 id 사용)
     ):
         """
         ConnectionInfo 객체를 초기화합니다.
@@ -32,14 +31,12 @@ class ConnectionInfo:
         Args:
             sid (str): 고유 세션 ID (예: Socket.IO의 `request.sid`).
             session_type (SessionType): 세션의 타입 (FE 또는 ROBOT).
-            parent_id (Optional[int]): 세션에 연결된 부모(사용자/관리자) 계정의 ID.
-            robot_id (Optional[int]): 세션에 연결된 로봇의 ID.
+            id (int): 세션에 연결된 부모(사용자) 또는 로봇의 ID. # <--- 수정된 주석
         """
         # 타입 힌트(SessionType)가 enum 값의 유효성을 검사합니다.
         self.sid = sid
         self.session_type = session_type
-        self.parent_id = parent_id
-        self.robot_id = robot_id
+        self.id = id  # <--- 추가된 부분
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -52,17 +49,17 @@ class ConnectionInfo:
             "sid": self.sid,
             # JSON/Redis 등에 저장하기 위해 enum 멤버의 실제 값(예: "parent", "robot")을 사용합니다.
             "session_type": self.session_type.value,
+            "id": self.id,  # <--- 수정된 부분 (id 필드 추가)
         }
-        # 값이 None이 아닌 선택적 필드(parent_id, robot_id)만 딕셔너리에 추가합니다.
-        if self.parent_id is not None:
-            data["parent_id"] = self.parent_id
-        if self.robot_id is not None:
-            data["robot_id"] = self.robot_id
+        
+        # <--- 삭제된 부분 (parent_id, robot_id 관련 if 블록)
+        
         return data
 
     def to_json(self) -> str:
         """
         ConnectionInfo 객체를 JSON 문자열로 변환합니다.
+        (이 메서드는 to_dict()를 사용하므로 수정할 필요가 없습니다.)
 
         Returns:
             str: 객체의 JSON 문자열 표현.
@@ -85,8 +82,9 @@ class ConnectionInfo:
             sid=data["sid"],
             # 문자열 값(예: "parent", "robot")을 다시 SessionType enum 멤버로 변환합니다.
             session_type=SessionType(data["session_type"]),
-            parent_id=data.get("parent_id"),  # 키가 존재하지 않으면 None을 반환
-            robot_id=data.get("robot_id"),  # 키가 존재하지 않으면 None을 반환
+            id=data["id"],  # <--- 수정된 부분 (data["id"] 사용)
+            # parent_id=data.get("parent_id"),  <--- 삭제됨
+            # robot_id=data.get("robot_id"),  <--- 삭제됨
         )
 
 class SessionRequest(BaseModel):
