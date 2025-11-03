@@ -31,6 +31,10 @@ class TokenPayload(BaseModel):
     parent_name: str
     email: str
 
+class RobotTokenPayload(BaseModel):
+    robot_id: int
+    serial_number: str
+
 class ParentInfoResponse(BaseModel):
     parent_id: int
     parent_name: str
