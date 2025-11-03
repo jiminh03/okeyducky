@@ -26,6 +26,7 @@ class RobotLoginRequest(BaseModel):
 
 class LoginResponse(BaseModel):
     access_token: str
+    token_type: str
 
 class TokenPayload(BaseModel):
     parent_id: int
