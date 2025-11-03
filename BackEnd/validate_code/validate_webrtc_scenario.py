@@ -124,10 +124,17 @@ def run_webrtc_test():
         assert resp.status_code == 200, f"로봇 등록 실패: {resp.text}"
         robot_id = resp.json()["robot_id"]
         print(f"✅ Robot 생성 (ID: {robot_id})")
+
+        print("--- [HTTP 5] 로봇 로그인 (토큰 획득) ---")
+        log_data = {"robot_id": robot_id, "serial_number": TEST_ROBOT_SN}
+        resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/auth/login/robot", json=log_data)
+        assert resp.status_code == 200, f"로그인 실패: {resp.text} (auth_service.py 수정 필요)"
+        robot_access_token = resp.json()["access_token"]
+        print(f"✅ 로그인 성공 (Token: {robot_access_token[:10]}...)")
         
         # === 2단계: WebSocket 연결 및 인증 ===
         print("\n--- [WS 1] 로봇/부모 동시 연결 및 인증 ---")
-        auth_robot = {"token": access_token, "session_type": "robot"} #
+        auth_robot = {"token": robot_access_token, "session_type": "robot"} #
         auth_parent = {"token": access_token, "session_type": "parent"} #
         
         sio_robot.connect(BASE_URL, auth=auth_robot)
