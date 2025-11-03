@@ -26,7 +26,8 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
     birthYear: '',
     birthMonth: '',
     birthDay: '',
-    school: ''
+    school: '',
+    robotSerial: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,15 +62,15 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
         {/* 프로필 사진 */}
         <div className="profile-picture-section">
           <div className="profile-picture-placeholder">
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z" fill="#999"/>
-              <path d="M12 14C8.67 14 6 15.34 6 17V20H18V17C18 15.34 15.33 14 12 14Z" fill="#999"/>
+            <svg width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="8" r="4" stroke="#C0C0C0" strokeWidth="1.5" fill="none"/>
+              <path d="M6 20C6 16.6863 8.68629 14 12 14C15.3137 14 18 16.6863 18 20" stroke="#C0C0C0" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </div>
           <div className="camera-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" fill="white"/>
-              <path d="M20 4H16.83L15.59 2.65C15.22 2.24 14.68 2 14.12 2H9.88C9.32 2 8.78 2.24 8.41 2.65L7.17 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17Z" fill="#2563EB"/>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 4H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="12" cy="13" r="4" stroke="white" strokeWidth="2" fill="none"/>
             </svg>
           </div>
         </div>
@@ -171,6 +172,20 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
                 <path d="M21 21L16.65 16.65" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
+          </div>
+
+          {/* 로봇 시리얼 번호 */}
+          <div className="form-group">
+            <label className="form-label">로봇 시리얼 번호</label>
+            <input
+              type="text"
+              name="robotSerial"
+              value={formData.robotSerial}
+              onChange={handleInputChange}
+              className="form-input"
+              placeholder="로봇 시리얼 번호를 입력해주세요"
+              required
+            />
           </div>
 
           {/* 등록 버튼 */}
