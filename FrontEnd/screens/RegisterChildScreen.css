@@ -125,9 +125,23 @@
 }
 
 .form-input:focus {
-  outline: none;
-  border-bottom-color: #FFE300;
-  border-bottom-width: 2px;
+  outline: none !important;
+  border: none !important;
+  border-bottom: 2px solid #FFE300 !important;
+  box-shadow: none !important;
+}
+
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus,
+.form-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  box-shadow: 0 0 0 30px transparent inset !important;
+  -webkit-text-fill-color: #111 !important;
+  border: none !important;
+  border-bottom: 2px solid #FFE300 !important;
+  background-color: transparent !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .form-input::placeholder {
@@ -242,13 +256,27 @@
 }
 
 .birth-input:hover {
-  border-bottom-color: #d0d0d0;
+  border-bottom-color: #FFE300;
 }
 
 .birth-input:focus {
-  outline: none;
-  border-bottom-color: #FFE300;
-  border-bottom-width: 2px;
+  outline: none !important;
+  border: none !important;
+  border-bottom: 2px solid #FFE300 !important;
+  box-shadow: none !important;
+}
+
+.birth-input:-webkit-autofill,
+.birth-input:-webkit-autofill:hover,
+.birth-input:-webkit-autofill:focus,
+.birth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  box-shadow: 0 0 0 30px transparent inset !important;
+  -webkit-text-fill-color: #111 !important;
+  border: none !important;
+  border-bottom: 2px solid #FFE300 !important;
+  background-color: transparent !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .birth-label {
