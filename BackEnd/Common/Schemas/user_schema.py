@@ -19,6 +19,10 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+class RobotLoginRequest(BaseModel):
+    robot_id: int
+    serial_number: str
+
 class LoginResponse(BaseModel):
     access_token: str
 
@@ -26,6 +30,10 @@ class TokenPayload(BaseModel):
     parent_id: int
     parent_name: str
     email: str
+
+class RobotTokenPayload(BaseModel):
+    robot_id: int
+    serial_number: str
 
 class ParentInfoResponse(BaseModel):
     parent_id: int

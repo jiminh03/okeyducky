@@ -1,5 +1,6 @@
 from app.modules.crypt_module import crypt_module
 from app.providers.parent_providers import *
+from app.providers.robot_providers import *
 
 from app.exceptions import *
 
@@ -21,6 +22,17 @@ async def login_parent(
     ):
         raise InvalidCredentialsError
     token_data = TokenPayload.model_validate(parent.model_dump())
+    token = crypt_module.create_access_jwt(token_data)
+    return {"access_token": token, "token_type": "bearer"} #TODO: 스키마 정의해서 반환할 예정
+
+async def login_robot(
+    login_request: RobotLoginRequest,
+    get_robot_by_id_service=Depends(get_robot_by_id_service),
+):
+    robot = await get_robot_by_id_service(login_request.robot_id)
+    if not robot or robot.serial_number != login_request.serial_number:
+        raise InvalidCredentialsError
+    token_data = TokenPayload.model_validate(robot.model_dump())
     token = crypt_module.create_access_jwt(token_data)
     return {"access_token": token, "token_type": "bearer"} #TODO: 스키마 정의해서 반환할 예정
 
