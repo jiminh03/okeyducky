@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import DetailHeader from '@/components/DetailHeader';
 import Footer from '@/components/Footer';
 import './RegisterChildScreen.css';
@@ -30,6 +30,11 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
     robotSerial: ''
   });
 
+  // 프로필 이미지 (기본: public/icons/Group 1000004404.png)
+  const defaultProfileImage = '/icons/Frame 1000000896.png';
+  const [profileImage, setProfileImage] = useState<string | null>(defaultProfileImage);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -47,7 +52,11 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('아이 등록 데이터:', formData);
+    const payload = {
+      ...formData,
+      profileImage: profileImage || defaultProfileImage,
+    };
+    console.log('아이 등록 데이터:', payload);
     // 아이 등록 로직 구현
     onRegisterComplete();
   };
@@ -62,17 +71,36 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
         {/* 프로필 사진 */}
         <div className="profile-picture-section">
           <div className="profile-picture-placeholder">
-            <svg width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="8" r="4" stroke="#C0C0C0" strokeWidth="1.5" fill="none"/>
-              <path d="M6 20C6 16.6863 8.68629 14 12 14C15.3137 14 18 16.6863 18 20" stroke="#C0C0C0" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
+            <img
+              src={profileImage || defaultProfileImage}
+              alt="프로필"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+            />
           </div>
-          <div className="camera-icon">
+          <div
+            className="camera-icon"
+            onClick={() => fileInputRef.current?.click()}
+            role="button"
+            aria-label="프로필 사진 변경"
+          >
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 4H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <circle cx="12" cy="13" r="4" stroke="white" strokeWidth="2" fill="none"/>
             </svg>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const url = URL.createObjectURL(file);
+                setProfileImage(url);
+              }
+            }}
+          />
         </div>
 
         <form onSubmit={handleSubmit} className="register-form">
@@ -158,20 +186,14 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
           {/* 아이 학교 */}
           <div className="form-group">
             <label className="form-label">아이 학교</label>
-            <div className="school-input-wrapper">
-              <input
-                type="text"
-                name="school"
-                value={formData.school}
-                onChange={handleInputChange}
-                className="form-input school-input"
-                placeholder="학교를 검색해주세요"
-              />
-              <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M21 21L16.65 16.65" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
+            <input
+              type="text"
+              name="school"
+              value={formData.school}
+              onChange={handleInputChange}
+              className="form-input"
+              placeholder="학교명을 입력해주세요"
+            />
           </div>
 
           {/* 로봇 시리얼 번호 */}

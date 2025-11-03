@@ -1,6 +1,6 @@
 .calendar-screen {
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background: #ffffff; /* 배경을 흰색으로 */
   display: flex;
   flex-direction: column;
@@ -126,7 +126,7 @@
 }
 
 .calendar-bottom-panel.expanded {
-  height: calc(100vh - 120px - 88px); /* header ~120 + footer 88 */
+  height: calc(100% - 120px - 88px); /* header ~120 + footer 88 */
   border-bottom-left-radius: 0; /* 올린 상태에서는 하단 모서리 제거 */
   border-bottom-right-radius: 0;
 }

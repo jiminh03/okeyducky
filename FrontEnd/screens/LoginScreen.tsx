@@ -53,7 +53,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
         <h1 className="login-brand-title">오키더키</h1>
 
         {/* 페이지 제목 */}
-        <h2 className="login-page-title">로그인</h2>
+        {/* <h2 className="login-page-title">로그인</h2> */}
 
         {/* 로그인 폼 */}
         <form onSubmit={handleSubmit} className="login-form">

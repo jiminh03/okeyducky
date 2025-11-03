@@ -99,7 +99,7 @@ export default function Home() {
   }
 
   if (currentScreen === 'signup') {
-    return <SignUpScreen onBack={handleBackToSplash} onSignUpComplete={handleSignUpComplete} />;
+    return <SignUpScreen onBack={handleBackToSplash} onSignUpComplete={handleSignUpComplete} onLogin={handleLogin} />;
   }
 
   if (currentScreen === 'conversation-detail') {
