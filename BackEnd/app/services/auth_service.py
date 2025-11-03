@@ -46,3 +46,14 @@ async def get_current_parent(
     if not parent:
         raise InvalidCredentialsError
     return parent
+
+async def get_current_robot(
+    token: str = Depends(crypt_module.oauth2_scheme),
+    get_robot_by_id_service=Depends(get_robot_by_id_service),
+):
+    payload = crypt_module.decode_jwt_payload(token)
+    parsed_payload = RobotTokenPayload.model_validate(payload)
+    robot = await get_robot_by_id_service(parsed_payload.parent_id)
+    if not robot:
+        raise InvalidCredentialsError
+    return robot
