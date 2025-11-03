@@ -32,7 +32,7 @@ async def login_robot(
     robot = await get_robot_by_id_service(login_request.robot_id)
     if not robot or robot.serial_number != login_request.serial_number:
         raise InvalidCredentialsError
-    token_data = TokenPayload.model_validate(robot.model_dump())
+    token_data = RobotTokenPayload.model_validate(robot.model_dump())
     token = crypt_module.create_access_jwt(token_data)
     return {"access_token": token, "token_type": "bearer"} #TODO: 스키마 정의해서 반환할 예정
 
