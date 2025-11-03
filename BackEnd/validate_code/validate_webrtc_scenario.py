@@ -130,8 +130,8 @@ def run_webrtc_test():
         auth_robot = {"token": access_token, "session_type": "robot"} #
         auth_parent = {"token": access_token, "session_type": "parent"} #
         
-        sio_robot.connect(BASE_URL, auth=auth_robot, transports=['websocket'])
-        sio_parent.connect(BASE_URL, auth=auth_parent, transports=['websocket'])
+        sio_robot.connect(BASE_URL, auth=auth_robot)
+        sio_parent.connect(BASE_URL, auth=auth_parent)
         
         if not robot_auth_done.wait(timeout=5) or not parent_auth_done.wait(timeout=5):
             raise Exception("WebSocket 인증 타임아웃")
