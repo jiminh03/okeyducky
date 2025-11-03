@@ -41,7 +41,8 @@ async def get_current_parent(
     get_parent_by_id_service=Depends(get_parent_by_id_service),
 ):
     payload = crypt_module.decode_jwt_payload(token)
-    parent = await get_parent_by_id_service(payload.parent_id)
+    parsed_payload = TokenPayload.model_validate(payload)
+    parent = await get_parent_by_id_service(parsed_payload.parent_id)
     if not parent:
         raise InvalidCredentialsError
     return parent

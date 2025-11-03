@@ -7,9 +7,8 @@ from app.modules.crypt_module import InvalidCredentialsError, crypt_module
 from common.modules.session_manager import SessionManager
 from common.modules.db_instance import red
 from common.schemas.socket_event_schema import ConnectEvents
-from common.schemas.session_schema import ConnectionInfo, SessionRequest
-
-
+from common.schemas.session_schema import ConnectionInfo, SessionRequest, SessionType
+from common.schemas.user_schema import RobotTokenPayload, TokenPayload
 
 
 @sio.on(ConnectEvents.CONNECT)
@@ -25,24 +24,33 @@ async def connect(sid, environ, auth: Dict[str, str]):
         return
 
     session_request = SessionRequest.model_validate(auth)
-    
+
+    clnt_id = None
     try:
         token_payload = crypt_module.decode_jwt_payload(session_request.token)
+        if session_request.session_type == SessionType.PARENT:
+            clnt_id = TokenPayload.model_validate(token_payload).parent_id
+        elif session_request.session_type == SessionType.ROBOT:
+            clnt_id = RobotTokenPayload.model_validate(token_payload).robot_id
     except InvalidCredentialsError:
         print(f"[인증 실패] 토큰 디코딩 실패. sid: {sid}, token: {session_request.token}")
         await sio.disconnect(sid)
         return
-    
+
     con_info = ConnectionInfo(
-                sid=sid,
-                session_type=session_request.session_type,
-                parent_id=token_payload.parent_id,
-            )
+        sid=sid,
+        session_type=session_request.session_type,
+        id=clnt_id,
+    )
+        
+    if not con_info:
+        print(f"[세션 생성 실패] 요청 정보: {session_request}")
+
     await session_manager.create_session(con_info)
     await sio.emit(ConnectEvents.AUTH_SUCCESS, to=sid)
-    print(f"🔑 [인증 성공] 클라이언트 인증 완료. sid: {sid}, session_type: {session_request.session_type}, parent_id: {token_payload.parent_id}")
-    
-    #TODO: 추후 일정 시간 인증이 안되면 연결을 끊는 기능이 필요
+    print(f"🔑 [인증 성공] 클라이언트 인증 완료. sid: {sid}, session_type: {session_request.session_type}, parent_id: {clnt_id}")
+
+    # TODO: 추후 일정 시간 인증이 안되면 연결을 끊는 기능이 필요
 
 @sio.on(ConnectEvents.DISCONNECT)
 async def disconnect(sid):
@@ -51,7 +59,6 @@ async def disconnect(sid):
     session_manager = SessionManager(redis_client=redis_client)
     session_info = await session_manager.get_session_by_sid(sid)
     if session_info:
-        print(f"👋 [연결 종료] 클라이언트 연결 끊김. sid: {sid}, parent_id: {session_info.parent_id}")
+        print(f"👋 [연결 종료] 클라이언트 연결 끊김. sid: {sid}, parent_id: {session_info.id}")
         await session_manager.delete_session(session_info)
     print(f"👋 [연결 종료] 클라이언트 연결 끊김. sid: {sid}")
-
