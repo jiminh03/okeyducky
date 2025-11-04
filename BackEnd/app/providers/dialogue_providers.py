@@ -43,4 +43,4 @@ async def get_create_dialogue_log_service(
     """
     DialogueRepo.create_dialogue_log 메서드를 주입합니다.
     """
-    return repo.create_daily_report
+    return repo.create_dialogue_log

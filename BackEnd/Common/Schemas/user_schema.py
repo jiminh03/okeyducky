@@ -5,6 +5,7 @@ from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
 from common.models.enums import Gender
+from common.schemas.robot_schema import RobotInfoResponse
 
 class ParentRegisterRequest(BaseModel):
     parent_name: str
@@ -25,6 +26,7 @@ class RobotLoginRequest(BaseModel):
 
 class LoginResponse(BaseModel):
     access_token: str
+    token_type: str
 
 class TokenPayload(BaseModel):
     parent_id: int
@@ -40,6 +42,9 @@ class ParentInfoResponse(BaseModel):
     parent_name: str
     email: str
 
+    class Config:
+        from_attributes = True
+
 class ParentUpdateRequest(BaseModel):
     parent_name: Optional[str] = None
     password: Optional[str] = None
@@ -54,6 +59,14 @@ class ChildRegisterRequest(BaseModel):
 class ChildInfoResponse(BaseModel):
     child_id: int
     name: str
+    gender: Gender 
+    birth_date: date
+    school: Optional[str] = None
+    serial_number: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
 
 class ChildUpdateRequest(BaseModel):
     name: Optional[str] = None

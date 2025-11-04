@@ -153,10 +153,7 @@ class SessionManager:
     async def delete_session(self, session_info: ConnectionInfo) -> bool:
         """
         'ConnectionInfo' 객체를 직접 받아 불필요한 GET 요청을 제거합니다.
-        """
-        #TODO: 세션 확인용 코드
-        return True
-    
+        """    
         if not session_info:
             print("⚠️ 삭제할 세션 정보가 없습니다.")
             return False

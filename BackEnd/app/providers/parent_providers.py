@@ -23,6 +23,13 @@ async def get_parent_by_email_service(
     """
     return repo.get_parent_by_email
 
+async def get_parent_pw_by_email_service(
+    repo: ParentRepo = Depends(ParentRepo),
+) -> Callable[[str], Awaitable[Optional[str]]]:
+    """
+    ParentRepo.get_parent_pw_by_email 메서드를 주입합니다.
+    """
+    return repo.get_parent_pw_by_email
 
 async def get_parent_by_id_service(
     repo: ParentRepo = Depends(ParentRepo),

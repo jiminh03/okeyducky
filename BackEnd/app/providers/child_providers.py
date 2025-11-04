@@ -26,7 +26,7 @@ async def get_child_by_id_service(
 
 async def get_children_by_parent_id_service(
     repo: ChildRepo = Depends(ChildRepo),
-) -> Callable[[int], Awaitable[List[ChildInfoResponse]]]:
+) -> Callable[[int], Awaitable[List[ChildInfoResponse ]]]:
     """
     ChildRepo.get_children_by_parent_id 메서드를 주입합니다.
     """
@@ -35,7 +35,7 @@ async def get_children_by_parent_id_service(
 
 async def get_update_child_service(
     repo: ChildRepo = Depends(ChildRepo),
-) -> Callable[[int, ChildUpdateRequest], Awaitable[Optional[ChildInfoResponse]]]:
+) -> Callable[[int, ChildUpdateRequest], Awaitable[Optional[ChildInfoResponse ]]]:
     """
     ChildRepo.update_child 메서드를 주입합니다.
     """

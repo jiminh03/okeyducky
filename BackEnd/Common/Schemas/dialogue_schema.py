@@ -4,8 +4,10 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
+from common.models.enums import Speaker
+
 class DialogueLogBase(BaseModel):
-    speaker: str
+    speaker: Speaker
     message: str
 
 class DialogueLogResponse(DialogueLogBase):
@@ -26,6 +28,7 @@ class DailyReportBase(BaseModel):
 
 class DailyReportResponse(DailyReportBase):
     report_id: int
+    child_id: int
     dialogue_logs: List[DialogueLogResponse] = []
 
     model_config = ConfigDict(
