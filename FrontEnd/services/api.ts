@@ -2,7 +2,8 @@
 
 // 백엔드 API URL 설정
 // 환경 변수로 설정하거나, 백엔드 서버 주소로 변경하세요
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api';
+// FastAPI 서버가 포트 8000에서 실행 중인 경우
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -244,6 +245,102 @@ export const schoolApiMock = {
       success: true,
       data: school,
     };
+  },
+};
+
+// 회원가입 인터페이스
+export interface RegisterRequest {
+  parent_name: string;
+  email: string;
+  password: string;
+}
+
+export interface RegisterResponse {
+  message?: string;
+}
+
+export interface ErrorResponse {
+  errorCode: string;
+  message: string;
+}
+
+// 회원가입 API
+export const authApi = {
+  // 부모 회원가입
+  // 백엔드 API 엔드포인트: POST /auth/register
+  register: async (data: RegisterRequest): Promise<ApiResponse<RegisterResponse>> => {
+    const url = `${API_BASE_URL}/auth/register`;
+    console.log('회원가입 API 호출:', { url, data: { ...data, password: '***' } });
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      // 201: 회원가입 성공
+      if (response.status === 201) {
+        const responseData = await response.json().catch(() => ({}));
+        return {
+          success: true,
+          data: responseData,
+        };
+      }
+
+      // 409: 이미 존재하는 이메일
+      if (response.status === 409) {
+        const errorData: ErrorResponse = await response.json();
+        return {
+          success: false,
+          message: errorData.message || '이미 존재하는 이메일입니다.',
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '회원가입 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '회원가입 중 오류가 발생했습니다.',
+      };
+    } catch (error) {
+      console.error('회원가입 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
   },
 };
 

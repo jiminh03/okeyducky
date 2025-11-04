@@ -15,10 +15,9 @@ import ChangeChildProfileScreen from '@/screens/settings/ChangeChildProfileScree
 import ChangePasswordScreen from '@/screens/settings/ChangePasswordScreen';
 import LogoutConfirmScreen from '@/screens/settings/LogoutConfirmScreen';
 import DeleteAccountScreen from '@/screens/settings/DeleteAccountScreen';
-import GuideScreen from '@/screens/guide/GuideScreen';
 
 export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video' | 'register-child' | 'calendar' | 'guide' | 'settings' | 'change-child-profile' | 'change-password' | 'logout-confirm' | 'delete-account'>('splash');
+  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video' | 'register-child' | 'calendar' | 'settings' | 'change-child-profile' | 'change-password' | 'logout-confirm' | 'delete-account'>('splash');
   const [hasChild, setHasChild] = useState(false); // 아이 등록 여부
 
   const handleLogin = () => {
@@ -77,7 +76,7 @@ export default function Home() {
 
   const handleGuide = () => {
     console.log('가이드 페이지로 이동');
-    setCurrentScreen('guide');
+    // TODO: 가이드 페이지 구현
   };
 
   const handleSettings = () => {
@@ -142,16 +141,6 @@ export default function Home() {
 
   if (currentScreen === 'calendar') {
     return <CalendarScreen 
-      onHome={() => setCurrentScreen('main')}
-      onVideo={handleVideo}
-      onCalendar={handleCalendar}
-      onGuide={handleGuide}
-      onSettings={handleSettings}
-    />;
-  }
-
-  if (currentScreen === 'guide') {
-    return <GuideScreen 
       onHome={() => setCurrentScreen('main')}
       onVideo={handleVideo}
       onCalendar={handleCalendar}
