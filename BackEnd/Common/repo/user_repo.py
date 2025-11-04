@@ -31,10 +31,10 @@ class ParentRepo:
             self.session.add(new_parent)
             await self.session.commit()
             await self.session.refresh(new_parent)
-            
+
             # ⬇️ [변경] SQLModel -> Pydantic DTO로 변환
             return ParentInfoResponse.model_validate(new_parent)
-        
+
         except IntegrityError as e:
             await self.session.rollback()
             raise IntegrityViolationError(
@@ -57,7 +57,17 @@ class ParentRepo:
             row = result.mappings().one_or_none()
 
             return ParentInfoResponse.model_validate(row) if row else None
-        
+
+        except DBAPIError as e:
+            await self.session.rollback()
+            raise DatabaseError() from e
+
+    async def get_parent_pw_by_email(self, email: str) -> Optional[str]:
+        try:
+            statement = select(Parent.password_hash).where(Parent.email == email)
+            result = await self.session.execute(statement)
+            password_hash = result.scalar_one_or_none()
+            return password_hash
         except DBAPIError as e:
             await self.session.rollback()
             raise DatabaseError() from e
@@ -74,7 +84,7 @@ class ParentRepo:
             row = result.mappings().one_or_none()
 
             return ParentInfoResponse.model_validate(row) if row else None
-        
+
         except DBAPIError as e:
             await self.session.rollback()
             raise DatabaseError() from e
@@ -98,10 +108,10 @@ class ParentRepo:
 
             await self.session.commit()
             await self.session.refresh(parent)
-            
+
             # ⬇️ [변경] SQLModel -> Pydantic DTO로 변환
             return ParentInfoResponse.model_validate(parent)
-        
+
         except IntegrityError as e:
             await self.session.rollback()
             detail = f"Parent {parent_id} 업데이트 실패: 변경하려는 값이 제약 조건을 위반합니다."
