@@ -8,7 +8,7 @@ from common.repo.robot_repo import *
 
 async def get_create_robot_service(
     repo: RobotRepo = Depends(RobotRepo),
-) -> Callable[[RobotRegisterRequest], Awaitable[RobotInfoResponse]]:
+) -> Callable[[RobotRegisterRequest], Awaitable[Robot]]:
     """
     RobotRepo.create_robot 메서드를 주입합니다.
     """
@@ -17,7 +17,7 @@ async def get_create_robot_service(
 
 async def get_robot_by_id_service(
     repo: RobotRepo = Depends(RobotRepo),
-) -> Callable[[int], Awaitable[Optional[RobotInfoResponse]]]:
+) -> Callable[[int], Awaitable[Optional[Robot]]]:
     """
     RobotRepo.get_robot_by_id 메서드를 주입합니다.
     """
@@ -25,7 +25,7 @@ async def get_robot_by_id_service(
 
 async def get_robot_by_serial_number_service(
     repo: RobotRepo = Depends(RobotRepo),
-) -> Callable[[str], Awaitable[Optional[RobotInfoResponse]]]:
+) -> Callable[[str], Awaitable[Optional[Robot]]]:
     """
     RobotRepo.get_robot_by_serial_number 메서드를 주입합니다.
     """
@@ -34,7 +34,7 @@ async def get_robot_by_serial_number_service(
 
 async def get_robot_by_child_id_service(
     repo: RobotRepo = Depends(RobotRepo),
-) -> Callable[[int], Awaitable[Optional[RobotInfoResponse]]]:
+) -> Callable[[int], Awaitable[Optional[Robot]]]:
     """
     RobotRepo.get_robot_by_child_id 메서드를 주입합니다.
     """
@@ -43,7 +43,7 @@ async def get_robot_by_child_id_service(
 
 async def get_update_robot_child_id(
     repo: RobotRepo = Depends(RobotRepo),
-) -> Callable[[int, int], Awaitable[Optional[RobotInfoResponse]]]:
+) -> Callable[[int, int], Awaitable[Optional[Robot]]]:
     """
     RobotRepo.update_robot_child_id 메서드를 주입합니다.
     """

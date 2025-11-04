@@ -8,7 +8,7 @@ from common.repo.user_repo import ChildRepo # (파일 위치에 따라 수정)
 
 async def get_create_child_service(
     repo: ChildRepo = Depends(ChildRepo),
-) -> Callable[[ChildRegisterRequest], Awaitable[ChildInfoResponse]]:
+) -> Callable[[ChildRegisterRequest], Awaitable[Child]]:
     """
     ChildRepo.create_child 메서드를 주입합니다.
     """
@@ -17,7 +17,7 @@ async def get_create_child_service(
 
 async def get_child_by_id_service(
     repo: ChildRepo = Depends(ChildRepo),
-) -> Callable[[int], Awaitable[Optional[ChildInfoResponse]]]:
+) -> Callable[[int], Awaitable[Optional[Child]]]:
     """
     ChildRepo.get_child_by_id 메서드를 주입합니다.
     """
@@ -26,7 +26,7 @@ async def get_child_by_id_service(
 
 async def get_children_by_parent_id_service(
     repo: ChildRepo = Depends(ChildRepo),
-) -> Callable[[int], Awaitable[List[ChildInfoResponse]]]:
+) -> Callable[[int], Awaitable[List[Child]]]:
     """
     ChildRepo.get_children_by_parent_id 메서드를 주입합니다.
     """
@@ -35,7 +35,7 @@ async def get_children_by_parent_id_service(
 
 async def get_update_child_service(
     repo: ChildRepo = Depends(ChildRepo),
-) -> Callable[[int, ChildUpdateRequest], Awaitable[Optional[ChildInfoResponse]]]:
+) -> Callable[[int, ChildUpdateRequest], Awaitable[Optional[Child]]]:
     """
     ChildRepo.update_child 메서드를 주입합니다.
     """
