@@ -60,6 +60,7 @@ class ChildInfoResponse(BaseModel):
     birth_date: date
     school: Optional[str] = None
     robot: Optional[RobotInfoResponse] = None
+    parent_id: int
 
 class ChildUpdateRequest(BaseModel):
     name: Optional[str] = None
