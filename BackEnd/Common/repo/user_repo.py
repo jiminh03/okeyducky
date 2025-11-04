@@ -16,7 +16,7 @@ class ParentRepo:
     def __init__(self, session: AsyncSession = Depends(db.get_session)):
         self.session = session
 
-    async def create_parent(self, parent: ParentRegisterRequest) -> ParentInfoResponse:
+    async def create_parent(self, parent: ParentRegisterRequest) -> Parent:
         try:
             new_parent = Parent(
                 parent_name=parent.parent_name,
@@ -35,7 +35,7 @@ class ParentRepo:
             #log.error(f"create_parent DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
             raise DatabaseError() from e
         
-    async def get_parent_by_email(self, email: str) -> Optional[ParentInfoResponse]:
+    async def get_parent_by_email(self, email: str) -> Optional[Parent]:
         """
         email을 기준으로 Parent 객체 하나를 조회합니다.
         (text() 대신 select() 사용)
@@ -64,7 +64,7 @@ class ParentRepo:
         
     async def update_parent(
         self, parent_id: int, parent_update: ParentUpdateRequest
-    ) -> Optional[ParentInfoResponse]:
+    ) -> Optional[Parent]:
         try:
             parent = await self.get_parent_by_id(parent_id)
             if not parent:
@@ -106,7 +106,7 @@ class ChildRepo:
     def __init__(self, session: AsyncSession = Depends(db.get_session)):
         self.session = session
 
-    async def create_child(self, child: ChildRegisterRequest) -> ChildInfoResponse:
+    async def create_child(self, child: ChildRegisterRequest) -> Child:
         try:
             new_child = Child(
                 name=child.name,
@@ -127,7 +127,7 @@ class ChildRepo:
             #log.error(f"create_child DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
             raise DatabaseError() from e
 
-    async def get_child_by_id(self, child_id: int) -> Optional[ChildInfoResponse]:
+    async def get_child_by_id(self, child_id: int) -> Optional[Child]:
         try:
             child = await self.session.get(Child, child_id)
             return child
@@ -136,7 +136,7 @@ class ChildRepo:
             #log.error(f"get_child_by_id DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
             raise DatabaseError() from e
         
-    async def get_children_by_parent_id(self, parent_id: int) -> List[ChildInfoResponse]:
+    async def get_children_by_parent_id(self, parent_id: int) -> List[Child]:
         try:
             statement = select(Child).where(Child.parent_id == parent_id)
             result = await self.session.execute(statement)
@@ -147,7 +147,7 @@ class ChildRepo:
             #log.error(f"get_children_by_parent_id DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
             raise DatabaseError() from e
 
-    async def update_child(self, child_id: int, child_update: ChildUpdateRequest) -> Optional[ChildInfoResponse]:
+    async def update_child(self, child_id: int, child_update: ChildUpdateRequest) -> Optional[Child]:
         try:
             child = await self.get_child_by_id(child_id) # .get()은 Child 객체를 반환합니다.
             if not child:

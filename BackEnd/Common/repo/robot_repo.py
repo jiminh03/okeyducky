@@ -16,7 +16,7 @@ class RobotRepo:
     def __init__(self, session: AsyncSession = Depends(db.get_session)):
         self.session = session
 
-    async def create_robot(self, robot: RobotRegisterRequest) -> RobotInfoResponse:
+    async def create_robot(self, robot: RobotRegisterRequest) -> Robot:
         try:
             new_robot = Robot(
                 serial_number=robot.serial_number,
@@ -36,7 +36,7 @@ class RobotRepo:
 
     async def get_robot_by_serial_number(
         self, serial_number: str
-    ) -> Optional[RobotInfoResponse]:
+    ) -> Optional[Robot]:
         try:
             statement = select(Robot).where(Robot.serial_number == serial_number)
             result = await self.session.execute(statement)
@@ -47,7 +47,7 @@ class RobotRepo:
             #log.error(f"create_parent DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
             raise DatabaseError() from e
 
-    async def get_robot_by_id(self, robot_id: int) -> Optional[RobotInfoResponse]:
+    async def get_robot_by_id(self, robot_id: int) -> Optional[Robot]:
         try:
             robot = await self.session.get(Robot, robot_id)
             return robot
@@ -56,7 +56,7 @@ class RobotRepo:
             #log.error(f"create_parent DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
             raise DatabaseError() from e
 
-    async def get_robot_by_child_id(self, child_id: int) -> Optional[RobotInfoResponse]:
+    async def get_robot_by_child_id(self, child_id: int) -> Optional[Robot]:
         try:
             statement = select(Robot).where(Robot.child_id == child_id)
             result = await self.session.execute(statement)
@@ -69,7 +69,7 @@ class RobotRepo:
 
     async def update_robot_child_id(
         self, robot_id: int, child_id: int
-    ) -> Optional[RobotInfoResponse]:
+    ) -> Optional[Robot]:
         try:
             robot = await self.session.get(Robot, robot_id)
             

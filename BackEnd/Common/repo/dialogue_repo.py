@@ -20,7 +20,7 @@ class DialogueRepo:
 
     async def create_daily_report(
         self, report: DailyReportCreate
-    ) -> DailyReportResponse:
+    ) -> DailyReport:
         try:
             new_report = DailyReport(
                 date=report.date,
@@ -71,7 +71,7 @@ class DialogueRepo:
         
     async def update_daily_report(
         self, report_id: int, report_update: DailyReportUpdateRequest
-    ) -> Optional[DailyReportResponse]:
+    ) -> Optional[DailyReport]:
         try:
             report = await self.get_daily_report_by_id(report_id)
             if not report:
@@ -91,7 +91,7 @@ class DialogueRepo:
 
     async def get_daily_report_by_id(
         self, report_id: int
-    ) -> Optional[DailyReportResponse]:
+    ) -> Optional[DailyReport]:
         try:
             statement = (
                 select(DailyReport)
@@ -133,7 +133,7 @@ class DialogueRepo:
             # log.error(f"get_daily_reports DB 오류: {e}", exc_info=True)
             raise DatabaseError() from e
         
-    async def create_dialogue_log(self, log: DialogueLogCreate) -> DialogueLogResponse:
+    async def create_dialogue_log(self, log: DialogueLogCreate) -> DialogueLog:
         try:
             new_log = DialogueLog(
                 speaker=log.speaker,
