@@ -108,7 +108,7 @@ class DialogueRepo:
 
     async def get_daily_reports_by_child_id_and_date_range(  # 함수 이름 변경 및 파라미터 추가
         self, child_id: int, start_date: date, end_date: date
-    ) -> List[DailyReportResponse]:
+    ) -> List[DailyReport]:
         """
         특정 아이의 지정된 기간 동안의 일일 리포트 목록을 조회합니다.
         """
