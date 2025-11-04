@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import DetailHeader from '@/components/DetailHeader';
 import Footer from '@/components/Footer';
-import './RegisterChildScreen.css';
+import '../home/RegisterChildScreen.css';
 
 interface ChangeChildProfileScreenProps {
   onBack: () => void;

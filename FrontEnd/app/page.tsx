@@ -1,20 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import SplashScreen from '@/screens/SplashScreen';
-import LoginScreen from '@/screens/LoginScreen';
-import SignUpScreen from '@/screens/SignUpScreen';
-import MainScreen from '@/screens/MainScreen';
-import TodayConversationDetailScreen from '@/screens/TodayConversationDetailScreen';
-import DailyReportScreen from '@/screens/DailyReportScreen';
-import VideoScreen from '@/screens/VideoScreen';
-import RegisterChildScreen from '@/screens/RegisterChildScreen';
-import CalendarScreen from '@/screens/CalendarScreen';
-import SettingsScreen from '@/screens/SettingsScreen';
-import ChangeChildProfileScreen from '@/screens/ChangeChildProfileScreen';
-import ChangePasswordScreen from '@/screens/ChangePasswordScreen';
-import LogoutConfirmScreen from '@/screens/LogoutConfirmScreen';
-import DeleteAccountScreen from '@/screens/DeleteAccountScreen';
+import SplashScreen from '@/screens/auth/SplashScreen';
+import LoginScreen from '@/screens/auth/LoginScreen';
+import SignUpScreen from '@/screens/auth/SignUpScreen';
+import MainScreen from '@/screens/home/MainScreen';
+import TodayConversationDetailScreen from '@/screens/home/TodayConversationDetailScreen';
+import DailyReportScreen from '@/screens/home/DailyReportScreen';
+import VideoScreen from '@/screens/streaming/VideoScreen';
+import RegisterChildScreen from '@/screens/home/RegisterChildScreen';
+import CalendarScreen from '@/screens/calendar/CalendarScreen';
+import SettingsScreen from '@/screens/settings/SettingsScreen';
+import ChangeChildProfileScreen from '@/screens/settings/ChangeChildProfileScreen';
+import ChangePasswordScreen from '@/screens/settings/ChangePasswordScreen';
+import LogoutConfirmScreen from '@/screens/settings/LogoutConfirmScreen';
+import DeleteAccountScreen from '@/screens/settings/DeleteAccountScreen';
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video' | 'register-child' | 'calendar' | 'settings' | 'change-child-profile' | 'change-password' | 'logout-confirm' | 'delete-account'>('splash');
