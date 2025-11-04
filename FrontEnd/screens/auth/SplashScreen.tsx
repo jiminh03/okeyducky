@@ -1,5 +1,5 @@
 import React from 'react';
-import '@/screens/SplashScreen.css';
+import './SplashScreen.css';
 
 interface SplashScreenProps {
   onLogin: () => void;

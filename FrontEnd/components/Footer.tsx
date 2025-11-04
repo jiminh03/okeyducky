@@ -24,6 +24,8 @@ const Footer: React.FC<FooterProps> = ({
     iconPrefix = '영상화면';
   } else if (activeTab === 'calendar') {
     iconPrefix = '달력화면';
+  } else if (activeTab === 'settings') {
+    iconPrefix = '설정화면';
   }
   
   return (
