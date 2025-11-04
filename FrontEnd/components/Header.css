@@ -1,6 +1,6 @@
 .app-header {
   background: #FFE300;
-  padding: 24px 28px;
+  padding: 16px 28px;
   position: fixed;
   top: 0;
   left: 0;
@@ -49,7 +49,7 @@
 /* 반응형 디자인 */
 @media (max-width: 480px) {
   .app-header {
-    padding: 20px 24px;
+    padding: 14px 24px;
   }
   
   .time {
