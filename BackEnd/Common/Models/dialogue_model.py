@@ -1,7 +1,10 @@
 from datetime import date, datetime
 from typing import TYPE_CHECKING, List, Optional
 
+from sqlalchemy import Column, Enum as SAEnum
 from sqlmodel import Field, Relationship, SQLModel
+
+from common.models.enums import Speaker
 
 if TYPE_CHECKING:
     from .user_models import Child
@@ -22,7 +25,7 @@ class DailyReport(SQLModel, table=True):
 class DialogueLog(SQLModel, table=True):
     log_id: Optional[int] = Field(default=None, primary_key=True)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    speaker: str
+    speaker: Speaker = Field(sa_column=Column(SAEnum(Speaker), nullable=False)) 
     message: str
 
     report_id: Optional[int] = Field(default=None, foreign_key="dailyreport.report_id")

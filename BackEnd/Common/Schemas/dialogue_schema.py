@@ -4,8 +4,10 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
+from common.models.enums import Speaker
+
 class DialogueLogBase(BaseModel):
-    speaker: str
+    speaker: Speaker
     message: str
 
 class DialogueLogResponse(DialogueLogBase):

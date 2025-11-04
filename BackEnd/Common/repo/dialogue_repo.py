@@ -1,14 +1,13 @@
 from fastapi import Depends
 from typing import List, Optional
-from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlalchemy.future import select  # SQLAlchemy 1.4+
+from sqlalchemy import select # ⬅️ [개선] SQLAlchemy 2.0+ 스타일 'select'
 
 from common.modules.db_instance import db
 
-from common.models.dialogue_model import *
+from common.models.dialogue_model import DailyReport, DialogueLog # ⬅️ [변경] 모델 둘 다 임포트
 from common.schemas.dialogue_schema import *
 
 from common.exceptions import *
@@ -20,7 +19,7 @@ class DialogueRepo:
 
     async def create_daily_report(
         self, report: DailyReportCreate
-    ) -> DailyReport:
+    ) -> DailyReportResponse: # ⬅️ [변경] 반환 타입 DTO로
         try:
             new_report = DailyReport(
                 date=report.date,
@@ -35,7 +34,6 @@ class DialogueRepo:
                     DialogueLog(
                         speaker=log_data.speaker,
                         message=log_data.message,
-                        # 중요: new_report.report_id가 아닌,'daily_report' 관계(relationship)에 객체를 직접 연결
                         daily_report=new_report 
                     )
                 )
@@ -46,7 +44,8 @@ class DialogueRepo:
 
             await self.session.commit()
             
-            await self.session.refresh(new_report)
+            # (참고: commit 후에는 new_report.dialogue_logs가 자동으로 채워지지 않으므로,
+            #  refresh 대신 'selectinload'로 다시 조회하는 것이 가장 안전합니다.)
             
             stmt = (
                 select(DailyReport)
@@ -54,26 +53,27 @@ class DialogueRepo:
                 .options(selectinload(DailyReport.dialogue_logs))
             )
             result = await self.session.execute(stmt)
-            final_loaded_report = result.scalar_one()
+            final_loaded_report = result.scalar_one() # 'DailyReport' (SQLModel) 객체
 
-            return final_loaded_report
+            # ⬇️ [변경] SQLModel 객체를 Pydantic DTO로 변환하여 반환
+            return DailyReportResponse.model_validate(final_loaded_report)
         
         except IntegrityError as e:
             await self.session.rollback()
-            # (child_id 외래 키 오류 등)
             detail = f"리포트 생성 실패: Child ID {report.child_id}가 존재하지 않거나, 날짜({report.date})가 중복될 수 있습니다."
-            # log.warning(f"create_daily_report IntegrityError: {detail} | Error: {e}")
             raise IntegrityViolationError(detail=detail) from e
         except DBAPIError as e:
             await self.session.rollback()
-            # log.error(f"create_daily_report DB 오류: {e}", exc_info=True)
             raise DatabaseError() from e
         
     async def update_daily_report(
         self, report_id: int, report_update: DailyReportUpdateRequest
-    ) -> Optional[DailyReport]:
+    ) -> Optional[DailyReportResponse]: # ⬅️ [변경] 반환 타입 DTO로
         try:
-            report = await self.get_daily_report_by_id(report_id)
+            # (참고: get_daily_report_by_id가 DTO를 반환하도록 변경되었으므로,
+            #  업데이트를 위해선 SQLModel 객체를 직접 가져오는 .get()이 필요합니다.)
+            report = await self.session.get(DailyReport, report_id) # ⬅️ [변경] .get() 사용
+            
             if not report:
                 return None
 
@@ -83,15 +83,19 @@ class DialogueRepo:
 
             await self.session.commit()
             await self.session.refresh(report)
-            return report
+
+            # ⬇️ [변경] SQLModel 객체를 Pydantic DTO로 변환하여 반환
+            # (refresh 후 dialogue_logs를 로드하기 위해 다시 조회)
+            loaded_report = await self.get_daily_report_by_id(report.report_id)
+            return loaded_report
+        
         except DBAPIError as e:
             await self.session.rollback()
-            # log.error(f"update_daily_report DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
             raise DatabaseError() from e
 
     async def get_daily_report_by_id(
         self, report_id: int
-    ) -> Optional[DailyReport]:
+    ) -> Optional[DailyReportResponse]:
         try:
             statement = (
                 select(DailyReport)
@@ -99,41 +103,41 @@ class DialogueRepo:
                 .options(selectinload(DailyReport.dialogue_logs))
             )
             result = await self.session.execute(statement)
-            report = result.scalar_one_or_none()
-            return report
+            report = result.scalar_one_or_none() # 'DailyReport' (SQLModel) 객체
+            
+            # ⬇️ [변경] SQLModel 객체를 Pydantic DTO로 변환하여 반환
+            return DailyReportResponse.model_validate(report) if report else None
+        
         except DBAPIError as e:
             await self.session.rollback()
-            # log.error(f"get_daily_report_by_id DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
             raise DatabaseError() from e
 
-    async def get_daily_reports_by_child_id_and_date_range(  # 함수 이름 변경 및 파라미터 추가
+    async def get_daily_reports_by_child_id_and_date_range(
         self, child_id: int, start_date: date, end_date: date
-    ) -> List[DailyReport]:
-        """
-        특정 아이의 지정된 기간 동안의 일일 리포트 목록을 조회합니다.
-        """
+    ) -> List[DailyReportResponse]:
         try:
             statement = (
                 select(DailyReport)
                 .where(DailyReport.child_id == child_id)
                 .where(DailyReport.date >= start_date)
                 .where(DailyReport.date <= end_date)
-                .options(selectinload(DailyReport.dialogue_logs)) # <-- 관계 로드
+                .options(selectinload(DailyReport.dialogue_logs))
                 .order_by(DailyReport.date.asc())
             )
 
             result = await self.session.execute(statement)
 
-            db_reports = result.scalars().all()
+            db_reports = result.scalars().all() # 'List[DailyReport]' (SQLModel)
 
-            return db_reports
+            # ⬇️ [변경] List[SQLModel] -> List[Pydantic DTO]로 변환
+            response_list = [DailyReportResponse.model_validate(report) for report in db_reports]
+            return response_list
         
         except DBAPIError as e:
             await self.session.rollback()
-            # log.error(f"get_daily_reports DB 오류: {e}", exc_info=True)
             raise DatabaseError() from e
         
-    async def create_dialogue_log(self, log: DialogueLogCreate) -> DialogueLog:
+    async def create_dialogue_log(self, log: DialogueLogCreate) -> DialogueLogResponse: # ⬅️ [변경] 반환 타입 DTO로
         try:
             new_log = DialogueLog(
                 speaker=log.speaker,
@@ -143,7 +147,10 @@ class DialogueRepo:
             self.session.add(new_log)
             await self.session.commit()
             await self.session.refresh(new_log)
-            return new_log
+            
+            # ⬇️ [변경] SQLModel 객체를 Pydantic DTO로 변환하여 반환
+            return DialogueLogResponse.model_validate(new_log)
+        
         except IntegrityError as e:
             await self.session.rollback()
             raise IntegrityViolationError(
@@ -151,5 +158,4 @@ class DialogueRepo:
             ) from e
         except DBAPIError as e:
             await self.session.rollback()
-            # log.error(f"create_dialogue_log DB 오류: {e}", exc_info=True) # (희망사항) 간단한 로그
             raise DatabaseError() from e
