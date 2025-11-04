@@ -42,6 +42,9 @@ class ParentInfoResponse(BaseModel):
     parent_name: str
     email: str
 
+    class Config:
+        from_attributes = True
+
 class ParentUpdateRequest(BaseModel):
     parent_name: Optional[str] = None
     password: Optional[str] = None

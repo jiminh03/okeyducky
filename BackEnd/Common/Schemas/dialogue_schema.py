@@ -28,6 +28,7 @@ class DailyReportBase(BaseModel):
 
 class DailyReportResponse(DailyReportBase):
     report_id: int
+    child_id: int
     dialogue_logs: List[DialogueLogResponse] = []
 
     model_config = ConfigDict(
