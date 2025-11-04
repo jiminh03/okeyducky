@@ -227,8 +227,8 @@ def run_test_scenario():
             "date": today,
             "child_id": child_id,
             "dialogue_logs": [
-                {"speaker": "user", "message": "Hello"},
-                {"speaker": "robot", "message": "Hi!"}
+                {"speaker": "robot", "message": "Hello"},
+                {"speaker": "child", "message": "Hi!"}
             ]
         }
         response = client.post(f"{BASE_URL}{DEBUG_PREFIX}/dialogue/report", json=report_data)
