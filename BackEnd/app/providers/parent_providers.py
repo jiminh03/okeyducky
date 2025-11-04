@@ -8,7 +8,7 @@ from common.repo.user_repo import ParentRepo # (파일 위치에 따라 수정)
 
 async def get_create_parent_service(
     repo: ParentRepo = Depends(ParentRepo),
-) -> Callable[[ParentRegisterRequest], Awaitable[Parent]]:
+) -> Callable[[ParentRegisterRequest], Awaitable[ParentInfoResponse]]:
     """
     ParentRepo.create_parent 메서드를 주입합니다.
     """
@@ -17,16 +17,23 @@ async def get_create_parent_service(
 
 async def get_parent_by_email_service(
     repo: ParentRepo = Depends(ParentRepo),
-) -> Callable[[str], Awaitable[Optional[Parent]]]:
+) -> Callable[[str], Awaitable[Optional[ParentInfoResponse]]]:
     """
     ParentRepo.get_parent_by_email 메서드를 주입합니다.
     """
     return repo.get_parent_by_email
 
+async def get_parent_pw_by_email_service(
+    repo: ParentRepo = Depends(ParentRepo),
+) -> Callable[[str], Awaitable[Optional[str]]]:
+    """
+    ParentRepo.get_parent_pw_by_email 메서드를 주입합니다.
+    """
+    return repo.get_parent_pw_by_email
 
 async def get_parent_by_id_service(
     repo: ParentRepo = Depends(ParentRepo),
-) -> Callable[[int], Awaitable[Optional[Parent]]]:
+) -> Callable[[int], Awaitable[Optional[ParentInfoResponse]]]:
     """
     ParentRepo.get_parent_by_id 메서드를 주입합니다.
     """
@@ -35,7 +42,7 @@ async def get_parent_by_id_service(
 
 async def get_update_parent_service(
     repo: ParentRepo = Depends(ParentRepo),
-) -> Callable[[int, ParentUpdateRequest], Awaitable[Optional[Parent]]]:
+) -> Callable[[int, ParentUpdateRequest], Awaitable[Optional[ParentInfoResponse]]]:
     """
     ParentRepo.update_parent 메서드를 주입합니다.
     """
