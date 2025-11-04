@@ -1,9 +1,11 @@
 import asyncio
+from datetime import datetime
 import json
 import logging
 import cv2
 import numpy as np
 import pyaudio
+import requests
 import socketio # ⬅️ aiohttp 대신 socketio 클라이언트 사용
 from typing import Dict, Any # ⬅️ [변경] Pydantic 모델 대신 Dict 사용
 from aiortc import RTCPeerConnection, RTCSessionDescription
@@ -15,6 +17,19 @@ from fractions import Fraction as Rational
 # ⬇️ [변경] webrtc_event.py와 스키마 임포트
 from common.schemas.socket_event_schema import WebRTCEvents
 from common.schemas.session_schema import SessionType
+
+# --- HTTP 클라이언트 (로그인/등록용) ---
+http_client = requests.Session()
+
+# --- 설정 ---
+BASE_URL = "http://127.0.0.1:8000" 
+DEBUG_PREFIX = "/_manual_test" 
+
+# --- 테스트용 데이터 ---
+TS = int(datetime.now().timestamp())
+TEST_EMAIL = f"webrtc_test_{TS}@example.com"
+TEST_PASSWORD = "pw123"
+TEST_ROBOT_SN = f"SN-WEBRTC-{TS}"
 
 # --- 설정 ---
 logging.basicConfig(level=logging.INFO)
@@ -223,5 +238,43 @@ async def main():
         
         logger.info("Cleanup complete.")
 
+
 if __name__ == "__main__":
+    parent_id, child_id, robot_id, access_token = None, None, None, None
+
+    # === 1단계: HTTP로 사전 설정 (회원가입, 로그인, 자녀/로봇 등록) ===
+    print("--- [HTTP 1] 회원가입 ---")
+    reg_data = {"parent_name": "WebRTC Test", "email": TEST_EMAIL, "password": TEST_PASSWORD}
+    resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/auth/register", json=reg_data)
+    parent_id = resp.json()["parent_id"]
+    print(f"✅ Parent 생성 (ID: {parent_id})")
+
+    print("--- [HTTP 2] 로그인 (토큰 획득) ---")
+    log_data = {"email": TEST_EMAIL, "password": TEST_PASSWORD}
+    resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/auth/login", json=log_data)
+    assert resp.status_code == 200, f"로그인 실패: {resp.text} (auth_service.py 수정 필요)"
+    access_token = resp.json()["access_token"]
+    print(f"✅ 로그인 성공 (Token: {access_token})")
+
+    print("--- [HTTP 3] 자녀 등록 ---")
+    child_data = {"name": "WebRTC Child", "gender": "male", "birth_date": "2020-01-01", "parent_id": parent_id}
+    resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/child", headers={"Authorization": f"Bearer {access_token}"}, json=child_data)
+    child_id = resp.json()["child_id"]
+    print(f"✅ Child 생성 (ID: {child_id})")
+
+    print("--- [HTTP 4] 로봇 등록 ---")
+    robot_data = {"serial_number": TEST_ROBOT_SN, "child_id": child_id}
+    resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/robot", headers={"Authorization": f"Bearer {access_token}"}, json=robot_data)
+    robot_id = resp.json()["robot_id"]
+    print(f"✅ Robot 생성 (ID: {robot_id})")
+
+    print("--- [HTTP 5] 로봇 로그인 (토큰 획득) ---")
+    log_data = {"robot_id": robot_id, "serial_number": TEST_ROBOT_SN}
+    resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/auth/login/robot", json=log_data)
+    assert resp.status_code == 200, f"로그인 실패: {resp.text} (auth_service.py 수정 필요)"
+    robot_access_token = resp.json()["access_token"]
+    print(f"✅ 로그인 성공 (Token: {robot_access_token[:10]}...)")
+    ROBOT_ID = robot_id
+    ACCESS_TOKEN = robot_access_token
+
     asyncio.run(main())
