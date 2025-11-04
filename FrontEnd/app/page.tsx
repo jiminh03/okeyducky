@@ -10,9 +10,14 @@ import DailyReportScreen from '@/screens/DailyReportScreen';
 import VideoScreen from '@/screens/VideoScreen';
 import RegisterChildScreen from '@/screens/RegisterChildScreen';
 import CalendarScreen from '@/screens/CalendarScreen';
+import SettingsScreen from '@/screens/SettingsScreen';
+import ChangeChildProfileScreen from '@/screens/ChangeChildProfileScreen';
+import ChangePasswordScreen from '@/screens/ChangePasswordScreen';
+import LogoutConfirmScreen from '@/screens/LogoutConfirmScreen';
+import DeleteAccountScreen from '@/screens/DeleteAccountScreen';
 
 export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video' | 'register-child' | 'calendar'>('splash');
+  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video' | 'register-child' | 'calendar' | 'settings' | 'change-child-profile' | 'change-password' | 'logout-confirm' | 'delete-account'>('splash');
   const [hasChild, setHasChild] = useState(false); // 아이 등록 여부
 
   const handleLogin = () => {
@@ -76,7 +81,7 @@ export default function Home() {
 
   const handleSettings = () => {
     console.log('설정 페이지로 이동');
-    // TODO: 설정 페이지 구현
+    setCurrentScreen('settings');
   };
 
   const handleRegisterChild = () => {
@@ -152,6 +157,72 @@ export default function Home() {
       onCalendar={handleCalendar}
       onGuide={handleGuide}
       onSettings={handleSettings}
+    />;
+  }
+
+  if (currentScreen === 'settings') {
+    return <SettingsScreen 
+      onHome={() => setCurrentScreen('main')}
+      onVideo={handleVideo}
+      onCalendar={handleCalendar}
+      onGuide={handleGuide}
+      onSettings={handleSettings}
+      onLogout={() => setCurrentScreen('logout-confirm')}
+      onProfileChange={() => setCurrentScreen('change-child-profile')}
+      onPasswordChange={() => setCurrentScreen('change-password')}
+      onAccountDelete={() => setCurrentScreen('delete-account')}
+    />;
+  }
+
+  if (currentScreen === 'change-child-profile') {
+    return <ChangeChildProfileScreen 
+      onBack={() => setCurrentScreen('settings')}
+      onHome={() => setCurrentScreen('main')}
+      onVideo={handleVideo}
+      onCalendar={handleCalendar}
+      onGuide={handleGuide}
+      onSettings={handleSettings}
+      onSave={() => {
+        console.log('프로필 저장 완료');
+      }}
+    />;
+  }
+
+  if (currentScreen === 'change-password') {
+    return <ChangePasswordScreen 
+      onBack={() => setCurrentScreen('settings')}
+      onHome={() => setCurrentScreen('main')}
+      onVideo={handleVideo}
+      onCalendar={handleCalendar}
+      onGuide={handleGuide}
+      onSettings={handleSettings}
+      onSave={() => {
+        console.log('비밀번호 변경 완료');
+      }}
+    />;
+  }
+
+  if (currentScreen === 'logout-confirm') {
+    return <LogoutConfirmScreen 
+      onBack={() => setCurrentScreen('settings')}
+      onHome={() => setCurrentScreen('main')}
+      onVideo={handleVideo}
+      onCalendar={handleCalendar}
+      onGuide={handleGuide}
+      onSettings={handleSettings}
+      onConfirm={handleLogout}
+    />;
+  }
+
+  if (currentScreen === 'delete-account') {
+    return <DeleteAccountScreen 
+      onBack={() => setCurrentScreen('settings')}
+      onHome={() => setCurrentScreen('main')}
+      onVideo={handleVideo}
+      onCalendar={handleCalendar}
+      onGuide={handleGuide}
+      onSettings={handleSettings}
+      onConfirm={handleLogout}
     />;
   }
 
