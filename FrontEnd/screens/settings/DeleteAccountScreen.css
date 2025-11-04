@@ -14,7 +14,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   margin-top: 76px; /* 헤더 높이 */
-  padding: 20px 20px 88px 20px; /* 하단 푸터 여유 공간 */
+  padding: 40px 20px 120px 20px; /* 상단 여백 증가, 하단 푸터 여유 공간 증가 */
   box-sizing: border-box;
   min-height: 0;
   -webkit-overflow-scrolling: touch;
@@ -154,7 +154,7 @@
 /* 반응형 디자인 */
 @media (max-width: 480px) {
   .delete-account-content {
-    padding: 16px 16px 88px 16px;
+    padding: 32px 16px 120px 16px;
     margin-top: 76px;
   }
 
