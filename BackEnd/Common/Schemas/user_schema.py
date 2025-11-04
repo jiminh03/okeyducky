@@ -59,8 +59,11 @@ class ChildInfoResponse(BaseModel):
     gender: Gender 
     birth_date: date
     school: Optional[str] = None
-    robot: Optional[RobotInfoResponse] = None
-    parent_id: int
+    serial_number: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
 
 class ChildUpdateRequest(BaseModel):
     name: Optional[str] = None
