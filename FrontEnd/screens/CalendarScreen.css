@@ -74,6 +74,7 @@
   align-items: center;
   justify-content: center;
   height: 34px; /* 셀 높이 축소 */
+  position: relative;
 }
 
 .day-cell.dim .day-label {
@@ -106,6 +107,26 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+}
+
+/* 저장된 데이터가 있는 날짜 표시 */
+.data-indicator {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  background: #FFE300;
+  border-radius: 50%;
+}
+
+.day-cell.dim .data-indicator {
+  background: #c7c7c7;
+}
+
+.day-cell.today .data-indicator {
+  background: #111;
 }
 
 .calendar-bottom-panel {

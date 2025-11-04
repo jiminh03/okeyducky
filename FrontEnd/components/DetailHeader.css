@@ -1,6 +1,6 @@
 .detail-header {
   background: #FFE300;
-  padding: 24px 16px 24px 12px;
+  padding: 16px 16px 16px 12px;
   position: fixed;
   top: 0;
   left: 0;
@@ -61,7 +61,7 @@
 /* 반응형 디자인 */
 @media (max-width: 480px) {
   .detail-header {
-    padding: 20px 12px 20px 8px;
+    padding: 14px 12px 14px 8px;
   }
 
   .detail-header-bottom {

@@ -18,8 +18,13 @@ const Footer: React.FC<FooterProps> = ({
   onGuide,
   onSettings
 }) => {
-  // 영상 페이지에서는 영상화면 아이콘 사용
-  const iconPrefix = activeTab === 'video' ? '영상화면' : '홈화면';
+  // 페이지별로 다른 아이콘 세트 사용
+  let iconPrefix = '홈화면'; // 기본값
+  if (activeTab === 'video') {
+    iconPrefix = '영상화면';
+  } else if (activeTab === 'calendar') {
+    iconPrefix = '달력화면';
+  }
   
   return (
     <div className="bottom-nav">

@@ -120,11 +120,13 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ onHome, onVideo, onCale
               const isSelected = selected && isSameDate(cell.date, selected);
               const weekIdx = i % 7;
               const label = cell.date.getDate();
+              const cellKey = toKey(cell.date);
+              const hasData = savedData[cellKey] && (savedData[cellKey].conversation || savedData[cellKey].report);
               return (
                 <div
                   key={i}
                   className={
-                    `day-cell ${cell.inCurrentMonth ? '' : 'dim'} ${isToday ? 'today' : ''} ${isSelected && !isToday ? 'selected' : ''} ${weekIdx === 5 ? 'sat' : ''} ${weekIdx === 6 ? 'sun' : ''}`
+                    `day-cell ${cell.inCurrentMonth ? '' : 'dim'} ${isToday ? 'today' : ''} ${isSelected && !isToday ? 'selected' : ''} ${weekIdx === 5 ? 'sat' : ''} ${weekIdx === 6 ? 'sun' : ''} ${hasData ? 'has-data' : ''}`
                   }
                   onClick={() => {
                     if (!cell.inCurrentMonth) return;
@@ -132,6 +134,7 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ onHome, onVideo, onCale
                   }}
                 >
                   <span className="day-label">{label}</span>
+                  {hasData && <span className="data-indicator"></span>}
                 </div>
               );
             })}
