@@ -16,11 +16,16 @@ async def register_parent(
 async def login_parent(
     login_request: LoginRequest,
     get_parent_by_email_service=Depends(get_parent_by_email_service),
+    get_parent_pw_by_email_service=Depends(get_parent_pw_by_email_service),
 ) -> LoginResponse:
-    parent = await get_parent_by_email_service(login_request.email)
-    if not parent or not crypt_module.verify_password(
-        login_request.password, parent.password_hash
+    parent_pw = await get_parent_pw_by_email_service(login_request.email)
+    if not parent_pw or not crypt_module.verify_password(
+        login_request.password, parent_pw
     ):
+        raise InvalidCredentialsError
+    get_parent_by_email_service(login_request.email)
+    parent = await get_parent_by_email_service(login_request.email)
+    if not parent:
         raise InvalidCredentialsError
     token_data = TokenPayload.model_validate(parent.model_dump())
     token = crypt_module.create_access_jwt(token_data)
