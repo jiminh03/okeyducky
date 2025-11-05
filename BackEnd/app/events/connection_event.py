@@ -48,7 +48,7 @@ async def connect(sid, environ, auth: Dict[str, str]):
 
     await session_manager.create_session(con_info)
     await sio.emit(ConnectEvents.AUTH_SUCCESS, to=sid)
-    print(f"🔑 [인증 성공] 클라이언트 인증 완료. sid: {sid}, session_type: {session_request.session_type}, parent_id: {clnt_id}")
+    print(f"🔑 [인증 성공] 클라이언트 인증 완료. sid: {sid}, session_type: {session_request.session_type}, id: {clnt_id}")
 
     # TODO: 추후 일정 시간 인증이 안되면 연결을 끊는 기능이 필요
 
@@ -59,6 +59,6 @@ async def disconnect(sid):
     session_manager = SessionManager(redis_client=redis_client)
     session_info = await session_manager.get_session_by_sid(sid)
     if session_info:
-        print(f"👋 [연결 종료] 클라이언트 연결 끊김. sid: {sid}, parent_id: {session_info.id}")
+        print(f"👋 [연결 종료] 클라이언트 연결 끊김. sid: {sid}, session_type: {session_info.session_type}, id: {session_info.id}")
         await session_manager.delete_session(session_info)
     print(f"👋 [연결 종료] 클라이언트 연결 끊김. sid: {sid}")

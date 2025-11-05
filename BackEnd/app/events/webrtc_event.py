@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-# SessionInfo를 세션 객체의 실제 타입으로 가정하고 추가했습니다. 
+# SessionInfo를 세션 객체의 실제 타입으로 가정하고 추가했습니다.
 # 만약 타입이 다르다면 실제 타입으로 변경해주세요.
 from common.schemas.session_schema import ConnectionInfo, SessionType 
 from common.modules.session_manager import SessionManager
@@ -26,43 +26,68 @@ async def _get_session_info(
         session_info = await sess_man.get_session_by_robot_id(client_id)
     else:
         print(f"{client_type} client type not exist")
-    
+
     return session_info
+
+
+# WebRTC 요청 및 요청 알림 이벤트
+@sio.on(WebRTCEvents.REQUEST_CAST)
+async def on_request_cast(sid, opp_clnt_type: SessionType, opp_clnt_id: int):
+    print(f"WebRTC log: Requesting Cast ,sid: {sid}")
+    redis_client = await red.get_redis_client()
+    sess_man = SessionManager(redis_client)
+    requested_session_info = await _get_session_info(
+        sess_man, opp_clnt_type, opp_clnt_id
+    )
+    await sio.emit(
+        WebRTCEvents.CAST_REQUESTED,
+        to=requested_session_info.sid,
+        data={"opp_type": opp_clnt_type, "opp_id": opp_clnt_id},
+    )
+
+
+@sio.on(WebRTCEvents.ACCPET_REQUEST)
+async def on_request_cast(sid, opp_clnt_type: SessionType, opp_clnt_id: int):
+    print(f"WebRTC log: Cast Accepted ,sid: {sid}")
+    redis_client = await red.get_redis_client()
+    sess_man = SessionManager(redis_client) 
+    requested_session_info = await _get_session_info(sess_man, opp_clnt_type, opp_clnt_id)
+    await sio.emit(
+        WebRTCEvents.CAST_ACCEPTED,
+        to=requested_session_info.sid,
+        data={"opp_type": opp_clnt_type, "opp_id": opp_clnt_id},
+    )
+
+# TODO: 캐스트 거절 이벤트는 mvp 제외
+
+@sio.on(WebRTCEvents.READY_FOR_OFFER)
+async def on_ready_for_offer(sid, opp_clnt_type: SessionType, opp_clnt_id: int):
+    print(f"WebRTC log: Ready for Offer ,sid: {sid}")
+    redis_client = await red.get_redis_client()
+    sess_man = SessionManager(redis_client) 
+    requested_session_info = await _get_session_info(sess_man, opp_clnt_type, opp_clnt_id)
+    await sio.emit(
+        WebRTCEvents.PEER_IS_READY,
+        to=requested_session_info.sid,
+        data={"opp_type": opp_clnt_type, "opp_id": opp_clnt_id},
+    )
 
 
 # WebRTC 시그널링 이벤트 핸들러 ---
 # 사용 규칙
 # 1. 반드시 상대방의 세션 타입과 id를 알고 있어야함
 
-@sio.on(WebRTCEvents.REGISTER_OFFER)
-async def on_register_offer(sid, offer_data: Dict[str, str]):
+@sio.on(WebRTCEvents.SEND_OFFER)
+async def on_send_offer(sid, offer_clnt_type: SessionType, offer_clnt_id: int, offer_data: Dict[str, str]):
     """(로봇 -> 서버) 로봇이 Offer를 등록하는 이벤트"""
-    print(f"WebRTC log: Registering Offer ,sid: {sid}")
+    print(f"WebRTC log: Sending Offer ,sid: {sid}")
     redis_client = await red.get_redis_client()
-    rtc_man = WebRTCManager(redis_client)
-    # 원본 코드와 동일하게 유지 (sess_man이 사용되진 않음)
+
     sess_man = SessionManager(redis_client) 
-    await rtc_man.register_offer(sid, offer_data)
+    session_info= await _get_session_info(sess_man, offer_clnt_type, offer_clnt_id)
 
+    await sio.emit(WebRTCEvents.NEW_OFFER, offer_data, to=session_info.sid)
 
-@sio.on(WebRTCEvents.CHECK_OFFER)
-async def on_check_offer(sid, offer_clnt_type: SessionType, offer_clnt_id: int):
-    """(서버 -> FE) 이미 등록된 offer 확인하는 이벤트"""
-    print(f"WebRTC log: Checking Offer ,sid: {sid}")
-    redis_client = await red.get_redis_client()
-    rtc_man = WebRTCManager(redis_client)
-    sess_man = SessionManager(redis_client)
-    
-    # 헬퍼 함수 사용
-    session_info = await _get_session_info(sess_man, offer_clnt_type, offer_clnt_id)
-    
-    if session_info is None:
-        print(f"{offer_clnt_type} {offer_clnt_id} session_info not exist")
-        return
-
-    offer = await rtc_man.consume_offer(session_info.sid)
-    if offer:
-        await sio.emit(WebRTCEvents.NEW_OFFER, offer, to=sid)
 
 
 @sio.on(WebRTCEvents.SEND_ANSWER)
@@ -70,50 +95,17 @@ async def on_send_answer(sid, offer_clnt_type: SessionType, offer_clnt_id: int, 
     """(FE -> 서버) FE가 Answer를 제출하는 이벤트"""
     print(f"WebRTC log: Sending Answer ,sid: {sid}")
     redis_client = await red.get_redis_client()
-    rtc_man = WebRTCManager(redis_client)
-    sess_man = SessionManager(redis_client)
+    sess_man = SessionManager(redis_client) 
+    session_info= await _get_session_info(sess_man, offer_clnt_type, offer_clnt_id)
 
-    await rtc_man.register_answer(sid, answer_data)
-
-    # 헬퍼 함수 사용
-    session_info = await _get_session_info(sess_man, offer_clnt_type, offer_clnt_id)
-
-    # session_info가 None인지 확인하여 오류 방지
-    if session_info:
-        recv_sid = session_info.sid
-        print(f"WebRTC log: Consume Answer ,sid: {recv_sid}")
-        answer = await rtc_man.consume_answer(sid)
-        await sio.emit(WebRTCEvents.NEW_ANSWER, answer, to=recv_sid)
-    else:
-        print(f"{offer_clnt_type} {offer_clnt_id} session_info not exist")
-
-
-@sio.on(WebRTCEvents.CHECK_ANSWER)
-async def on_check_answer(sid, answer_clnt_type: SessionType, answer_clnt_id: int):
-    """(서버 -> FE) 이미 등록된 offer 확인하는 이벤트"""
-    print(f"WebRTC log: Checking Answer ,sid: {sid}")
-    redis_client = await red.get_redis_client()
-    rtc_man = WebRTCManager(redis_client)
-    sess_man = SessionManager(redis_client)
-
-    # 헬퍼 함수 사용
-    session_info = await _get_session_info(sess_man, answer_clnt_type, answer_clnt_id)
-
-    # session_info가 None인지 확인하여 오류 방지
-    if session_info:
-        answer = await rtc_man.consume_answer(session_info.sid)
-        if answer:
-            await sio.emit(WebRTCEvents.NEW_ANSWER, answer, to=sid)
-    else:
-        print(f"{answer_clnt_type} {answer_clnt_id} session_info not exist")
-
+    
+    await sio.emit(WebRTCEvents.NEW_ANSWER, answer_data, to=session_info.sid)
 
 @sio.on(WebRTCEvents.SEND_ICE_CANDIDATE)
 async def on_send_ice_candidate(sid, opp_clnt_type: SessionType, opp_clnt_id: int ,data):
     """(로봇/FE -> 서버) ICE Candidate를 중계하는 이벤트"""
     print(f"WebRTC log: ice exchange ,sid: {sid}")
     redis_client = await red.get_redis_client()
-    rtc_man = WebRTCManager(redis_client)
     sess_man = SessionManager(redis_client)
     
     if data:

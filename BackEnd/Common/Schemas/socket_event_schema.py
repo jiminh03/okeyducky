@@ -1,27 +1,47 @@
 from enum import Enum
 
+
 class ConnectEvents(str, Enum):
     """소켓 통신에서 사용되는 이벤트 이름 목록"""
-    
+
     # 서버 -> 클라이언트
-    AUTH_SUCCESS = 'auth_success'
-    AuTH_FAILURE = 'auth_failure'
-    
+    AUTH_SUCCESS = "auth_success"
+    AuTH_FAILURE = "auth_failure"
+
     # 클라이언트 -> 서버
-    CONNECT = 'connect'
-    DISCONNECT = 'disconnect'
+    CONNECT = "connect"
+    DISCONNECT = "disconnect"
+
+
+from enum import Enum
+
 
 class WebRTCEvents(str, Enum):
-    """WebRTC 시그널링을 위한 소켓 이벤트 이름 목록"""
+    """
+    WebRTC 시그널링 (대칭적 방 입장) 이벤트 목록
+    """
 
-    # 클라이언트 -> 서버 (Client to Server)
-    REGISTER_OFFER = 'client:register_offer'      # 로봇이 서버로 Offer를 등록
-    SEND_ANSWER = 'client:send_answer'          # FE가 서버로 Answer를 전송
-    CHECK_OFFER = 'client:check_offer' #이미 등록된 offer 확인
-    CHECK_ANSWER = 'client:check_answer' #이미 등록된 answer 확인
-    SEND_ICE_CANDIDATE = 'client:send_ice_candidate' # 로봇 또는 FE가 ICE Candidate를 서버로 전송
+    # --- 1. 송출 요청 및 요청 알림 ---
+    #이미 송출자, 수신자 모두 접속되어있다고 가정
 
-    # 서버 -> 클라이언트 (Server to Client)
-    NEW_OFFER = 'server:new_offer'              # 서버가 FE에게 새로운 Offer를 전달
-    NEW_ANSWER = 'server:new_answer'            # 서버가 로봇에게 새로운 Answer를 전달
-    NEW_ICE_CANDIDATE = 'server:new_ice_candidate' # 서버가 로봇 또는 FE에게 ICE Candidate를 전달
+    REQUEST_CAST = "client:request_cast"
+    ACCPET_REQUEST = "client:accept_request"
+    REJECT_REQUEST = "client:reject_request"
+
+    CAST_REQUESTED = "server:cast_requested"
+    CAST_ACCEPTED = "server:cast_accepted"
+    CAST_REJECTED = "server:cast_rejected"
+
+    READY_FOR_OFFER = "client:ready_for_offer"
+    PEER_IS_READY = "server:peer_is_ready"
+
+    # --- 2. SDP 교환 (Offer/Answer) ---
+    SEND_OFFER = "client:send_offer"
+    SEND_ANSWER = "client:send_answer"
+
+    NEW_OFFER = "server:new_offer"
+    NEW_ANSWER = "server:new_answer"
+
+    # --- 3. ICE Candidate 교환 ---
+    SEND_ICE_CANDIDATE = "client:send_ice_candidate"
+    NEW_ICE_CANDIDATE = "server:new_ice_candidate"

@@ -23,7 +23,6 @@ async def login_parent(
         login_request.password, parent_pw
     ):
         raise InvalidCredentialsError
-    get_parent_by_email_service(login_request.email)
     parent = await get_parent_by_email_service(login_request.email)
     if not parent:
         raise InvalidCredentialsError

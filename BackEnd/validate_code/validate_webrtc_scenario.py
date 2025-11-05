@@ -5,7 +5,8 @@ import time
 import threading
 from datetime import datetime, date
 
-from common.schemas.socket_event_schema import WebRTCEvents
+# [수정] socket_event_schema.py 파일에서 WebRTCEvents를 임포트
+from common.schemas.socket_event_schema import WebRTCEvents 
 
 # --- 설정 ---
 BASE_URL = "http://127.0.0.1:8000" 
@@ -27,13 +28,18 @@ mock_ice_parent = {"candidate": f"parent-candidate-{TS}", "sdpMid": "0"}
 http_client = requests.Session()
 
 # --- WebSocket 클라이언트 (시뮬레이션용) ---
-# 403 오류 방지를 위해 http_session을 공유합니다.
 sio_robot = socketio.Client(http_session=http_client, reconnection_attempts=3)
 sio_parent = socketio.Client(http_session=http_client, reconnection_attempts=3)
 
 # --- 스레드 동기화용 이벤트 ---
 robot_auth_done = threading.Event()
 parent_auth_done = threading.Event()
+
+# [추가] 새로운 사전 시그널링 단계를 위한 이벤트
+cast_requested = threading.Event()  # 부모가 로봇의 요청을 받았는지
+cast_accepted = threading.Event()   # 로봇이 부모의 수락을 받았는지
+
+# [기존] SDP/ICE 교환용 이벤트
 offer_received_by_parent = threading.Event()
 answer_received_by_robot = threading.Event()
 ice_received_by_robot = threading.Event()
@@ -52,13 +58,19 @@ def auth_success():
     print("🔑 [Robot] 'AUTH_SUCCESS' 이벤트 수신!")
     robot_auth_done.set()
 
-@sio_robot.on(WebRTCEvents.NEW_ANSWER) # ⬅️ [수정] .event -> .on
+# [추가] 부모가 캐스트 요청을 수락했음을 알리는 핸들러
+@sio_robot.on(WebRTCEvents.CAST_ACCEPTED)
+def on_cast_accepted(data):
+    print(f"🤖 [Robot] 'CAST_ACCEPTED' 수신: {data}")
+    cast_accepted.set()
+
+@sio_robot.on(WebRTCEvents.NEW_ANSWER)
 def on_new_answer(answer):
     print(f"🤖 [Robot] 'NEW_ANSWER' 수신: {answer}")
     assert answer["sdp"] == mock_answer_data["sdp"]
     answer_received_by_robot.set()
 
-@sio_robot.on(WebRTCEvents.NEW_ICE_CANDIDATE) # ⬅️ [수정] .event -> .on
+@sio_robot.on(WebRTCEvents.NEW_ICE_CANDIDATE)
 def on_new_ice_candidate(data):
     print(f"🤖 [Robot] 'NEW_ICE_CANDIDATE' (from Parent) 수신")
     assert data["candidate"] == mock_ice_parent["candidate"]
@@ -77,13 +89,20 @@ def auth_success():
     print("🔑 [Parent] 'AUTH_SUCCESS' 이벤트 수신!")
     parent_auth_done.set()
 
-@sio_parent.on(WebRTCEvents.NEW_OFFER) # ⬅️ [수정] .event -> .on
+# [추가] 로봇이 캐스트를 요청했음을 알리는 핸들러
+@sio_parent.on(WebRTCEvents.CAST_REQUESTED)
+def on_cast_requested(data):
+    print(f"🧑 [Parent] 'CAST_REQUESTED' 수신: {data}")
+    cast_requested.set()
+
+
+@sio_parent.on(WebRTCEvents.NEW_OFFER)
 def on_new_offer(offer):
     print(f"🧑 [Parent] 'NEW_OFFER' 수신: {offer['type']}")
     assert offer["sdp"] == mock_offer_data["sdp"]
     offer_received_by_parent.set()
 
-@sio_parent.on(WebRTCEvents.NEW_ICE_CANDIDATE) # ⬅️ [수정] .event -> .on
+@sio_parent.on(WebRTCEvents.NEW_ICE_CANDIDATE)
 def on_new_ice_candidate(data):
     print(f"🧑 [Parent] 'NEW_ICE_CANDIDATE' (from Robot) 수신")
     assert data["candidate"] == mock_ice_robot["candidate"]
@@ -107,7 +126,7 @@ def run_webrtc_test():
         print("--- [HTTP 2] 로그인 (토큰 획득) ---")
         log_data = {"email": TEST_EMAIL, "password": TEST_PASSWORD}
         resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/auth/login", json=log_data)
-        assert resp.status_code == 200, f"로그인 실패: {resp.text} (auth_service.py 수정 필요)"
+        assert resp.status_code == 200, f"로그인 실패: {resp.text}"
         access_token = resp.json()["access_token"]
         print(f"✅ 로그인 성공 (Token: {access_token[:10]}...)")
         
@@ -128,14 +147,14 @@ def run_webrtc_test():
         print("--- [HTTP 5] 로봇 로그인 (토큰 획득) ---")
         log_data = {"robot_id": robot_id, "serial_number": TEST_ROBOT_SN}
         resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/auth/login/robot", json=log_data)
-        assert resp.status_code == 200, f"로그인 실패: {resp.text} (auth_service.py 수정 필요)"
+        assert resp.status_code == 200, f"로그인 실패: {resp.text}"
         robot_access_token = resp.json()["access_token"]
         print(f"✅ 로그인 성공 (Token: {robot_access_token[:10]}...)")
         
         # === 2단계: WebSocket 연결 및 인증 ===
         print("\n--- [WS 1] 로봇/부모 동시 연결 및 인증 ---")
-        auth_robot = {"token": robot_access_token, "session_type": "robot"} #
-        auth_parent = {"token": access_token, "session_type": "parent"} #
+        auth_robot = {"token": robot_access_token, "session_type": "robot"}
+        auth_parent = {"token": access_token, "session_type": "parent"}
         
         sio_robot.connect(BASE_URL, auth=auth_robot)
         sio_parent.connect(BASE_URL, auth=auth_parent)
@@ -144,36 +163,54 @@ def run_webrtc_test():
             raise Exception("WebSocket 인증 타임아웃")
         print("✅ 로봇/부모 인증 동시 성공!")
 
-        # === 3단계: WebRTC 시그널링 테스트 ===
+        # === 3단계: [신규] 사전 시그널링 (캐스트 요청/수락) ===
+        print("\n--- [WebRTC 1] 캐스트 요청 및 수락 ---")
+        print("🤖 [Robot] SENDS: REQUEST_CAST (to Parent)")
+        # webrtc_event.py의 on_request_cast 인자 (opp_clnt_type, opp_clnt_id)
+        sio_robot.emit(WebRTCEvents.REQUEST_CAST, ("parent", parent_id))
+        
+        if not cast_requested.wait(timeout=5):
+            raise Exception("🧑 [Parent] 'CAST_REQUESTED' 수신 타임아웃")
+        print("✅ 부모가 로봇의 요청을 수신했습니다.")
+
+        print("🧑 [Parent] SENDS: ACCPET_REQUEST (to Robot)")
+        # webrtc_event.py의 on_accept_request 인자 (opp_clnt_type, opp_clnt_id)
+        sio_parent.emit(WebRTCEvents.ACCPET_REQUEST, ("robot", robot_id))
+        
+        if not cast_accepted.wait(timeout=5):
+            raise Exception("🤖 [Robot] 'CAST_ACCEPTED' 수신 타임아웃")
+        print("✅ 로봇이 부모의 수락을 수신했습니다. (양측 준비 완료)")
+
+        # === 4단계: [기존] WebRTC 시그널링 (SDP/ICE) ===
         
         # (Offer) 로봇 -> 서버 -> 부모
-        print("\n--- [WebRTC 1] Offer 교환 ---")
-        print("🤖 [Robot] SENDS: REGISTER_OFFER")
-        sio_robot.emit("client:register_offer", mock_offer_data) #
-        time.sleep(0.5) # 서버 처리 시간
-        print("🧑 [Parent] SENDS: CHECK_OFFER")
-        sio_parent.emit("client:check_offer", ("robot", robot_id)) #
+        print("\n--- [WebRTC 2] Offer 교환 ---")
+        print("🤖 [Robot] SENDS: SEND_OFFER")
+        sio_robot.emit(WebRTCEvents.SEND_OFFER,("parent", parent_id, mock_offer_data))
         
+        # (경고)
+        # on_send_offer 핸들러가 NEW_OFFER를 부모에게 emit하지 않으면
+        # 이 부분에서 테스트가 타임아웃으로 실패합니다. (하단 경고 참조)
         if not offer_received_by_parent.wait(timeout=5):
-            raise Exception("🧑 [Parent] 'NEW_OFFER' 수신 타임아웃")
+            raise Exception("🧑 [Parent] 'NEW_OFFER' 수신 타임아웃 (서버 로직 확인 필요)")
         print("✅ Offer 교환 성공!")
 
         # (Answer) 부모 -> 서버 -> 로봇
-        print("\n--- [WebRTC 2] Answer 교환 ---")
+        print("\n--- [WebRTC 3] Answer 교환 ---")
         print("🧑 [Parent] SENDS: SEND_ANSWER")
-        sio_parent.emit("client:send_answer", ("robot", robot_id, mock_answer_data)) #
+        sio_parent.emit(WebRTCEvents.SEND_ANSWER, ("robot", robot_id, mock_answer_data))
         
         if not answer_received_by_robot.wait(timeout=5):
             raise Exception("🤖 [Robot] 'NEW_ANSWER' 수신 타임아웃")
         print("✅ Answer 교환 성공!")
         
         # (ICE) 양방향
-        print("\n--- [WebRTC 3] ICE 교환 ---")
-        print("🤖 [Robot] SENDS: ICE_CANDIDATE (to Parent)")
-        sio_robot.emit("client:send_ice_candidate", ("parent", parent_id, mock_ice_robot)) #
+        print("\n--- [WebRTC 4] ICE 교환 ---")
+        print("🤖 [Robot] SENDS: SEND_ICE_CANDIDATE (to Parent)")
+        sio_robot.emit(WebRTCEvents.SEND_ICE_CANDIDATE, ("parent", parent_id, mock_ice_robot))
         
-        print("🧑 [Parent] SENDS: ICE_CANDIDATE (to Robot)")
-        sio_parent.emit("client:send_ice_candidate", ("robot", robot_id, mock_ice_parent)) #
+        print("🧑 [Parent] SENDS: SEND_ICE_CANDIDATE (to Robot)")
+        sio_parent.emit(WebRTCEvents.SEND_ICE_CANDIDATE, ("robot", robot_id, mock_ice_parent))
 
         if not ice_received_by_parent.wait(timeout=5) or not ice_received_by_robot.wait(timeout=5):
             raise Exception("🧊 [ICE] 교환 타임아웃")
@@ -187,17 +224,13 @@ def run_webrtc_test():
         traceback.print_exc()
         sys.exit(1)
     finally:
-        # === 4단계: 클린업 ===
+        # === 5단계: 클린업 ===
         print("--- 🧹 클린업: 모든 연결 종료 ---")
         if sio_robot.connected: sio_robot.disconnect()
         if sio_parent.connected: sio_parent.disconnect()
         
-        # (선택) 테스트에 사용된 부모 계정 삭제 (HTTP API 사용)
         if parent_id and access_token:
-            print(f"--- 🧹 클린업: Parent (ID: {parent_id}) 삭제 ---")
-            # (이 기능을 테스트하려면 'parent_service.py'에 'delete_parent' 서비스와
-            # 'manual_debug_router.py'에 해당 엔드포인트가 필요합니다.)
-            # http_client.delete(f"{BASE_URL}{DEBUG_PREFIX}/parent/{parent_id}", headers={"Authorization": f"Bearer {access_token}"})
+            print(f"--- 🧹 클린업: Parent (ID: {parent_id}) 삭제 (필요시 구현) ---")
             
 if __name__ == "__main__":
     run_webrtc_test()
