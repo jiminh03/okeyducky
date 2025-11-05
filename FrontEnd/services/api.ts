@@ -259,13 +259,110 @@ export interface RegisterResponse {
   message?: string;
 }
 
+// 로그인 인터페이스
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+}
+
 export interface ErrorResponse {
   errorCode: string;
   message: string;
 }
 
-// 회원가입 API
+// 인증 API
 export const authApi = {
+  // 부모 로그인
+  // 백엔드 API 엔드포인트: POST /auth/login
+  login: async (data: LoginRequest): Promise<ApiResponse<LoginResponse>> => {
+    const url = `${API_BASE_URL}/auth/login`;
+    console.log('로그인 API 호출:', { url, email: data.email });
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
+      });
+
+      // 200: 로그인 성공
+      if (response.status === 200) {
+        const responseData: LoginResponse = await response.json();
+        // Access Token을 localStorage에 저장
+        if (responseData.access_token) {
+          localStorage.setItem('access_token', responseData.access_token);
+        }
+        return {
+          success: true,
+          data: responseData,
+        };
+      }
+
+      // 401: 인증 실패
+      if (response.status === 401) {
+        const errorData: ErrorResponse = await response.json().catch(() => ({
+          errorCode: 'UNAUTHORIZED',
+          message: '이메일 또는 비밀번호가 올바르지 않습니다.',
+        }));
+        return {
+          success: false,
+          message: errorData.message || '이메일 또는 비밀번호가 올바르지 않습니다.',
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '로그인 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '로그인 중 오류가 발생했습니다.',
+      };
+    } catch (error) {
+      console.error('로그인 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+
   // 부모 회원가입
   // 백엔드 API 엔드포인트: POST /auth/register
   register: async (data: RegisterRequest): Promise<ApiResponse<RegisterResponse>> => {

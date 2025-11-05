@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { authApi } from '@/services/api';
 import './LoginScreen.css';
 
 interface LoginScreenProps {
@@ -12,6 +13,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
     email: '',
     password: ''
   });
+  const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -19,13 +22,47 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
       ...prev,
       [name]: value
     }));
+    // 에러 메시지 초기화
+    if (error) {
+      setError('');
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('로그인 데이터:', formData);
-    // 로그인 로직 구현
-    onLoginComplete();
+    setError('');
+
+    // 기본 검증
+    if (!formData.email.trim()) {
+      setError('이메일을 입력해주세요.');
+      return;
+    }
+
+    if (!formData.password) {
+      setError('비밀번호를 입력해주세요.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await authApi.login({
+        email: formData.email.trim(),
+        password: formData.password,
+      });
+
+      if (response.success) {
+        console.log('로그인 성공:', response.data);
+        onLoginComplete();
+      } else {
+        setError(response.message || '로그인에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('로그인 오류:', error);
+      setError('로그인 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -57,6 +94,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
 
         {/* 로그인 폼 */}
         <form onSubmit={handleSubmit} className="login-form">
+          {/* 에러 메시지 */}
+          {error && (
+            <div className="error-message" style={{
+              color: '#ff4444',
+              fontSize: '14px',
+              marginBottom: '16px',
+              textAlign: 'center',
+              padding: '12px',
+              backgroundColor: '#fff5f5',
+              borderRadius: '8px',
+              border: '1px solid #ffcccc'
+            }}>
+              {error}
+            </div>
+          )}
+
           {/* 아이디(이메일) */}
           <div className="form-group">
             <label className="form-label">아이디(이메일)</label>
@@ -86,8 +139,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
           </div>
 
           {/* 로그인 버튼 */}
-          <button type="submit" className="login-submit-btn">
-            로그인
+          <button 
+            type="submit" 
+            className="login-submit-btn"
+            disabled={isLoading}
+          >
+            {isLoading ? '처리 중...' : '로그인'}
           </button>
         </form>
 
