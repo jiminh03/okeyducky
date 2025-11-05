@@ -48,7 +48,7 @@ async def connect(sid, environ, auth: Dict[str, str]):
 
     await session_manager.create_session(con_info)
     await sio.emit(ConnectEvents.AUTH_SUCCESS, to=sid)
-    print(f"🔑 [인증 성공] 클라이언트 인증 완료. sid: {sid}, session_type: {session_request.session_type}, parent_id: {clnt_id}")
+    print(f"🔑 [인증 성공] 클라이언트 인증 완료. sid: {sid}, session_type: {session_request.session_type}, id: {clnt_id}")
 
     # TODO: 추후 일정 시간 인증이 안되면 연결을 끊는 기능이 필요
 
