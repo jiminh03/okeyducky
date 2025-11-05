@@ -60,6 +60,19 @@ async def on_request_cast(sid, opp_clnt_type: SessionType, opp_clnt_id: int):
 
 # TODO: 캐스트 거절 이벤트는 mvp 제외
 
+@sio.on(WebRTCEvents.READY_FOR_OFFER)
+async def on_ready_for_offer(sid, opp_clnt_type: SessionType, opp_clnt_id: int):
+    print(f"WebRTC log: Ready for Offer ,sid: {sid}")
+    redis_client = await red.get_redis_client()
+    sess_man = SessionManager(redis_client) 
+    requested_session_info = await _get_session_info(sess_man, opp_clnt_type, opp_clnt_id)
+    await sio.emit(
+        WebRTCEvents.PEER_IS_READY,
+        to=requested_session_info.sid,
+        data={"opp_type": opp_clnt_type, "opp_id": opp_clnt_id},
+    )
+
+
 # WebRTC 시그널링 이벤트 핸들러 ---
 # 사용 규칙
 # 1. 반드시 상대방의 세션 타입과 id를 알고 있어야함

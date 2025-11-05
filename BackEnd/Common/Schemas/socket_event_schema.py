@@ -32,6 +32,9 @@ class WebRTCEvents(str, Enum):
     CAST_ACCEPTED = "server:cast_accepted"
     CAST_REJECTED = "server:cast_rejected"
 
+    READY_FOR_OFFER = "client:ready_for_offer"
+    PEER_IS_READY = "server:peer_is_ready"
+
     # --- 2. SDP 교환 (Offer/Answer) ---
     SEND_OFFER = "client:send_offer"
     SEND_ANSWER = "client:send_answer"
