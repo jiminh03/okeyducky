@@ -166,12 +166,11 @@ class SessionManager:
                 sid_key = self._get_key(SessionKeyType.SID, session_info.sid)
                 keys_to_delete.append(sid_key)
 
-                if session_info.id is not None:
+                if session_info.session_type == SessionType.ROBOT:
                     keys_to_delete.append(
                         self._get_key(SessionKeyType.ROBOT_ID, session_info.id)
                     )
-
-                if session_info.id is not None:
+                elif session_info.session_type == SessionType.PARENT:
                     keys_to_delete.append(
                         self._get_key(SessionKeyType.PARENT_ID, session_info.id)
                     )

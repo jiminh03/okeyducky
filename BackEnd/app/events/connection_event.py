@@ -59,6 +59,6 @@ async def disconnect(sid):
     session_manager = SessionManager(redis_client=redis_client)
     session_info = await session_manager.get_session_by_sid(sid)
     if session_info:
-        print(f"👋 [연결 종료] 클라이언트 연결 끊김. sid: {sid}, parent_id: {session_info.id}")
+        print(f"👋 [연결 종료] 클라이언트 연결 끊김. sid: {sid}, session_type: {session_info.session_type}, id: {session_info.id}")
         await session_manager.delete_session(session_info)
     print(f"👋 [연결 종료] 클라이언트 연결 끊김. sid: {sid}")
