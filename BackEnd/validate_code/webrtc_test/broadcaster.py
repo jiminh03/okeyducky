@@ -112,25 +112,95 @@ class OpenCVVideoStreamTrack(VideoStreamTrack):
         logger.info("OpenCVVideoStreamTrack stopped")
 # --- 미디어 트랙 끝 ---
 
+pc=None
+video_track=None
+audio_track=None
 
-# --- [변경] WebRTC 이벤트 핸들러 ---
-@pc.on("icecandidate")
-async def on_icecandidate(candidate):
-    """ICE Candidate 생성 시 서버로 전송 (Parent에게)"""
-    if candidate:
-        logger.info(f"ICE Candidate 생성: {candidate.candidate[:30]}...")
+# --- [변경] WebRTC 요청 이벤트 핸들러 ---
+@sio.on(WebRTCEvents.CAST_REQUESTED)
+async def on_cast_requested(data: Dict[str, Any]):
+    """
+    (Point 1) 뷰어(Parent)가 'REQUEST_CAST'를 보내 서버가 중계한 이벤트
+    data 에는 {'opp_type': 'parent', 'opp_id': 123}가 들어옵니다.
+    """
+    try:
+        parent_id = int(data["opp_id"])
+        logger.info(f"⬇️ 'CAST_REQUESTED' 수신 (from parent_id: {parent_id}). PC 설정 시작...")
+    except (KeyError, ValueError, TypeError):
+        logger.error(f"잘못된 'CAST_REQUESTED' 데이터 수신: {data}")
+        return
+
+    # 1. (Point 2) 뷰어(Parent) 전용 PeerConnection 생성
+    pc = RTCPeerConnection()
+
+    # 2. (Point 2) 미디어 트랙 추가
+    pc.addTrack(video_track)
+    pc.addTrack(audio_track)
+
+    # 3. (Point 2) 이벤트 핸들러 설정
+    @pc.on("icecandidate")
+    async def on_icecandidate(candidate):
+        """ICE Candidate 생성 시 서버로 전송 (Parent에게)"""
+        if candidate:
+            logger.info(f"ICE Candidate 생성 (for parent_id {parent_id})...")
+            await sio.emit(
+                WebRTCEvents.SEND_ICE_CANDIDATE, 
+                (SessionType.PARENT.value, parent_id, candidate.to_dict()) 
+                # (opp_clnt_type, opp_clnt_id, data)
+            )
+
+    @pc.on("connectionstatechange")
+    async def on_connectionstatechange():
+        logger.info(f"PC state for {parent_id}: {pc.connectionState}")
+        if pc.connectionState == "failed" or pc.connectionState == "closed":
+            await pc.close()
+            logger.info("PeerConnection closed.")
+    
+    try:
+        # 4. (Point 1) 'ACCPET_REQUEST' 전송
+        logger.info(f"⬆️ 'ACCPET_REQUEST' 전송 (to parent_id: {parent_id})...")
         await sio.emit(
-            WebRTCEvents.SEND_ICE_CANDIDATE, 
-            (SessionType.PARENT.value, PARENT_ID, candidate.to_dict()) 
-            # (opp_clnt_type, opp_clnt_id, data)
+            WebRTCEvents.ACCPET_REQUEST,
+            (SessionType.PARENT.value, parent_id)
+            # (opp_clnt_type, opp_clnt_id)
+        )
+        
+        # 5. (Point 3) Offer 생성 및 전송
+        offer = await pc.createOffer()
+        await pc.setLocalDescription(offer)
+        
+        offer_packet = {"type": offer.type, "sdp": offer.sdp}
+        
+        logger.info(f"⬆️ 'SEND_OFFER' 전송 (to parent_id: {parent_id})...")
+        await sio.emit(
+            WebRTCEvents.SEND_OFFER,
+            (SessionType.PARENT.value, parent_id, offer_packet)
+            # (offer_clnt_type, offer_clnt_id, offer_data)
         )
 
-@pc.on("connectionstatechange")
-async def on_connectionstatechange():
-    logger.info(f"PC Connection State: {pc.connectionState}")
-    if pc.connectionState == "failed" or pc.connectionState == "closed":
+    except Exception as e:
+        logger.error(f"Offer 생성 또는 전송 실패 (for parent_id {parent_id}): {e}", exc_info=True)
         await pc.close()
         logger.info("PeerConnection closed.")
+
+# --- [변경] WebRTC 이벤트 핸들러 ---
+# @pc.on("icecandidate")
+# async def on_icecandidate(candidate):
+#     """ICE Candidate 생성 시 서버로 전송 (Parent에게)"""
+#     if candidate:
+#         logger.info(f"ICE Candidate 생성: {candidate.candidate[:30]}...")
+#         await sio.emit(
+#             WebRTCEvents.SEND_ICE_CANDIDATE, 
+#             (SessionType.PARENT.value, PARENT_ID, candidate.to_dict()) 
+#             # (opp_clnt_type, opp_clnt_id, data)
+#         )
+
+# @pc.on("connectionstatechange")
+# async def on_connectionstatechange():
+#     logger.info(f"PC Connection State: {pc.connectionState}")
+#     if pc.connectionState == "failed" or pc.connectionState == "closed":
+#         await pc.close()
+#         logger.info("PeerConnection closed.")
 
 # --- [변경] Socket.IO 이벤트 핸들러 ---
 @sio.event
@@ -144,26 +214,7 @@ async def connect():
 async def auth_success():
     """서버 인증 성공 시 (2단계) - WebRTC Offer 등록"""
     logger.info("🔑 Socket.IO 인증 성공! WebRTC Offer 등록을 시작합니다.")
-    
-    # 미디어 트랙 추가
-    pc.addTrack(video_track)
-    pc.addTrack(audio_track)
-    
-    try:
-        # Offer 생성
-        offer = await pc.createOffer()
-        await pc.setLocalDescription(offer)
-        
-        # 'Dict' 사용
-        offer_packet = {"type": offer.type, "sdp": offer.sdp}
-        
-        # 'webrtc_event.py'의 'on_register_offer' 호출
-        await sio.emit(WebRTCEvents.REGISTER_OFFER, offer_packet)
-        logger.info("✅ Offer 등록 완료. Parent의 응답(Answer) 대기 중...")
-        
-    except Exception as e:
-        logger.error(f"Offer 생성 또는 등록 실패: {e}", exc_info=True)
-        await sio.disconnect()
+
 
 @sio.on(WebRTCEvents.NEW_ANSWER)
 async def on_new_answer(answer_data: Dict[str, Any]): # ⬅️ Dict 타입 명시
