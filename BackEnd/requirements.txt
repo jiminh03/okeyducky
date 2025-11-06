@@ -1,0 +1,15 @@
+sqlmodel
+sqlalchemy
+pydantic
+redis
+fastapi
+uvicorn
+httpx
+python-dotenv
+asyncmy
+python-socketio
+python-jose[cryptography]
+passlib
+bcrypt==4.3.0
+requests
+websocket-client
