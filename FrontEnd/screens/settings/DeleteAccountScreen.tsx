@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DetailHeader from '@/components/DetailHeader';
 import Footer from '@/components/Footer';
+import { userApi } from '@/services/api';
 import './DeleteAccountScreen.css';
 
 interface DeleteAccountScreenProps {
@@ -24,6 +25,8 @@ const DeleteAccountScreen: React.FC<DeleteAccountScreenProps> = ({
 }) => {
   const [confirmText, setConfirmText] = useState('');
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const requiredText = '탈퇴';
 
   const handleConfirmTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,11 +35,28 @@ const DeleteAccountScreen: React.FC<DeleteAccountScreenProps> = ({
     setIsConfirmed(value === requiredText);
   };
 
-  const handleDelete = () => {
-    if (isConfirmed) {
-      console.log('계정 탈퇴 처리');
-      onConfirm?.();
-      // 실제로는 로그아웃 처리 후 스플래시 화면으로 이동
+  const handleDelete = async () => {
+    if (!isConfirmed) {
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      const response = await userApi.deleteMe();
+
+      if (response.success) {
+        console.log('회원 탈퇴 성공');
+        onConfirm?.();
+      } else {
+        setErrorMessage(response.message || '회원 탈퇴에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('회원 탈퇴 오류:', error);
+      setErrorMessage('회원 탈퇴 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -47,6 +67,22 @@ const DeleteAccountScreen: React.FC<DeleteAccountScreenProps> = ({
 
       {/* 메인 콘텐츠 */}
       <div className="delete-account-content">
+        {/* 에러 메시지 */}
+        {errorMessage && (
+          <div className="error-message" style={{
+            color: '#ff4444',
+            fontSize: '14px',
+            marginBottom: '16px',
+            textAlign: 'center',
+            padding: '12px',
+            backgroundColor: '#fff5f5',
+            borderRadius: '8px',
+            border: '1px solid #ffcccc'
+          }}>
+            {errorMessage}
+          </div>
+        )}
+
         <div className="delete-account-warning">
           <div className="warning-icon">⚠️</div>
           <h2 className="warning-title">계정 탈퇴 시 주의사항</h2>
@@ -74,9 +110,9 @@ const DeleteAccountScreen: React.FC<DeleteAccountScreenProps> = ({
         <button
           className={`delete-account-btn ${isConfirmed ? 'enabled' : 'disabled'}`}
           onClick={handleDelete}
-          disabled={!isConfirmed}
+          disabled={!isConfirmed || isLoading}
         >
-          계정 탈퇴하기
+          {isLoading ? '처리 중...' : '계정 탈퇴하기'}
         </button>
       </div>
 

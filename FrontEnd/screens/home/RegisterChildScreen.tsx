@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import DetailHeader from '@/components/DetailHeader';
 import Footer from '@/components/Footer';
+import { childApi } from '@/services/api';
 import './RegisterChildScreen.css';
 
 interface RegisterChildScreenProps {
@@ -34,6 +35,8 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
   const defaultProfileImage = '/icons/Frame 1000000896.png';
   const [profileImage, setProfileImage] = useState<string | null>(defaultProfileImage);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -50,15 +53,45 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = {
-      ...formData,
-      profileImage: profileImage || defaultProfileImage,
-    };
-    console.log('아이 등록 데이터:', payload);
-    // 아이 등록 로직 구현
-    onRegisterComplete();
+    setErrorMessage('');
+
+    // 생년월일 유효성 검사
+    if (!formData.birthYear || !formData.birthMonth || !formData.birthDay) {
+      setErrorMessage('생년월일을 모두 입력해주세요.');
+      return;
+    }
+
+    // 생년월일을 YYYY-MM-DD 형식으로 변환
+    const birthDate = `${formData.birthYear}-${formData.birthMonth.padStart(2, '0')}-${formData.birthDay.padStart(2, '0')}`;
+
+    // gender 변환: "여자" -> "여아", "남자" -> "남아"
+    const genderApi = formData.gender === '여자' ? '여아' : '남아';
+
+    setIsLoading(true);
+
+    try {
+      const response = await childApi.register({
+        name: formData.name.trim(),
+        gender: genderApi,
+        birth_date: birthDate,
+        school: formData.school.trim(),
+        serial_number: formData.robotSerial.trim(),
+      });
+
+      if (response.success) {
+        console.log('아이 등록 성공:', response.data);
+        onRegisterComplete();
+      } else {
+        setErrorMessage(response.message || '아이 등록에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('아이 등록 오류:', error);
+      setErrorMessage('아이 등록 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -104,6 +137,22 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="register-form">
+          {/* 에러 메시지 */}
+          {errorMessage && (
+            <div className="error-message" style={{
+              color: '#ff4444',
+              fontSize: '14px',
+              marginBottom: '16px',
+              textAlign: 'center',
+              padding: '12px',
+              backgroundColor: '#fff5f5',
+              borderRadius: '8px',
+              border: '1px solid #ffcccc'
+            }}>
+              {errorMessage}
+            </div>
+          )}
+
           {/* 아이 이름 */}
           <div className="form-group">
             <label className="form-label">아이 이름</label>
@@ -211,8 +260,12 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
           </div>
 
           {/* 등록 버튼 */}
-          <button type="submit" className="register-submit-btn">
-            등록하기
+          <button 
+            type="submit" 
+            className="register-submit-btn"
+            disabled={isLoading}
+          >
+            {isLoading ? '처리 중...' : '등록하기'}
           </button>
         </form>
       </div>

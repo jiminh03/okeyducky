@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DetailHeader from '@/components/DetailHeader';
 import Footer from '@/components/Footer';
+import { userApi } from '@/services/api';
 import './ChangePasswordScreen.css';
 
 interface ChangePasswordScreenProps {
@@ -33,6 +34,8 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
     newPassword: '',
     confirmPassword: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -74,12 +77,34 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
     return !Object.values(newErrors).some(error => error !== '');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log('비밀번호 변경:', formData);
-      onSave?.();
-      onBack();
+    setErrorMessage('');
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // API 호출: 비밀번호만 변경
+      const response = await userApi.updateMe({
+        password: formData.newPassword,
+      });
+
+      if (response.success) {
+        console.log('비밀번호 변경 성공:', response.data);
+        onSave?.();
+        onBack();
+      } else {
+        setErrorMessage(response.message || '비밀번호 변경에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('비밀번호 변경 오류:', error);
+      setErrorMessage('비밀번호 변경 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -91,6 +116,22 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
       {/* 메인 콘텐츠 */}
       <div className="change-password-content">
         <form className="change-password-form" onSubmit={handleSubmit}>
+          {/* 에러 메시지 */}
+          {errorMessage && (
+            <div className="error-message" style={{
+              color: '#ff4444',
+              fontSize: '14px',
+              marginBottom: '16px',
+              textAlign: 'center',
+              padding: '12px',
+              backgroundColor: '#fff5f5',
+              borderRadius: '8px',
+              border: '1px solid #ffcccc'
+            }}>
+              {errorMessage}
+            </div>
+          )}
+
           {/* 현재 비밀번호 */}
           <div className="form-group">
             <label className="form-label">현재 비밀번호</label>
@@ -143,8 +184,12 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
           </div>
 
           {/* 저장 버튼 */}
-          <button type="submit" className="save-password-btn">
-            비밀번호 변경
+          <button 
+            type="submit" 
+            className="save-password-btn"
+            disabled={isLoading}
+          >
+            {isLoading ? '처리 중...' : '비밀번호 변경'}
           </button>
         </form>
       </div>

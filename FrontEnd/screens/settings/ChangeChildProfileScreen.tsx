@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import DetailHeader from '@/components/DetailHeader';
 import Footer from '@/components/Footer';
+import { childApi, ChildInfo } from '@/services/api';
 import '../home/RegisterChildScreen.css';
 
 interface ChangeChildProfileScreenProps {
@@ -24,19 +25,49 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
 }) => {
   // 기존 데이터 (실제로는 props나 API에서 받아올 데이터)
   const [formData, setFormData] = useState({
-    name: '이원희',
+    name: '',
     gender: '여자' as '여자' | '남자',
-    birthYear: '2017',
-    birthMonth: '03',
-    birthDay: '13',
-    school: '명덕초등학교',
-    robotSerial: 'ROBOT-001' // 기존 로봇 시리얼 번호
+    birthYear: '',
+    birthMonth: '',
+    birthDay: '',
+    school: '',
   });
+  const [childInfo, setChildInfo] = useState<ChildInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   // 프로필 이미지 (기존 이미지가 있다면 그 URL, 없으면 기본 이미지)
   const defaultProfileImage = '/icons/Frame 1000000896.png';
   const [profileImage, setProfileImage] = useState<string | null>(defaultProfileImage);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 컴포넌트 마운트 시 기존 아이 정보 불러오기
+  useEffect(() => {
+    const fetchChildInfo = async () => {
+      setIsLoadingData(true);
+      const response = await childApi.getChild();
+      
+      if (response.success && response.data) {
+        setChildInfo(response.data);
+        // 생년월일을 YYYY-MM-DD 형식에서 분리
+        const [year, month, day] = response.data.birth_date.split('-');
+        setFormData({
+          name: response.data.name,
+          gender: response.data.gender === '여아' ? '여자' : '남자',
+          birthYear: year,
+          birthMonth: month,
+          birthDay: day,
+          school: response.data.school || '',
+        });
+      } else {
+        setErrorMessage('아이 정보를 불러오는데 실패했습니다. 다시 시도해주세요.');
+      }
+      setIsLoadingData(false);
+    };
+
+    fetchChildInfo();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -53,15 +84,45 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = {
-      ...formData,
-      profileImage: profileImage || defaultProfileImage,
-    };
-    console.log('프로필 변경 데이터:', payload);
-    onSave?.();
-    onBack();
+    setErrorMessage('');
+
+    // 생년월일 유효성 검사
+    if (!formData.birthYear || !formData.birthMonth || !formData.birthDay) {
+      setErrorMessage('생년월일을 모두 입력해주세요.');
+      return;
+    }
+
+    // 생년월일을 YYYY-MM-DD 형식으로 변환
+    const birthDate = `${formData.birthYear}-${formData.birthMonth.padStart(2, '0')}-${formData.birthDay.padStart(2, '0')}`;
+
+    // gender 변환: "여자" -> "여아", "남자" -> "남아"
+    const genderApi = formData.gender === '여자' ? '여아' : '남아';
+
+    setIsLoading(true);
+
+    try {
+      const response = await childApi.updateChild({
+        name: formData.name.trim(),
+        gender: genderApi,
+        birth_date: birthDate,
+        school: formData.school.trim(),
+      });
+
+      if (response.success) {
+        console.log('아이 정보 수정 성공:', response.data);
+        onSave?.();
+        onBack();
+      } else {
+        setErrorMessage(response.message || '아이 정보 수정에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('아이 정보 수정 오류:', error);
+      setErrorMessage('아이 정보 수정 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -106,8 +167,29 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
           />
         </div>
 
-        <form onSubmit={handleSubmit} className="register-form">
-          {/* 아이 이름 */}
+        {isLoadingData ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div>로딩 중...</div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="register-form">
+            {/* 에러 메시지 */}
+            {errorMessage && (
+              <div className="error-message" style={{
+                color: '#ff4444',
+                fontSize: '14px',
+                marginBottom: '16px',
+                textAlign: 'center',
+                padding: '12px',
+                backgroundColor: '#fff5f5',
+                borderRadius: '8px',
+                border: '1px solid #ffcccc'
+              }}>
+                {errorMessage}
+              </div>
+            )}
+
+            {/* 아이 이름 */}
           <div className="form-group">
             <label className="form-label">아이 이름</label>
             <input
@@ -199,25 +281,30 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
             />
           </div>
 
-          {/* 로봇 시리얼 번호 */}
-          <div className="form-group">
-            <label className="form-label">로봇 시리얼 번호</label>
-            <input
-              type="text"
-              name="robotSerial"
-              value={formData.robotSerial}
-              onChange={handleInputChange}
-              className="form-input"
-              placeholder="로봇 시리얼 번호를 입력해주세요"
-              required
-            />
-          </div>
+            {/* 로봇 시리얼 번호 (읽기 전용) */}
+            {childInfo?.robot && (
+              <div className="form-group">
+                <label className="form-label">로봇 시리얼 번호</label>
+                <input
+                  type="text"
+                  value={childInfo.robot.serial_number}
+                  className="form-input"
+                  disabled
+                  style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                />
+              </div>
+            )}
 
-          {/* 저장 버튼 */}
-          <button type="submit" className="register-submit-btn">
-            저장하기
-          </button>
-        </form>
+            {/* 저장 버튼 */}
+            <button 
+              type="submit" 
+              className="register-submit-btn"
+              disabled={isLoading}
+            >
+              {isLoading ? '처리 중...' : '저장하기'}
+            </button>
+          </form>
+        )}
       </div>
 
       {/* 하단 네비게이션 */}

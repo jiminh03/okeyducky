@@ -274,6 +274,63 @@ export interface ErrorResponse {
   message: string;
 }
 
+// 사용자 정보 인터페이스
+export interface UserInfo {
+  user_id: number;
+  parent_name: string;
+  email: string;
+}
+
+// 아이 등록 요청 인터페이스
+export interface RegisterChildRequest {
+  name: string;
+  gender: '남아' | '여아';
+  birth_date: string; // YYYY-MM-DD 형식
+  school: string;
+  serial_number: string;
+}
+
+// 로봇 정보 인터페이스
+export interface RobotInfo {
+  robot_id: number;
+  child_id: number;
+  serial_number: string;
+  status: string;
+}
+
+// 아이 등록 응답 인터페이스
+export interface RegisterChildResponse {
+  child_id: number;
+  name: string;
+  gender: '남아' | '여아';
+  birth_date: string;
+  school: string;
+  robot: RobotInfo;
+}
+
+// 아이 정보 조회 응답 인터페이스 (등록 응답과 동일)
+export interface ChildInfo extends RegisterChildResponse {}
+
+// 대화 로그 인터페이스
+export interface ConversationLog {
+  timestamp: string;
+  speaker: 'child' | 'robot' | 'parent';
+  message: string;
+}
+
+// 일일 대화 로그 응답 인터페이스
+export interface DailyConversationLog {
+  date: string; // YYYY-MM-DD 형식
+  daily_summary: string;
+  logs: ConversationLog[];
+}
+
+// 일일 AI 분석 리포트 응답 인터페이스
+export interface DailyAnalysisReport {
+  date: string; // YYYY-MM-DD 형식
+  analysis_summary: string;
+}
+
 // 인증 API
 export const authApi = {
   // 부모 로그인
@@ -408,6 +465,758 @@ export const authApi = {
       };
     } catch (error) {
       console.error('회원가입 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+};
+
+// 사용자 API
+export const userApi = {
+  // 내 정보 (부모) 조회
+  // 백엔드 API 엔드포인트: GET /users/me
+  getMe: async (): Promise<ApiResponse<UserInfo>> => {
+    const url = `${API_BASE_URL}/users/me`;
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+      return {
+        success: false,
+        message: '로그인이 필요합니다.',
+      };
+    }
+    
+    console.log('사용자 정보 API 호출:', { url });
+    
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      // 200: 조회 성공
+      if (response.status === 200) {
+        const responseData: UserInfo = await response.json();
+        return {
+          success: true,
+          data: responseData,
+        };
+      }
+
+      // 401: 인증 필요
+      if (response.status === 401) {
+        // 토큰 삭제
+        localStorage.removeItem('access_token');
+        return {
+          success: false,
+          message: '인증이 만료되었습니다. 다시 로그인해주세요.',
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '사용자 정보를 불러오는 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '사용자 정보를 불러오는 중 오류가 발생했습니다.',
+      };
+    } catch (error) {
+      console.error('사용자 정보 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+
+  // 내 정보 (부모) 수정
+  // 백엔드 API 엔드포인트: PUT /users/me
+  updateMe: async (data: { parent_name?: string; password?: string }): Promise<ApiResponse<UserInfo>> => {
+    const url = `${API_BASE_URL}/users/me`;
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+      return {
+        success: false,
+        message: '로그인이 필요합니다.',
+      };
+    }
+    
+    console.log('사용자 정보 수정 API 호출:', { url, data: { ...data, password: data.password ? '***' : undefined } });
+    
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      // 200: 수정 성공
+      if (response.status === 200) {
+        const responseData: UserInfo = await response.json();
+        return {
+          success: true,
+          data: responseData,
+        };
+      }
+
+      // 401: 인증 필요
+      if (response.status === 401) {
+        // 토큰 삭제
+        localStorage.removeItem('access_token');
+        return {
+          success: false,
+          message: '인증이 만료되었습니다. 다시 로그인해주세요.',
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '사용자 정보 수정 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '사용자 정보 수정 중 오류가 발생했습니다.',
+      };
+    } catch (error) {
+      console.error('사용자 정보 수정 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+
+  // 회원 탈퇴
+  // 백엔드 API 엔드포인트: DELETE /users/me
+  deleteMe: async (): Promise<ApiResponse<void>> => {
+    const url = `${API_BASE_URL}/users/me`;
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+      return {
+        success: false,
+        message: '로그인이 필요합니다.',
+      };
+    }
+    
+    console.log('회원 탈퇴 API 호출:', { url });
+    
+    try {
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      // 204: 회원 탈퇴 성공
+      if (response.status === 204) {
+        // 토큰 삭제
+        localStorage.removeItem('access_token');
+        return {
+          success: true,
+        };
+      }
+
+      // 401: 인증 필요
+      if (response.status === 401) {
+        // 토큰 삭제
+        localStorage.removeItem('access_token');
+        return {
+          success: false,
+          message: '인증이 만료되었습니다. 다시 로그인해주세요.',
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '회원 탈퇴 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '회원 탈퇴 중 오류가 발생했습니다.',
+      };
+    } catch (error) {
+      console.error('회원 탈퇴 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+};
+
+// 아이 API
+export const childApi = {
+  // 아이 등록 (및 로봇 연동)
+  // 백엔드 API 엔드포인트: POST /users/child
+  register: async (data: RegisterChildRequest): Promise<ApiResponse<RegisterChildResponse>> => {
+    const url = `${API_BASE_URL}/users/child`;
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+      return {
+        success: false,
+        message: '로그인이 필요합니다.',
+      };
+    }
+    
+    console.log('아이 등록 API 호출:', { url, data });
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      // 201: 아이 및 로봇 등록 성공
+      if (response.status === 201) {
+        const responseData: RegisterChildResponse = await response.json();
+        return {
+          success: true,
+          data: responseData,
+        };
+      }
+
+      // 401: 인증 필요
+      if (response.status === 401) {
+        // 토큰 삭제
+        localStorage.removeItem('access_token');
+        return {
+          success: false,
+          message: '인증이 만료되었습니다. 다시 로그인해주세요.',
+        };
+      }
+
+      // 409: 이미 아이가 등록되어 있거나, 사용 중인 시리얼 번호
+      if (response.status === 409) {
+        const errorData: ErrorResponse = await response.json().catch(() => ({
+          errorCode: 'CONFLICT',
+          message: '이미 아이가 등록되어 있거나, 사용 중인 시리얼 번호입니다.',
+        }));
+        return {
+          success: false,
+          message: errorData.message || '이미 아이가 등록되어 있거나, 사용 중인 시리얼 번호입니다.',
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '아이 등록 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '아이 등록 중 오류가 발생했습니다.',
+      };
+    } catch (error) {
+      console.error('아이 등록 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+
+  // 내 아이 정보 조회
+  // 백엔드 API 엔드포인트: GET /users/child
+  getChild: async (): Promise<ApiResponse<ChildInfo>> => {
+    const url = `${API_BASE_URL}/users/child`;
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+      return {
+        success: false,
+        message: '로그인이 필요합니다.',
+      };
+    }
+    
+    console.log('아이 정보 조회 API 호출:', { url });
+    
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      // 200: 조회 성공
+      if (response.status === 200) {
+        const responseData: ChildInfo = await response.json();
+        return {
+          success: true,
+          data: responseData,
+        };
+      }
+
+      // 401: 인증 필요
+      if (response.status === 401) {
+        // 토큰 삭제
+        localStorage.removeItem('access_token');
+        return {
+          success: false,
+          message: '인증이 만료되었습니다. 다시 로그인해주세요.',
+        };
+      }
+
+      // 404: 등록된 아이가 없음
+      if (response.status === 404) {
+        return {
+          success: false,
+          message: '등록된 아이가 없습니다.',
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '아이 정보 조회 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '아이 정보 조회 중 오류가 발생했습니다.',
+      };
+    } catch (error) {
+      console.error('아이 정보 조회 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+
+  // 내 아이 정보 수정
+  // 백엔드 API 엔드포인트: PUT /users/child
+  updateChild: async (data: { name: string; gender: '남아' | '여아'; birth_date: string; school: string }): Promise<ApiResponse<ChildInfo>> => {
+    const url = `${API_BASE_URL}/users/child`;
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+      return {
+        success: false,
+        message: '로그인이 필요합니다.',
+      };
+    }
+    
+    console.log('아이 정보 수정 API 호출:', { url, data });
+    
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      // 200: 수정 성공
+      if (response.status === 200) {
+        const responseData: ChildInfo = await response.json();
+        return {
+          success: true,
+          data: responseData,
+        };
+      }
+
+      // 401: 인증 필요
+      if (response.status === 401) {
+        // 토큰 삭제
+        localStorage.removeItem('access_token');
+        return {
+          success: false,
+          message: '인증이 만료되었습니다. 다시 로그인해주세요.',
+        };
+      }
+
+      // 404: 등록된 아이가 없음
+      if (response.status === 404) {
+        return {
+          success: false,
+          message: '등록된 아이가 없습니다.',
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '아이 정보 수정 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '아이 정보 수정 중 오류가 발생했습니다.',
+      };
+    } catch (error) {
+      console.error('아이 정보 수정 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+};
+
+// 리포트 API
+export const reportApi = {
+  // 일일 대화 로그 조회
+  // 백엔드 API 엔드포인트: GET /reports/log/{date}
+  getDailyLog: async (date: string): Promise<ApiResponse<DailyConversationLog>> => {
+    const url = `${API_BASE_URL}/reports/log/${date}`;
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+      return {
+        success: false,
+        message: '로그인이 필요합니다.',
+      };
+    }
+    
+    console.log('일일 대화 로그 조회 API 호출:', { url });
+    
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      // 200: 조회 성공
+      if (response.status === 200) {
+        const responseData: DailyConversationLog = await response.json();
+        return {
+          success: true,
+          data: responseData,
+        };
+      }
+
+      // 401: 인증 필요
+      if (response.status === 401) {
+        // 토큰 삭제
+        localStorage.removeItem('access_token');
+        return {
+          success: false,
+          message: '인증이 만료되었습니다. 다시 로그인해주세요.',
+        };
+      }
+
+      // 404: 해당 날짜의 데이터가 없음
+      if (response.status === 404) {
+        return {
+          success: false,
+          message: '해당 날짜의 데이터가 없습니다.',
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '일일 대화 로그 조회 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '일일 대화 로그 조회 중 오류가 발생했습니다.',
+      };
+    } catch (error) {
+      console.error('일일 대화 로그 조회 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+
+  // 일일 AI 분석 리포트 조회
+  // 백엔드 API 엔드포인트: GET /reports/analysis/{date}
+  getDailyAnalysis: async (date: string): Promise<ApiResponse<DailyAnalysisReport>> => {
+    const url = `${API_BASE_URL}/reports/analysis/${date}`;
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+      return {
+        success: false,
+        message: '로그인이 필요합니다.',
+      };
+    }
+    
+    console.log('일일 AI 분석 리포트 조회 API 호출:', { url });
+    
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      // 200: 조회 성공
+      if (response.status === 200) {
+        const responseData: DailyAnalysisReport = await response.json();
+        return {
+          success: true,
+          data: responseData,
+        };
+      }
+
+      // 401: 인증 필요
+      if (response.status === 401) {
+        // 토큰 삭제
+        localStorage.removeItem('access_token');
+        return {
+          success: false,
+          message: '인증이 만료되었습니다. 다시 로그인해주세요.',
+        };
+      }
+
+      // 404: 해당 날짜의 데이터가 없음
+      if (response.status === 404) {
+        return {
+          success: false,
+          message: '해당 날짜의 데이터가 없습니다.',
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '일일 AI 분석 리포트 조회 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '일일 AI 분석 리포트 조회 중 오류가 발생했습니다.',
+      };
+    } catch (error) {
+      console.error('일일 AI 분석 리포트 조회 API 오류:', error);
       
       // 네트워크 연결 오류 감지
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {

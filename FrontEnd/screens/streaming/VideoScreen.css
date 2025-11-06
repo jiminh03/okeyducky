@@ -39,6 +39,98 @@
   bottom: 0;
 }
 
+/* WebRTC 제어 컨테이너 */
+.webrtc-control-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 16px;
+  padding-left: 4px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 2; /* 비디오 위에 버튼이 보이도록 */
+}
+
+.webrtc-start-button,
+.webrtc-stop-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.webrtc-start-button {
+  background: #FFE300;
+  color: #000;
+}
+
+.webrtc-start-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.webrtc-start-button:active {
+  transform: translateY(0);
+}
+
+.webrtc-stop-button {
+  background: #ff4444;
+  color: #fff;
+}
+
+.webrtc-stop-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(255, 68, 68, 0.3);
+}
+
+.webrtc-stop-button:active {
+  transform: translateY(0);
+}
+
+.webrtc-button-icon {
+  font-size: 14px;
+}
+
+.webrtc-button-text {
+  font-size: 13px;
+}
+
+/* WebRTC 비디오 스트림 (상대방 화면만 표시) */
+.remote-video-fullscreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  object-fit: cover;
+  z-index: 1;
+}
+
+/* 에러 메시지 */
+.video-error-message {
+  background: #fff5f5;
+  border: 1px solid #ffcccc;
+  color: #ff4444;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  position: relative;
+  z-index: 2; /* 비디오 위에 에러 메시지가 보이도록 */
+}
+
 /* 입력 바 */
 .video-input-bar {
   position: fixed;
@@ -52,7 +144,7 @@
   gap: 12px;
   border-top: 1px solid #e0e0e0;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-  z-index: 9;
+  z-index: 10; /* 비디오 위에 입력 바가 보이도록 */
   box-sizing: border-box;
   width: 100%;
 }
@@ -141,5 +233,25 @@
     width: 20px;
     height: 20px;
   }
-}
 
+  .webrtc-control-container {
+    padding: 12px;
+    padding-left: 12px;
+    margin-bottom: 12px;
+  }
+
+  .webrtc-start-button,
+  .webrtc-stop-button {
+    padding: 5px 10px;
+    font-size: 12px;
+    gap: 3px;
+  }
+
+  .webrtc-button-icon {
+    font-size: 12px;
+  }
+
+  .webrtc-button-text {
+    font-size: 12px;
+  }
+}

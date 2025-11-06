@@ -43,6 +43,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
       return;
     }
 
+    // 임시: 백엔드 서버 없이도 로그인 가능하도록 (개발용)
+    // 더미 토큰 저장
+    localStorage.setItem('access_token', 'dev-token-temp');
+    console.log('임시 로그인 (개발 모드)');
+    onLoginComplete();
+    return;
+
+    // 실제 API 호출 코드 (주석 처리)
+    /*
     setIsLoading(true);
 
     try {
@@ -63,6 +72,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
     } finally {
       setIsLoading(false);
     }
+    */
   };
 
   return (
