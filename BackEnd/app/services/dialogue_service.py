@@ -8,20 +8,20 @@ from app.services.child_service import *
 async def register_daily_report(
     report: DailyReportCreate,
     create_daily_report_service=Depends(get_create_daily_report_service),
-):
+)->DailyReportResponse:
     return await create_daily_report_service(report)
 
 async def update_daily_report(
     report_id: int,
     report: DailyReportUpdateRequest,
     update_daily_report_service=Depends(get_update_daily_report_service),
-):
+)->DailyReportResponse:
     return await update_daily_report_service(report_id, report)
 
 async def register_dialogue_log(
     log: DialogueLogCreate,
     create_dialogue_log_service=Depends(get_create_dialogue_log_service),
-):
+)->DialogueLogResponse:
     return await create_dialogue_log_service(log)
 
 async def get_daily_report_by_id(
@@ -29,7 +29,7 @@ async def get_daily_report_by_id(
     get_daily_report_by_id_service=Depends(get_daily_report_by_id_service),
     child_list: List[ChildInfoResponse] = Depends(get_child_list),
     get_child_info_service=Depends(get_child_by_id_service),
-):
+)->DailyReportResponse:
     daily_report = await get_daily_report_by_id_service(report_id)
     if daily_report is None:
         raise ReportNotFound
@@ -50,7 +50,7 @@ async def get_daily_report_by_child_id(
     get_daily_report_by_child_id_service=Depends(get_daily_report_by_child_id_service),
     child_list: List[ChildInfoResponse] = Depends(get_child_list),
     get_child_info_service=Depends(get_child_by_id_service),
-):
+) -> List[DailyReportResponse]:
     child = await get_child_info_service(child_id)
     if child is None:
         raise ChildNotFound
