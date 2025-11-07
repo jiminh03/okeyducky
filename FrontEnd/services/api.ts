@@ -3,7 +3,7 @@
 // 백엔드 API URL 설정
 // 환경 변수로 설정하거나, 백엔드 서버 주소로 변경하세요
 // FastAPI 서버가 포트 8000에서 실행 중인 경우
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://k13a408.p.ssafy.io:8000';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -17,19 +17,48 @@ async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
+    const { headers: originalHeaders, ...restOptions } = options;
+    const mergedHeaders: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...(originalHeaders || {}),
+    };
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
+      ...restOptions,
+      headers: mergedHeaders,
     });
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      let errorMessage = `API Error: ${response.status} ${response.statusText}`;
+
+      try {
+        const errorJson = await response.json();
+        if (errorJson?.message) {
+          errorMessage = errorJson.message;
+        } else if (errorJson?.detail) {
+          errorMessage = typeof errorJson.detail === 'string'
+            ? errorJson.detail
+            : JSON.stringify(errorJson.detail);
+        }
+      } catch {
+        try {
+          const errorText = await response.text();
+          if (errorText) {
+            errorMessage = errorText;
+          }
+        } catch {
+          // ignore secondary failure
+        }
+      }
+
+      throw new Error(errorMessage);
     }
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type') || '';
+    const data = contentType.includes('application/json')
+      ? await response.json()
+      : undefined;
+
     return {
       success: true,
       data,
@@ -267,6 +296,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   access_token: string;
+  refresh_token?: string;
 }
 
 export interface ErrorResponse {
@@ -333,169 +363,16 @@ export interface DailyAnalysisReport {
 
 // 인증 API
 export const authApi = {
-  // 부모 로그인
-  // 백엔드 API 엔드포인트: POST /auth/login
-  login: async (data: LoginRequest): Promise<ApiResponse<LoginResponse>> => {
-    const url = `${API_BASE_URL}/auth/login`;
-    console.log('로그인 API 호출:', { url, email: data.email });
-    
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
-      });
-
-      // 200: 로그인 성공
-      if (response.status === 200) {
-        const responseData: LoginResponse = await response.json();
-        // Access Token을 localStorage에 저장
-        if (responseData.access_token) {
-          localStorage.setItem('access_token', responseData.access_token);
-        }
-        return {
-          success: true,
-          data: responseData,
-        };
-      }
-
-      // 401: 인증 실패
-      if (response.status === 401) {
-        const errorData: ErrorResponse = await response.json().catch(() => ({
-          errorCode: 'UNAUTHORIZED',
-          message: '이메일 또는 비밀번호가 올바르지 않습니다.',
-        }));
-        return {
-          success: false,
-          message: errorData.message || '이메일 또는 비밀번호가 올바르지 않습니다.',
-        };
-      }
-
-      // 기타 에러
-      const errorData: ErrorResponse = await response.json().catch(() => ({
-        errorCode: 'UNKNOWN',
-        message: '로그인 중 오류가 발생했습니다.',
-      }));
-
-      return {
-        success: false,
-        message: errorData.message || '로그인 중 오류가 발생했습니다.',
-      };
-    } catch (error) {
-      console.error('로그인 API 오류:', error);
-      
-      // 네트워크 연결 오류 감지
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        return {
-          success: false,
-          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
-        };
-      }
-      
-      // 기타 네트워크 오류
-      if (error instanceof Error) {
-        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
-            error.message.includes('NetworkError') ||
-            error.message.includes('Failed to fetch')) {
-          return {
-            success: false,
-            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
-          };
-        }
-        return {
-          success: false,
-          message: error.message,
-        };
-      }
-      
-      return {
-        success: false,
-        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-      };
-    }
-  },
-
-  // 부모 회원가입
-  // 백엔드 API 엔드포인트: POST /auth/register
-  register: async (data: RegisterRequest): Promise<ApiResponse<RegisterResponse>> => {
-    const url = `${API_BASE_URL}/auth/register`;
-    console.log('회원가입 API 호출:', { url, data: { ...data, password: '***' } });
-    
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      // 201: 회원가입 성공
-      if (response.status === 201) {
-        const responseData = await response.json().catch(() => ({}));
-        return {
-          success: true,
-          data: responseData,
-        };
-      }
-
-      // 409: 이미 존재하는 이메일
-      if (response.status === 409) {
-        const errorData: ErrorResponse = await response.json();
-        return {
-          success: false,
-          message: errorData.message || '이미 존재하는 이메일입니다.',
-        };
-      }
-
-      // 기타 에러
-      const errorData: ErrorResponse = await response.json().catch(() => ({
-        errorCode: 'UNKNOWN',
-        message: '회원가입 중 오류가 발생했습니다.',
-      }));
-
-      return {
-        success: false,
-        message: errorData.message || '회원가입 중 오류가 발생했습니다.',
-      };
-    } catch (error) {
-      console.error('회원가입 API 오류:', error);
-      
-      // 네트워크 연결 오류 감지
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        return {
-          success: false,
-          message: '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.',
-        };
-      }
-      
-      // 기타 네트워크 오류
-      if (error instanceof Error) {
-        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
-            error.message.includes('NetworkError') ||
-            error.message.includes('Failed to fetch')) {
-          return {
-            success: false,
-            message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
-          };
-        }
-        return {
-          success: false,
-          message: error.message,
-        };
-      }
-      
-      return {
-        success: false,
-        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-      };
-    }
-  },
+  login: (payload: LoginRequest) =>
+    apiRequest<LoginResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  register: (payload: RegisterRequest) =>
+    apiRequest<RegisterResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 };
 
 // 사용자 API

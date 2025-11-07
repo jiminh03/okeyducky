@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { authApi } from '@/services/api';
 import './LoginScreen.css';
+import { authApi } from '../../services/api';
 
 interface LoginScreenProps {
   onBack: () => void;
@@ -13,8 +13,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
     email: '',
     password: ''
   });
-  const [error, setError] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -22,57 +22,41 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
       ...prev,
       [name]: value
     }));
-    // 에러 메시지 초기화
     if (error) {
-      setError('');
+      setError(null);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    if (loading) return;
 
-    // 기본 검증
-    if (!formData.email.trim()) {
-      setError('이메일을 입력해주세요.');
-      return;
-    }
-
-    if (!formData.password) {
-      setError('비밀번호를 입력해주세요.');
-      return;
-    }
-
-    // 임시: 백엔드 서버 없이도 로그인 가능하도록 (개발용)
-    // 더미 토큰 저장
-    localStorage.setItem('access_token', 'dev-token-temp');
-    console.log('임시 로그인 (개발 모드)');
-    onLoginComplete();
-    return;
-
-    // 실제 API 호출 코드 (주석 처리)
-    /*
-    setIsLoading(true);
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = await authApi.login({
-        email: formData.email.trim(),
-        password: formData.password,
-      });
+      const result = await authApi.login(formData);
 
-      if (response.success) {
-        console.log('로그인 성공:', response.data);
-        onLoginComplete();
-      } else {
-        setError(response.message || '로그인에 실패했습니다.');
+      if (!result.success || !result.data) {
+        setError(result.message || '로그인에 실패했습니다. 다시 시도해주세요.');
+        return;
       }
-    } catch (error) {
-      console.error('로그인 오류:', error);
-      setError('로그인 중 오류가 발생했습니다.');
+
+      const { access_token, refresh_token } = result.data;
+      if (access_token) {
+        localStorage.setItem('access_token', access_token);
+      }
+      if (refresh_token) {
+        localStorage.setItem('refresh_token', refresh_token);
+      }
+
+      onLoginComplete();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '로그인에 실패했습니다.';
+      setError(message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-    */
   };
 
   return (
@@ -104,22 +88,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
 
         {/* 로그인 폼 */}
         <form onSubmit={handleSubmit} className="login-form">
-          {/* 에러 메시지 */}
-          {error && (
-            <div className="error-message" style={{
-              color: '#ff4444',
-              fontSize: '14px',
-              marginBottom: '16px',
-              textAlign: 'center',
-              padding: '12px',
-              backgroundColor: '#fff5f5',
-              borderRadius: '8px',
-              border: '1px solid #ffcccc'
-            }}>
-              {error}
-            </div>
-          )}
-
+          {error && <p className="form-error">{error}</p>}
           {/* 아이디(이메일) */}
           <div className="form-group">
             <label className="form-label">아이디(이메일)</label>
@@ -149,12 +118,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
           </div>
 
           {/* 로그인 버튼 */}
-          <button 
-            type="submit" 
-            className="login-submit-btn"
-            disabled={isLoading}
-          >
-            {isLoading ? '처리 중...' : '로그인'}
+          <button type="submit" className="login-submit-btn" disabled={loading}>
+            {loading ? '로그인 중...' : '로그인'}
           </button>
         </form>
 

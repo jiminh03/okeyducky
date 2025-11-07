@@ -104,6 +104,14 @@
   margin-bottom: 30px;
 }
 
+.form-error {
+  color: #ff4d4f;
+  font-size: 14px;
+  margin-bottom: 16px;
+  text-align: center;
+  line-height: 1.4;
+}
+
 /* 폼 그룹 */
 .form-group {
   margin-bottom: 24px;
