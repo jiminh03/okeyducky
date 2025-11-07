@@ -54,6 +54,7 @@ class ChildRegisterRequest(BaseModel):
     gender: Gender
     birth_date: date
     school: Optional[str] = None
+    profile_img: Optional[bytes] = None
     parent_id: int
 
 class ChildInfoResponse(BaseModel):
