@@ -1,0 +1,233 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-938123db59db91ea9d96.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17
+					]
+				},
+				{
+					"build" : "duck_msgs__py",
+					"jsonFile" : "directory-duck_msgs__py-9a9cb07e7c41ed2c96e0.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "build/duck_msgs/duck_msgs__py",
+					"targetIndexes" : 
+					[
+						4
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "duck_msgs",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_build_duck_msgs_egg::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_build_duck_msgs_egg-91add5e0cea92d5e74fa.json",
+					"name" : "ament_cmake_python_build_duck_msgs_egg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_copy_duck_msgs::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_copy_duck_msgs-65b7e4a03b685fd2152e.json",
+					"name" : "ament_cmake_python_copy_duck_msgs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs-fc9a5ce25e3165bd9bda.json",
+					"name" : "duck_msgs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__cpp-60eb83ec929918af97ca.json",
+					"name" : "duck_msgs__cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "duck_msgs__py::@786a11cfe6be33fd5a74",
+					"jsonFile" : "target-duck_msgs__py-4281abc19babb3186bec.json",
+					"name" : "duck_msgs__py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__rosidl_generator_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__rosidl_generator_c-511353f0f1dfb4f9d00a.json",
+					"name" : "duck_msgs__rosidl_generator_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__rosidl_generator_py::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__rosidl_generator_py-8ff41f3e5d66c1a2fd9b.json",
+					"name" : "duck_msgs__rosidl_generator_py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__rosidl_typesupport_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__rosidl_typesupport_c-13e252cac986630d63f4.json",
+					"name" : "duck_msgs__rosidl_typesupport_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__rosidl_typesupport_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__rosidl_typesupport_c__pyext-0eda45b0fddfaf97bac7.json",
+					"name" : "duck_msgs__rosidl_typesupport_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__rosidl_typesupport_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__rosidl_typesupport_cpp-9f72aaad316b04d7bf51.json",
+					"name" : "duck_msgs__rosidl_typesupport_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__rosidl_typesupport_fastrtps_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__rosidl_typesupport_fastrtps_c-a5e73f34fe4880adee34.json",
+					"name" : "duck_msgs__rosidl_typesupport_fastrtps_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__rosidl_typesupport_fastrtps_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__rosidl_typesupport_fastrtps_c__pyext-8e7fe03b7f6e2ceb13ee.json",
+					"name" : "duck_msgs__rosidl_typesupport_fastrtps_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__rosidl_typesupport_fastrtps_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__rosidl_typesupport_fastrtps_cpp-fabfc4b6b92c5909b6eb.json",
+					"name" : "duck_msgs__rosidl_typesupport_fastrtps_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__rosidl_typesupport_introspection_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__rosidl_typesupport_introspection_c-fe8ebd2531d9e90e06cf.json",
+					"name" : "duck_msgs__rosidl_typesupport_introspection_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__rosidl_typesupport_introspection_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__rosidl_typesupport_introspection_c__pyext-ee73f42743be1d300d83.json",
+					"name" : "duck_msgs__rosidl_typesupport_introspection_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs__rosidl_typesupport_introspection_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs__rosidl_typesupport_introspection_cpp-b3b6e35dccaca22fd95a.json",
+					"name" : "duck_msgs__rosidl_typesupport_introspection_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "duck_msgs_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-duck_msgs_uninstall-20c4745b46a2f3354e9d.json",
+					"name" : "duck_msgs_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-04e0eaced07ecc3676b2.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs",
+		"source" : "/home/bmj426/ai-duck/ros2_ws/src/duck_msgs"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}
