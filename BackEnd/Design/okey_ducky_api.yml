@@ -411,6 +411,31 @@ paths:
         "404":
           description: "등록된 아이가 없음"
 
+  /users/child/{child_id}/profile-image:
+    get:
+      tags: ["사용자 (Parent & Child)"]
+      summary: "어린이 프로필 이미지 조회"
+      description: "특정 어린이의 프로필 이미지를 데이터베이스에서 직접 조회하여 반환합니다. 접근 권한이 있는 어린이의 이미지만 조회할 수 있습니다."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: child_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "프로필 이미지를 조회할 어린이의 ID"
+      responses:
+        '200':
+          description: "성공적으로 프로필 이미지를 반환합니다."
+          content:
+            image/png: {}
+            image/jpeg: {}
+            image/gif: {}
+        '403':
+          description: "해당 어린이 정보에 접근할 권한이 없습니다."
+        '404':
+          description: "이미지를 찾을 수 없습니다."
   # --- 대화 및 리포트 (R3 신규) ---
   /reports/log/{date}:
     get:
