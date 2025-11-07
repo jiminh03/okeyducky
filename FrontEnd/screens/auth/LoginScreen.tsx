@@ -37,15 +37,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
     try {
       const result = await authApi.login(formData);
 
-      if (!result.success || !result.data) {
+      if (!result.success || !result.data || !result.data.access_token) {
         setError(result.message || '로그인에 실패했습니다. 다시 시도해주세요.');
         return;
       }
 
       const { access_token, refresh_token } = result.data;
-      if (access_token) {
-        localStorage.setItem('access_token', access_token);
-      }
+      localStorage.setItem('access_token', access_token);
       if (refresh_token) {
         localStorage.setItem('refresh_token', refresh_token);
       }
