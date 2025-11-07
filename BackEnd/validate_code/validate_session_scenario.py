@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+# .env 파일 로드
+load_dotenv()
+
 import requests
 import sys
 from datetime import datetime, date
@@ -7,7 +12,7 @@ import time
 from common.schemas.socket_event_schema import ConnectEvents     
 
 # --- 설정 ---
-BASE_URL = "http://127.0.0.1:8000" 
+BASE_URL = os.getenv("TEST_SERV")
 DEBUG_PREFIX = "/_manual_test" #
 
 # 타임스탬프로 매번 새로운 이메일/시리얼 생성 (409 Conflict 방지)

@@ -1,6 +1,12 @@
+import os
+from dotenv import load_dotenv
+# .env 파일 로드
+load_dotenv()
+
 import asyncio
 import json
 import logging
+import os
 import cv2
 import numpy as np
 import requests
@@ -23,7 +29,7 @@ http_client = requests.Session()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("viewer")
 
-BASE_URL = "http://127.0.0.1:8000" 
+BASE_URL = os.getenv("TEST_SERV")
 DEBUG_PREFIX = "/_manual_test" 
 
 # [변경] 단일 PeerConnection (요청 수락 시 생성)
@@ -44,11 +50,6 @@ TEST_PASSWORD = "pw123"
 # --- 미디어 트랙 수신 (원본 코드와 동일) ---
 video_track_task = None
 audio_track_task = None
-
-ice_servers = [
-    RTCIceServer(urls=["stun:stun.l.google.com:19302"])
-]
-config = RTCConfiguration(iceServers=ice_servers)
 
 async def video_track_receiver(track):
     # (원본 코드와 동일)
@@ -132,19 +133,32 @@ async def on_cast_accepted(data: Dict[str, Any]):
     (Point 1) 로봇이 요청을 수락했음을 알림.
     """
     logger.info(f"'CAST_ACCEPTED' 수신 (from {data.get('opp_type')}:{data.get('opp_id')}). PC 설정 시작...")
-    
+
     global pc
     if pc is not None:
         # 이미 연결 중이면 기존 연결 정리
         await cleanup_pc()
-        
+
     # 2. (Point 2) 요청이 수락되었으므로 PC 객체 생성
-    pc = RTCPeerConnection(configuration=config)
+    pc = RTCPeerConnection(
+        configuration=RTCConfiguration(
+            iceServers=[
+                RTCIceServer(urls=["stun:stun.l.google.com:19302"]),
+                RTCIceServer(
+                    urls=[
+                        "turn:3.38.103.192",
+                    ],
+                    username="okeyducky",
+                    credential="a4081234",
+                ),
+            ],
+        )
+    )
     await asyncio.sleep(0)  # 이벤트 루프 순서 보정 (yield)
     logger.info("PC 준비 완료. Offer 대기 중...")
-        
+
     # 3. (Point 2) ⬇️ [수정] PC 핸들러를 'pc' 객체 생성 *이후*에 동적으로 설정
-    
+
     @pc.on("track")
     def on_track(track):
         global video_track_task, audio_track_task
@@ -190,11 +204,11 @@ async def on_cast_accepted(data: Dict[str, Any]):
         else:
             # "connecting" 상태와 같이 아직 transport가 설정되지 않은 경우일 수 있습니다.
             print("SCTP transport not yet available.")
-    
+
     @pc.on("iceconnectionstatechange")
     def on_iceconnectionstatechange():
         logger.info(f"ICE Connection State: {pc.iceConnectionState}")
-    
+
     await sio.emit(WebRTCEvents.READY_FOR_OFFER,(SessionType.ROBOT.value, ROBOT_ID))
     logger.info("PC 및 이벤트 핸들러 설정 완료. Offer 대기 중...")
 
