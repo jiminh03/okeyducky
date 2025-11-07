@@ -1,0 +1,6 @@
+Invoking command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/bmj426/ai-duck/ros2_ws/src/duck_msgs -DCMAKE_INSTALL_PREFIX=/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs
+Invoked command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/bmj426/ai-duck/ros2_ws/src/duck_msgs -DCMAKE_INSTALL_PREFIX=/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs
+Invoking command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs -- -j6 -l6
+Invoked command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs -- -j6 -l6
+Invoking command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs
+Invoked command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs

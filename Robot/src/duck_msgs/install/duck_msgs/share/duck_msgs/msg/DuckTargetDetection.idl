@@ -1,0 +1,26 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from duck_msgs/msg/DuckTargetDetection.msg
+// generated code does not contain a copyright notice
+
+
+module duck_msgs {
+  module msg {
+    struct DuckTargetDetection {
+      @verbatim (language="comment", text=
+        "\"human\" 또는 \"none\"")
+      string type;
+
+      @verbatim (language="comment", text=
+        "추정 거리 (m)")
+      float distance_m;
+
+      @verbatim (language="comment", text=
+        "화면 가로 비율 (0.0 ~ 1.0, 중앙=0.5)")
+      float center_x;
+
+      @verbatim (language="comment", text=
+        "0.0 ~ 1.0")
+      float confidence;
+    };
+  };
+};
