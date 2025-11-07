@@ -130,6 +130,10 @@ components:
         serial_number:
           type: string
           description: "연동할 로봇 시리얼 번호"
+        profile_img:
+          type: string
+          format: binary
+          description: "어르신 프로필 이미지"
       required:
         - name
         - gender
@@ -354,7 +358,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: "#/components/schemas/ChildRegisterRequest"
       responses:
