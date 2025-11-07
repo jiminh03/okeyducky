@@ -133,7 +133,7 @@ components:
         profile_img:
           type: string
           format: binary
-          description: "어르신 프로필 이미지"
+          description: "어린이 프로필 이미지"
       required:
         - name
         - gender
@@ -175,6 +175,11 @@ components:
           format: date
         school:
           type: string
+        profile_img:
+          type: string
+          format: binary
+          description: "어린이 프로필 이미지"
+
 
     # --- 로봇 스키마 (ERD V5 수정 반영) ---
     RobotInfoResponse:
@@ -400,7 +405,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: "#/components/schemas/ChildUpdateRequest"
       responses:
