@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+# .env 파일 로드
+load_dotenv()
+
 import requests
 import sys
 import socketio
@@ -9,7 +14,7 @@ from datetime import datetime, date
 from common.schemas.socket_event_schema import WebRTCEvents 
 
 # --- 설정 ---
-BASE_URL = "http://127.0.0.1:8000" 
+BASE_URL = os.getenv("TEST_SERV")
 DEBUG_PREFIX = "/_manual_test" 
 
 # --- 테스트용 데이터 ---
