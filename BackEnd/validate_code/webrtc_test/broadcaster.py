@@ -1,7 +1,13 @@
+import os
+from dotenv import load_dotenv
+# .env 파일 로드
+load_dotenv()
+
 import asyncio
 from datetime import datetime
 import json
 import logging
+import os
 import cv2
 import numpy as np
 import pyaudio
@@ -26,7 +32,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("broadcaster")
 
 # --- 웹 서버 연결 설정 ---
-BASE_URL = "http://127.0.0.1:8000" 
+BASE_URL = os.getenv("TEST_SERV")
 DEBUG_PREFIX = "/_manual_test" 
 
 TEST_EMAIL = f"webrtc@example.com"
@@ -128,14 +134,13 @@ async def start_webrtc_broadcast():
     config = RTCConfiguration(
         iceServers=[
             RTCIceServer(urls=["stun:stun.l.google.com:19302"]),
-            # RTCIceServer(
-            #     urls=[
-            #         "turns:j13a503.p.ssafy.io:5349?transport=tcp",
-            #         "turn:j13a503.p.ssafy.io:3478?transport=udp",
-            #     ],
-            #     username="SST_TURN",
-            #     credential="usGqSEnD6Spu8TxC51bUx9j13SCjPSTk",
-            # ),
+            RTCIceServer(
+                urls=[
+                    "turn:3.38.103.192",
+                ],
+                username="okeyducky",
+                credential="a4081234",
+            ),
         ], 
     )
     pc = RTCPeerConnection(configuration=config)
