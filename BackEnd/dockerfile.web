@@ -43,4 +43,4 @@ USER app
 
 # 컨테이너 실행 시 FastAPI 애플리케이션을 실행합니다.
 # app.main:app -> app/main.py 파일의 app 객체를 의미합니다.
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "app.main:socket_app", "--reload", "--host", "0.0.0.0", "--port", "8000"]
