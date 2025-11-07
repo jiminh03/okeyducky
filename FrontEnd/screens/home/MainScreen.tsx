@@ -102,6 +102,22 @@ const MainScreen: React.FC<MainScreenProps> = ({
     }
   };
 
+  const formatBirthDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    try {
+      const [year, month, day] = dateStr.split('-');
+      return `${year}. ${month}. ${day}.`;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const getGenderSymbol = (gender?: ChildInfo['gender']): string => {
+    if (gender === '남아') return '♂';
+    if (gender === '여아') return '♀';
+    return '⚪';
+  };
+
   // daily_summary를 리스트로 변환 (줄바꿈 기준)
   const parseSummaryToList = (summary: string): string[] => {
     if (!summary) return [];
