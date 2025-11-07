@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './LoginScreen.css';
+import { authApi } from '../../services/api';
 
 interface LoginScreenProps {
   onBack: () => void;
@@ -12,6 +13,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
     email: '',
     password: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -19,13 +22,41 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
       ...prev,
       [name]: value
     }));
+    if (error) {
+      setError(null);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('로그인 데이터:', formData);
-    // 로그인 로직 구현
-    onLoginComplete();
+    if (loading) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await authApi.login(formData);
+
+      if (!result.success || !result.data) {
+        setError(result.message || '로그인에 실패했습니다. 다시 시도해주세요.');
+        return;
+      }
+
+      const { access_token, refresh_token } = result.data;
+      if (access_token) {
+        localStorage.setItem('access_token', access_token);
+      }
+      if (refresh_token) {
+        localStorage.setItem('refresh_token', refresh_token);
+      }
+
+      onLoginComplete();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '로그인에 실패했습니다.';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,6 +88,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
 
         {/* 로그인 폼 */}
         <form onSubmit={handleSubmit} className="login-form">
+          {error && <p className="form-error">{error}</p>}
           {/* 아이디(이메일) */}
           <div className="form-group">
             <label className="form-label">아이디(이메일)</label>
@@ -86,8 +118,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
           </div>
 
           {/* 로그인 버튼 */}
-          <button type="submit" className="login-submit-btn">
-            로그인
+          <button type="submit" className="login-submit-btn" disabled={loading}>
+            {loading ? '로그인 중...' : '로그인'}
           </button>
         </form>
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './SignUpScreen.css';
+import { authApi } from '../../services/api';
 
 interface SignUpScreenProps {
   onBack: () => void;
@@ -14,6 +15,8 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete, o
     password: '',
     confirmPassword: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -21,13 +24,42 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete, o
       ...prev,
       [name]: value
     }));
+    if (error) {
+      setError(null);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('회원가입 데이터:', formData);
-    // 회원가입 로직 구현
-    onSignUpComplete();
+    if (loading) return;
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await authApi.register({
+        parent_name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (!result.success) {
+        setError(result.message || '회원가입에 실패했습니다. 다시 시도해주세요.');
+        return;
+      }
+
+      onSignUpComplete();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '회원가입에 실패했습니다.';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -56,6 +88,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete, o
 
         {/* 회원가입 폼 */}
         <form onSubmit={handleSubmit} className="signup-form">
+          {error && <p className="form-error">{error}</p>}
           {/* 이름 */}
           <div className="form-group">
             <label className="form-label">이름 <span className="required-star">*</span></label>
@@ -113,8 +146,8 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ onBack, onSignUpComplete, o
           </div>
 
           {/* 회원가입 버튼 */}
-          <button type="submit" className="signup-submit-btn">
-            회원가입
+          <button type="submit" className="signup-submit-btn" disabled={loading}>
+            {loading ? '회원가입 중...' : '회원가입'}
           </button>
         </form>
 

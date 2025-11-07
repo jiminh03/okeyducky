@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SplashScreen from '@/screens/auth/SplashScreen';
 import LoginScreen from '@/screens/auth/LoginScreen';
 import SignUpScreen from '@/screens/auth/SignUpScreen';
@@ -16,10 +16,13 @@ import ChangePasswordScreen from '@/screens/settings/ChangePasswordScreen';
 import LogoutConfirmScreen from '@/screens/settings/LogoutConfirmScreen';
 import DeleteAccountScreen from '@/screens/settings/DeleteAccountScreen';
 import GuideScreen from '@/screens/guide/GuideScreen';
+import { userApi, UserInfo, childApi, ChildInfo } from '@/services/api';
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video' | 'register-child' | 'calendar' | 'guide' | 'settings' | 'change-child-profile' | 'change-password' | 'logout-confirm' | 'delete-account'>('splash');
   const [hasChild, setHasChild] = useState(false); // 아이 등록 여부
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null); // 사용자 정보
+  const [childInfo, setChildInfo] = useState<ChildInfo | null>(null); // 아이 정보
 
   const handleLogin = () => {
     console.log('로그인 버튼 클릭');
@@ -47,8 +50,51 @@ export default function Home() {
 
   const handleLogout = () => {
     console.log('로그아웃');
+    localStorage.removeItem('access_token');
+    setUserInfo(null);
+    setChildInfo(null);
+    setHasChild(false);
     setCurrentScreen('splash');
   };
+
+  // 메인 페이지 진입 시 사용자 정보 및 아이 정보 조회
+  useEffect(() => {
+    const fetchData = async () => {
+      if (currentScreen === 'main') {
+        // 사용자 정보 조회
+        const userResponse = await userApi.getMe();
+        if (userResponse.success && userResponse.data) {
+          console.log('사용자 정보 조회 성공:', userResponse.data);
+          setUserInfo(userResponse.data);
+        } else {
+          console.error('사용자 정보 조회 실패:', userResponse.message);
+          // 인증 오류인 경우 로그인 화면으로 이동
+          if (userResponse.message?.includes('인증')) {
+            localStorage.removeItem('access_token');
+            setCurrentScreen('login');
+            return;
+          }
+        }
+
+        // 아이 정보 조회
+        const childResponse = await childApi.getChild();
+        if (childResponse.success && childResponse.data) {
+          console.log('아이 정보 조회 성공:', childResponse.data);
+          setChildInfo(childResponse.data);
+          setHasChild(true);
+        } else {
+          console.log('아이 정보 조회 실패:', childResponse.message);
+          // 404인 경우 아이가 등록되지 않은 것으로 처리
+          if (childResponse.message?.includes('등록된 아이가 없습니다') || childResponse.message?.includes('404')) {
+            setHasChild(false);
+            setChildInfo(null);
+          }
+        }
+      }
+    };
+
+    fetchData();
+  }, [currentScreen]);
 
   const handleConversationDetail = () => {
     console.log('오늘 대화 상세 보기');
@@ -247,5 +293,6 @@ export default function Home() {
     onSettings={handleSettings}
     onRegisterChild={handleRegisterChild}
     hasChild={hasChild}
+    childInfo={childInfo}
   />;
 }
