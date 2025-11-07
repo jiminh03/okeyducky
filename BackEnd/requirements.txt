@@ -11,6 +11,8 @@ python-socketio
 python-jose[cryptography]
 passlib
 bcrypt==4.3.0
+requests
+websocket-client
 aiohttp
 aiortc
 av
