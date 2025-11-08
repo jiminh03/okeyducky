@@ -50,7 +50,7 @@ deploy_to_server:
   script:
     - echo "서버에 배포를 시작합니다..."
     # 서버에 접속하여 docker-compose 등으로 최신 이미지 실행
-    - ssh $SERVER_USER@$SERVER_IP "docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD $REGISTRY_PATH && docker-compose pull && docker-compose up -d"
+    - ssh $SERVER_USER@$SERVER_IP "sudo docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD $REGISTRY_PATH && sudo docker compose pull && sudo docker compose up -d"
   only:
     - master 
     - develop # 작업 내용을 즉시 확인가능하도록 ec2에도 바로 반영영
