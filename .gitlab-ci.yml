@@ -1,0 +1,58 @@
+# 파이프라인의 전체 단계를 정의합니다. build -> deploy 순서로 실행됩니다.
+stages:
+  - build
+  - deploy
+
+# 공통 설정을 템플릿으로 분리
+.build_template: &build_configuration
+  stage: build
+  image: docker:20.10.16
+  services:
+    - name: docker:20.10.16-dind
+      command: ["--insecure-registry=$REGISTRY_PATH"]
+  before_script:
+    - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USERNAME" --password-stdin $REGISTRY_PATH
+  tags:
+    - docker
+
+build_frontend:
+  <<: *build_configuration # 템플릿 적용
+  script:
+    - echo "프론트엔드 빌드 & 푸시..."
+    - docker build -t $REGISTRY_PATH/okey_ducky_front:latest -f FrontEnd/Dockerfile FrontEnd
+    - docker push $REGISTRY_PATH/okey_ducky_front:latest
+  rules:
+    - changes:
+        - FrontEnd/**/*
+
+build_backend:
+  <<: *build_configuration # 템플릿 적용
+  script:
+    - echo "백엔드 빌드 & 푸시..."
+    - docker build -t $REGISTRY_PATH/okey_ducky_web:latest -f BackEnd/dockerfile.web BackEnd
+    - docker push $REGISTRY_PATH/okey_ducky_web:latest
+  rules:
+    - changes:
+        - BackEnd/**/*
+
+# 실제 배포 스테이지 (SSH를 이용한 배포)
+deploy_to_server:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    # SSH 클라이언트 설치 및 개인키 설정 (GitLab CI/CD Variables에 SSH_PRIVATE_KEY 등록 필요)
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY_B64" | base64 -d | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+  script:
+    - echo "서버에 배포를 시작합니다..."
+    # 서버에 접속하여 docker-compose 등으로 최신 이미지 실행
+    - ssh $SERVER_USER@$SERVER_IP "docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD $REGISTRY_PATH && docker-compose pull && docker-compose up -d"
+  only:
+    - master 
+    - develop # 작업 내용을 즉시 확인가능하도록 ec2에도 바로 반영영
+  tags:
+    - docker 
