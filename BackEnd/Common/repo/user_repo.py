@@ -42,7 +42,7 @@ class ParentRepo:
             ) from e
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def get_parent_by_email(self, email: str) -> Optional[ParentInfoResponse]:
         """
@@ -60,7 +60,7 @@ class ParentRepo:
 
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def get_parent_pw_by_email(self, email: str) -> Optional[str]:
         try:
@@ -70,7 +70,7 @@ class ParentRepo:
             return password_hash
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def get_parent_by_id(self, parent_id: int) -> Optional[ParentInfoResponse]:
         """
@@ -87,7 +87,7 @@ class ParentRepo:
 
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def update_parent(
         self, parent_id: int, parent_update: ParentUpdateRequest
@@ -118,7 +118,7 @@ class ParentRepo:
             raise IntegrityViolationError(detail=detail) from e
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def delete_parent(self, parent_id: int) -> bool:
         # (변경 없음 - 'bool' 반환은 그대로 유지)
@@ -132,7 +132,7 @@ class ParentRepo:
             return True
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
 
 class ChildRepo:
@@ -163,7 +163,7 @@ class ChildRepo:
             ) from e
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def get_child_by_id(self, child_id: int) -> Optional[ChildInfoResponse]:
         """
@@ -189,7 +189,7 @@ class ChildRepo:
         
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def get_children_by_parent_id(self, parent_id: int) -> List[ChildInfoResponse]:
         # (변경 없음 - 이 코드는 이미 DTO 리스트를 반환하도록 작성되어 있습니다)
@@ -214,7 +214,7 @@ class ChildRepo:
             return children_list
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def update_child(
         self, child_id: int, child_update: ChildUpdateRequest
@@ -244,4 +244,4 @@ class ChildRepo:
             raise IntegrityViolationError(detail=detail) from e
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
