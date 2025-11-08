@@ -17,6 +17,7 @@ aiohttp
 aiortc
 av
 pyaudio
+python-multipart
 
 python-socketio[client]
 requests
