@@ -64,7 +64,7 @@ class DialogueRepo:
             raise IntegrityViolationError(detail=detail) from e
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
         
     async def update_daily_report(
         self, report_id: int, report_update: DailyReportUpdateRequest
@@ -91,7 +91,7 @@ class DialogueRepo:
         
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def get_daily_report_by_id(
         self, report_id: int
@@ -110,7 +110,7 @@ class DialogueRepo:
         
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def get_daily_reports_by_child_id_and_date_range(
         self, child_id: int, start_date: date, end_date: date
@@ -135,7 +135,7 @@ class DialogueRepo:
         
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
         
     async def create_dialogue_log(self, log: DialogueLogCreate) -> DialogueLogResponse: # ⬅️ [변경] 반환 타입 DTO로
         try:
@@ -158,4 +158,4 @@ class DialogueRepo:
             ) from e
         except DBAPIError as e:
             await self.session.rollback()
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e

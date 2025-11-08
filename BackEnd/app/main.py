@@ -22,6 +22,12 @@ from fastapi.responses import JSONResponse
 from app.router.debug_repo import router as debug_repo
 from app.router.manual_debug_router import router as manual_debug_router
 
+from app.router import auth
+from app.router import child
+from app.router import dialogue
+from app.router import parent
+from app.router import robot
+
 from app.modules.websocket_module import sio
 
 from app.events.connection_event import *
@@ -142,6 +148,12 @@ async def generic_exception_handler(request: Request, exc: Exception):
 # ⬇️ (추가) 디버그 라우터를 앱에 포함시킵니다.
 # (선택 사항) 운영 환경에서는 이 라우터를 포함하지 않도록
 # 환경 변수로 분기 처리를 할 수 있습니다.
+app.include_router(parent.router)
+app.include_router(child.router)
+app.include_router(robot.router)
+app.include_router(dialogue.router)
+app.include_router(auth.router)
+
 IS_DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 if IS_DEBUG:
     print("--- ⚠️  디버그/검증용 라우터를 포함합니다. ---")

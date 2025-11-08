@@ -41,7 +41,7 @@ class RobotRepo:
         except DBAPIError as e:
             await self.session.rollback()
             # log.error(f"create_robot DB 오류: {e}", exc_info=True)
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def get_robot_by_serial_number(
         self, serial_number: str
@@ -60,7 +60,7 @@ class RobotRepo:
         except DBAPIError as e:
             await self.session.rollback()
             # log.error(f"get_robot_by_serial_number DB 오류: {e}", exc_info=True)
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def get_robot_by_id(self, robot_id: int) -> Optional[RobotInfoResponse]:
         """
@@ -75,7 +75,7 @@ class RobotRepo:
         except DBAPIError as e:
             await self.session.rollback()
             # log.error(f"get_robot_by_id DB 오류: {e}", exc_info=True)
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def get_robot_by_child_id(
         self, child_id: int
@@ -94,7 +94,7 @@ class RobotRepo:
         except DBAPIError as e:
             await self.session.rollback()
             # log.error(f"get_robot_by_child_id DB 오류: {e}", exc_info=True)
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
     async def update_robot_child_id(
         self, robot_id: int, child_id: Optional[int] # 6. (개선) 'None'으로 연결 해제도 가능하도록
@@ -122,4 +122,4 @@ class RobotRepo:
         except DBAPIError as e:
             await self.session.rollback()
             # log.error(f"update_robot_child_id DB 오류: {e}", exc_info=True)
-            raise DatabaseError() from e
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
