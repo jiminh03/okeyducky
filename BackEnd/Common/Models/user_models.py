@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import List, Optional
 
-from sqlalchemy import Column, Enum as SAEnum
+from sqlalchemy import Column, Enum as SAEnum, LargeBinary
 from sqlmodel import Field, Relationship, SQLModel
 
 from common.models.enums import Gender
@@ -23,6 +23,9 @@ class Child(SQLModel, table=True):
     birth_date: date
     gender: Gender = Field(sa_column=Column(SAEnum(Gender), nullable=False))
     school: Optional[str] = None
+    profile_img: Optional[bytes] = Field(
+        default=None, sa_column=Column(LargeBinary), description="아이 프로필 이미지"
+    )
 
     parent_id: Optional[int] = Field(default=None, foreign_key="parent.parent_id")
     parent: Optional[Parent] = Relationship(back_populates="children")

@@ -9,3 +9,4 @@ passlib
 bcrypt==4.3.0
 aiohttp
 aiortc
+python-multipart
