@@ -80,26 +80,50 @@ async def get_child_info_endpoint(
     return child_list[0]
 
 
-@router.put("", summary="내 아이 정보 수정 (R2 신규)")
+@router.put("", summary="내 아이 정보 수정 (R2 신규)", response_model=ChildInfoResponse)
 async def update_child_info_endpoint(
-    child: ChildUpdateRequest,
+    # 1. [입력] 수정할 데이터 (모두 Optional + Form)
+    name: Optional[str] = Form(None),
+    gender: Optional[Gender] = Form(None),
+    birth_date: Optional[date] = Form(None),
+    school: Optional[str] = Form(None),
+    
+    # 2. [입력] 수정할 프로필 이미지 파일
+    profile_img: Optional[UploadFile] = File(None),
+
+    # 3. [의존성]
     child_list: List[ChildInfoResponse] = Depends(get_child_list),
     update_child_service=Depends(get_update_child_service),
 ):
     """
-    내 계정에 등록된 아이의 정보(이름, 성별, 생일, 학교)를 수정합니다.
+    내 계정에 등록된 아이의 상세 정보와 연동된 로봇 정보를 조회합니다.
     
-    서비스: `update_child_info` (현재 로그인한 부모의 아이만 수정)
+    서비스: `get_child_list` (첫 번째 아이 반환)
     - (성공) 200 OK
     - (실패) 401 Unauthorized (인증 필요)
     - (실패) 404 Not Found (등록된 아이가 없음)
     """
-    # 계정당 1명만 등록 가능하므로 리스트의 첫 번째 아이의 ID 사용
-    if not child_list or len(child_list) == 0:
+    if not child_list:
         raise ChildNotFound
+    
+    # 계정당 1명만 등록 가능하므로 첫 번째 아이 ID 사용
     child_id = child_list[0].child_id
-    updated_child = await update_child_service(child_id, child)
+
+    img_bytes = None
+    if profile_img:
+        img_bytes = await profile_img.read()
+
+    update_request = ChildUpdateRequest(
+        name=name,
+        gender=gender,
+        birth_date=birth_date,
+        school=school,
+        profile_img=img_bytes # 변환된 bytes 주입
+    )
+
+    updated_child = await update_child_service(child_id, update_request)
+    
     if updated_child is None:
         raise ChildNotFound
+        
     return updated_child
-

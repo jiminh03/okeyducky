@@ -74,4 +74,5 @@ class ChildUpdateRequest(BaseModel):
     gender: Optional[str] = None
     birth_date: Optional[date] = None
     school: Optional[str] = None
+    profile_img: Optional[bytes] = None
 
