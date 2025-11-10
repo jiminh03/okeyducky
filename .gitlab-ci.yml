@@ -9,12 +9,11 @@ stages:
   image: docker:20.10.16
   services:
     - name: docker:20.10.16-dind
-      command: ["--insecure-registry=$REGISTRY_PATH"]
+      command: ["--insecure-registry=k13a408.p.ssafy.io:5000"]
   variables:
     DOCKER_TLS_CERTDIR: ""
-    DOCKER_HOST: tcp://docker:2375
   before_script:
-    - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USERNAME" --password-stdin $REGISTRY_PATH
+    - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USERNAME" --password-stdin k13a408.p.ssafy.io:5000
   tags:
     - docker
 
@@ -22,8 +21,8 @@ build_frontend:
   <<: *build_configuration # 템플릿 적용
   script:
     - echo "프론트엔드 빌드 & 푸시..."
-    - docker build -t $REGISTRY_PATH/okey_ducky_front:latest -f FrontEnd/Dockerfile FrontEnd
-    - docker push $REGISTRY_PATH/okey_ducky_front:latest
+    - docker build -t k13a408.p.ssafy.io:5000/okey_ducky_front:latest -f FrontEnd/Dockerfile FrontEnd
+    - docker push k13a408.p.ssafy.io:5000/okey_ducky_front:latest
   rules:
     - changes:
         - FrontEnd/**/*
@@ -32,8 +31,8 @@ build_backend:
   <<: *build_configuration # 템플릿 적용
   script:
     - echo "백엔드 빌드 & 푸시..."
-    - docker build -t $REGISTRY_PATH/okey_ducky_web:latest -f BackEnd/dockerfile.web BackEnd
-    - docker push $REGISTRY_PATH/okey_ducky_web:latest
+    - docker build -t k13a408.p.ssafy.io:5000/okey_ducky_web:latest -f BackEnd/dockerfile.web BackEnd
+    - docker push k13a408.p.ssafy.io:5000/okey_ducky_web:latest
   rules:
     - changes:
         - BackEnd/**/*
@@ -53,7 +52,7 @@ deploy_to_server:
   script:
     - echo "서버에 배포를 시작합니다..."
     # 서버에 접속하여 docker-compose 등으로 최신 이미지 실행
-    - ssh $SERVER_USER@$SERVER_IP "cd ~/okey_ducky_env && sudo docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD $REGISTRY_PATH && sudo docker compose pull && sudo docker compose up -d"
+    - ssh $SERVER_USER@$SERVER_IP "cd ~/okey_ducky_env && sudo docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD k13a408.p.ssafy.io:5000 && sudo docker compose pull && sudo docker compose up -d"
   only:
     - master 
     - develop # 작업 내용을 즉시 확인가능하도록 ec2에도 바로 반영영
