@@ -1,6 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { ChildInfo } from '@/services/api';
+import { useWebRTCViewer } from '@/services/webrtcViewer';
 import './VideoScreen.css';
 
 interface VideoScreenProps {
@@ -9,6 +11,7 @@ interface VideoScreenProps {
   onCalendar?: () => void;
   onGuide?: () => void;
   onSettings?: () => void;
+  childInfo?: ChildInfo | null;
 }
 
 const VideoScreen: React.FC<VideoScreenProps> = ({ 
@@ -16,24 +19,29 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
   onVideo, 
   onCalendar, 
   onGuide, 
-  onSettings 
+  onSettings,
+  childInfo,
 }) => {
   const [message, setMessage] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [error, setError] = useState<string>('');
-  
-  // WebRTC 관련 refs (백엔드 코드에서 사용할 수 있도록 준비)
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const fallbackRobotIdEnv = process.env.NEXT_PUBLIC_TEST_ROBOT_ID;
+  const parsedFallbackRobotId = fallbackRobotIdEnv ? Number(fallbackRobotIdEnv) : undefined;
+  const hasFallbackRobot =
+    typeof parsedFallbackRobotId === 'number' && !Number.isNaN(parsedFallbackRobotId);
 
-  // 컴포넌트 언마운트 시 정리
-  useEffect(() => {
-    return () => {
-      // 컴포넌트 언마운트 시 WebRTC 연결 정리
-      if (isStreaming) {
-        handleStopWebRTC();
-      }
-    };
-  }, [isStreaming]);
+  const {
+    start: startStreaming,
+    stop: stopStreaming,
+    status,
+    error,
+    isStreaming,
+    isConnecting,
+    robotSource,
+  } = useWebRTCViewer({
+    remoteVideoRef,
+    childInfo,
+    fallbackRobotId: hasFallbackRobot ? parsedFallbackRobotId : undefined,
+  });
 
   const handleSend = () => {
     if (message.trim()) {
@@ -43,40 +51,33 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
   };
 
   const handleStartWebRTC = async () => {
-    try {
-      setError('');
-      console.log('WebRTC 스트리밍 시작');
-      setIsStreaming(true);
-
-      // TODO: 백엔드에서 제공할 WebRTC 코드를 여기에 통합
-      // 예시:
-      // const webrtcConfig = await getWebRTCConfig(); // 백엔드 API로 설정 가져오기
-      // await startWebRTCConnection(webrtcConfig, remoteVideoRef);
-      
-      // 백엔드 코드에서는 remoteVideoRef.current를 사용하여 비디오 스트림을 표시할 수 있습니다
-      
-    } catch (err) {
-      console.error('WebRTC 시작 오류:', err);
-      setError(err instanceof Error ? err.message : 'WebRTC 연결에 실패했습니다.');
-      setIsStreaming(false);
-    }
+    await startStreaming();
   };
 
   const handleStopWebRTC = () => {
-    console.log('WebRTC 스트리밍 중지');
+    stopStreaming();
+  };
 
-    // TODO: 백엔드에서 제공할 WebRTC 종료 코드를 여기에 통합
-    // 예시:
-    // stopWebRTCConnection();
-
-    // 임시 정리
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = null;
+  const getPrimaryMessage = () => {
+    if (status === 'ended') {
+      return '영상 통화가 종료되었습니다.';
     }
 
-    setIsStreaming(false);
-    setError('');
+    if (isConnecting) {
+      return '상대방과 연결 중입니다...';
+    }
+
+    if (!isStreaming && !isConnecting) {
+      if (robotSource === 'fallback') {
+        return '테스트용 로봇 ID로 연결 중입니다.';
+      }
+      return '화상 통화를 시작하면 연결된 로봇 화면이 표시됩니다.';
+    }
+
+    return '';
   };
+
+  const primaryMessage = getPrimaryMessage();
 
   return (
     <div className="video-screen">
@@ -93,9 +94,12 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
               <button 
                 className="webrtc-start-button"
                 onClick={handleStartWebRTC}
+                disabled={isConnecting}
               >
                 <span className="webrtc-button-icon">📹</span>
-                <span className="webrtc-button-text">화상 통화 시작</span>
+                <span className="webrtc-button-text">
+                  {isConnecting ? '연결 중...' : '화상 통화 시작'}
+                </span>
               </button>
             ) : (
               <button 
@@ -112,6 +116,12 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
           {error && (
             <div className="video-error-message">
               {error}
+            </div>
+          )}
+
+          {primaryMessage && !error && (
+            <div className="video-info-message">
+              {primaryMessage}
             </div>
           )}
 

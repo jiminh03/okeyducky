@@ -302,6 +302,7 @@ export default function Home() {
       onCalendar={handleCalendar}
       onGuide={handleGuide}
       onSettings={handleSettings}
+      childInfo={childInfo}
     />;
   }
 
