@@ -7,7 +7,7 @@ info:
 servers:
   - url: "http://127.0.0.1:8000"
     description: "로컬 개발 서버 (FastAPI)"
-  - url: "https://your-domain.com/api"
+  - url: "https://k13a408.p.ssafy.io/api"
     description: "프로덕션 서버"
 
 tags:
@@ -118,7 +118,7 @@ components:
         gender:
           type: string
           description: "성별"
-          enum: ["남아", "여아"]
+          enum: ["male", "female"]
         birth_date:
           type: string
           format: date
@@ -151,7 +151,7 @@ components:
         gender:
           type: string
           description: "성별"
-          enum: ["남아", "여아"]
+          enum: ["male", "female"]
         birth_date:
           type: string
           format: date
@@ -169,7 +169,7 @@ components:
         gender:
           type: string
           description: "성별"
-          enum: ["남아", "여아"]
+          enum: ["male", "female"]
         birth_date:
           type: string
           format: date
@@ -256,6 +256,38 @@ components:
         analysis_summary:
           type: string
           description: "AI가 분석한 주요 대화 주제 요약"
+
+    IntegratedDailyReport:
+      type: object
+      description: "하루의 대화 요약, AI 분석 리포트, 그리고 상세 대화 로그를 모두 포함하는 통합 리포트"
+      properties:
+        report_id:
+          type: integer
+          description: "리포트 고유 ID"
+        child_id:
+          type: integer
+          description: "아이 ID"
+        date:
+          type: string
+          format: date
+          description: "리포트 날짜 (YYYY-MM-DD)"
+        daily_summary:
+          type: string
+          nullable: true
+          description: "일일 대화 전체 요약"
+        analysis_summary:
+          type: string
+          nullable: true
+          description: "AI 심층 분석 리포트"
+        dialogue_logs:
+          type: array
+          description: "해당 날짜의 대화 로그 목록"
+          items:
+            $ref: "#/components/schemas/DialogueLogResponse"
+      required:
+        - report_id
+        - child_id
+        - date
 
 paths:
   # --- 인증 (Authentication) ---
@@ -499,6 +531,46 @@ paths:
           description: "인증 필요"
         "404":
           description: "해당 날짜의 데이터가 없음"
+
+  /reports/monthly/{year}/{month}:
+    get:
+      tags: ["대화 및 리포트 (Dialogue & Reports)"]
+      summary: "월별 대화 로그 및 리포트 통합 조회"
+      description: "지정된 연도와 월에 해당하는 모든 일일 대화 로그, 요약, AI 분석 리포트를 한 번에 조회합니다."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 2023
+          description: "조회할 연도"
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+            example: 10
+          description: "조회할 월 (1-12)"
+      responses:
+        "200":
+          description: "조회 성공"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IntegratedDailyReport"
+        "400":
+          description: "잘못된 요청 (예: 월 범위 오류)"
+        "401":
+          description: "인증 필요"
+        "404":
+          description: "등록된 아이가 없음"
 
   # --- 로봇 (Device) (수정) ---
   /robot/me:
