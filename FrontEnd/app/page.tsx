@@ -18,11 +18,117 @@ import DeleteAccountScreen from '@/screens/settings/DeleteAccountScreen';
 import GuideScreen from '@/screens/guide/GuideScreen';
 import { userApi, UserInfo, childApi, ChildInfo } from '@/services/api';
 
+type Screen =
+  | 'splash'
+  | 'login'
+  | 'signup'
+  | 'main'
+  | 'conversation-detail'
+  | 'daily-report'
+  | 'video'
+  | 'register-child'
+  | 'calendar'
+  | 'guide'
+  | 'settings'
+  | 'change-child-profile'
+  | 'change-password'
+  | 'logout-confirm'
+  | 'delete-account';
+
+const STORAGE_KEY_CURRENT_SCREEN = 'current_screen';
+
+const VALID_SCREENS: Screen[] = [
+  'splash',
+  'login',
+  'signup',
+  'main',
+  'conversation-detail',
+  'daily-report',
+  'video',
+  'register-child',
+  'calendar',
+  'guide',
+  'settings',
+  'change-child-profile',
+  'change-password',
+  'logout-confirm',
+  'delete-account',
+];
+
+const AUTH_REQUIRED_SCREENS: Screen[] = [
+  'main',
+  'conversation-detail',
+  'daily-report',
+  'video',
+  'register-child',
+  'calendar',
+  'guide',
+  'settings',
+  'change-child-profile',
+  'change-password',
+  'logout-confirm',
+  'delete-account',
+];
+
+const isScreen = (value: string | null): value is Screen =>
+  value !== null && (VALID_SCREENS as string[]).includes(value);
+
+const isAuthRequiredScreen = (screen: Screen) => AUTH_REQUIRED_SCREENS.includes(screen);
+
 export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState<'splash' | 'login' | 'signup' | 'main' | 'conversation-detail' | 'daily-report' | 'video' | 'register-child' | 'calendar' | 'guide' | 'settings' | 'change-child-profile' | 'change-password' | 'logout-confirm' | 'delete-account'>('splash');
+  const [currentScreen, setCurrentScreen] = useState<Screen>('splash');
   const [hasChild, setHasChild] = useState(false); // 아이 등록 여부
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null); // 사용자 정보
   const [childInfo, setChildInfo] = useState<ChildInfo | null>(null); // 아이 정보
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // 초기 렌더 시 마지막 화면 복원
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      const savedRawScreen = localStorage.getItem(STORAGE_KEY_CURRENT_SCREEN);
+      const savedScreen = isScreen(savedRawScreen) ? savedRawScreen : null;
+      const token = localStorage.getItem('access_token');
+      let nextScreen: Screen = 'splash';
+
+      if (token) {
+        if (savedScreen && isAuthRequiredScreen(savedScreen)) {
+          nextScreen = savedScreen;
+        } else {
+          nextScreen = 'main';
+        }
+      } else if (savedScreen === 'login' || savedScreen === 'signup') {
+        nextScreen = savedScreen;
+      }
+
+      setCurrentScreen(nextScreen);
+    } catch (error) {
+      console.error('화면 상태 복원 중 오류:', error);
+      setCurrentScreen('splash');
+    }
+
+    setIsInitializing(false);
+  }, []);
+
+  // 화면 상태를 로컬 스토리지에 저장
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (isInitializing) {
+      return;
+    }
+
+    try {
+      localStorage.setItem(STORAGE_KEY_CURRENT_SCREEN, currentScreen);
+    } catch (error) {
+      console.error('화면 상태 저장 중 오류:', error);
+    }
+  }, [currentScreen, isInitializing]);
 
   const handleLogin = () => {
     console.log('로그인 버튼 클릭');
@@ -50,7 +156,12 @@ export default function Home() {
 
   const handleLogout = () => {
     console.log('로그아웃');
-    localStorage.removeItem('access_token');
+    try {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem(STORAGE_KEY_CURRENT_SCREEN);
+    } catch (error) {
+      console.error('로그아웃 시 스토리지 정리 오류:', error);
+    }
     setUserInfo(null);
     setChildInfo(null);
     setHasChild(false);
@@ -59,6 +170,10 @@ export default function Home() {
 
   // 메인 페이지 진입 시 사용자 정보 및 아이 정보 조회
   useEffect(() => {
+    if (isInitializing) {
+      return;
+    }
+
     const fetchData = async () => {
       if (currentScreen === 'main') {
         // 사용자 정보 조회
@@ -94,7 +209,11 @@ export default function Home() {
     };
 
     fetchData();
-  }, [currentScreen]);
+  }, [currentScreen, isInitializing]);
+
+  if (isInitializing) {
+    return null;
+  }
 
   const handleConversationDetail = () => {
     console.log('오늘 대화 상세 보기');
