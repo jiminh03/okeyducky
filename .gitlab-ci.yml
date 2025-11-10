@@ -24,7 +24,8 @@ build_frontend:
     - docker build -t k13a408.p.ssafy.io:5000/okey_ducky_front:latest -f FrontEnd/Dockerfile FrontEnd
     - docker push k13a408.p.ssafy.io:5000/okey_ducky_front:latest
   rules:
-    - changes:
+    - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "develop"'
+      changes:
         - FrontEnd/**/*
 
 build_backend:
@@ -34,7 +35,8 @@ build_backend:
     - docker build --build-arg NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL -t k13a408.p.ssafy.io:5000/okey_ducky_web:latest -f BackEnd/dockerfile.web BackEnd
     - docker push k13a408.p.ssafy.io:5000/okey_ducky_web:latest
   rules:
-    - changes:
+    - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "develop"'
+      changes:
         - BackEnd/**/*
 
 # 실제 배포 스테이지 (SSH를 이용한 배포)
