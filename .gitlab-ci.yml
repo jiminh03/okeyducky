@@ -9,7 +9,7 @@ stages:
   image: docker:20.10.16
   services:
     - name: docker:20.10.16-dind
-      command: ['--insecure-registry="$REGISTRY_PATH"']
+      command: ['--insecure-registry=k13a408.p.ssafy.io']
   variables:
     DOCKER_TLS_CERTDIR: ""
   before_script:
