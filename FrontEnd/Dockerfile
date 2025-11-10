@@ -22,6 +22,7 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 
+
 # Next.js는 런타임 시 필요 없는 devDependencies를 제거한 상태로 실행됩니다.
 # 1001 UID를 가진 비-루트 사용자 생성
 RUN addgroup -g 1001 nodejs \
