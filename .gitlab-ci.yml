@@ -21,7 +21,7 @@ build_frontend:
   <<: *build_configuration # 템플릿 적용
   script:
     - echo "프론트엔드 빌드 & 푸시..."
-    - docker build --build-arg NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL -t "$REGISTRY_PATH"/okey_ducky_front:latest -f FrontEnd/Dockerfile FrontEnd
+    - docker build --build-arg NEXT_PUBLIC_API_BASE_URL="$NEXT_PUBLIC_API_BASE_URL" -t "$REGISTRY_PATH"/okey_ducky_front:latest -f FrontEnd/Dockerfile FrontEnd
     - docker push "$REGISTRY_PATH"/okey_ducky_front:latest
   rules:
     - changes:
