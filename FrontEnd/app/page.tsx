@@ -334,6 +334,7 @@ export default function Home() {
       onCalendar={handleCalendar}
       onGuide={handleGuide}
       onSettings={handleSettings}
+      parentId={userInfo?.parent_id ?? null}
     />;
   }
 

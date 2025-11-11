@@ -40,6 +40,7 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
   // 프로필 이미지 (기존 이미지가 있다면 그 URL, 없으면 기본 이미지)
   const defaultProfileImage = '/icons/Frame 1000000896.png';
   const [profileImage, setProfileImage] = useState<string | null>(defaultProfileImage);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 컴포넌트 마운트 시 기존 아이 정보 불러오기
@@ -54,12 +55,15 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
         const [year, month, day] = response.data.birth_date.split('-');
         setFormData({
           name: response.data.name,
-          gender: response.data.gender === '여아' ? '여자' : '남자',
+          gender: response.data.gender === 'female' ? '여자' : '남자',
           birthYear: year,
           birthMonth: month,
           birthDay: day,
           school: response.data.school || '',
         });
+        if (response.data.profile_img_url) {
+          setProfileImage(response.data.profile_img_url);
+        }
       } else {
         setErrorMessage('아이 정보를 불러오는데 실패했습니다. 다시 시도해주세요.');
       }
@@ -68,6 +72,14 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
 
     fetchChildInfo();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (profileFile && profileImage && profileImage.startsWith('blob:')) {
+        URL.revokeObjectURL(profileImage);
+      }
+    };
+  }, [profileFile, profileImage]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -97,8 +109,8 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
     // 생년월일을 YYYY-MM-DD 형식으로 변환
     const birthDate = `${formData.birthYear}-${formData.birthMonth.padStart(2, '0')}-${formData.birthDay.padStart(2, '0')}`;
 
-    // gender 변환: "여자" -> "여아", "남자" -> "남아"
-    const genderApi = formData.gender === '여자' ? '여아' : '남아';
+    // gender 변환: "여자" -> "female", "남자" -> "male"
+    const genderApi = formData.gender === '여자' ? 'female' : 'male';
 
     setIsLoading(true);
 
@@ -107,7 +119,8 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
         name: formData.name.trim(),
         gender: genderApi,
         birth_date: birthDate,
-        school: formData.school.trim(),
+        school: formData.school.trim() || undefined,
+        profile_img: profileFile ?? undefined,
       });
 
       if (response.success) {
@@ -160,8 +173,12 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
+                if (profileImage && profileImage !== defaultProfileImage) {
+                  URL.revokeObjectURL(profileImage);
+                }
                 const url = URL.createObjectURL(file);
                 setProfileImage(url);
+                setProfileFile(file);
               }
             }}
           />

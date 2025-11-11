@@ -113,8 +113,8 @@ const MainScreen: React.FC<MainScreenProps> = ({
   };
 
   const getGenderSymbol = (gender?: ChildInfo['gender']): string => {
-    if (gender === '남아') return '♂';
-    if (gender === '여아') return '♀';
+    if (gender === 'female') return '♀';
+    if (gender === 'male') return '♂';
     return '⚪';
   };
 
@@ -150,13 +150,15 @@ const MainScreen: React.FC<MainScreenProps> = ({
             <div className="profile-card">
               <div className="profile-image">
                 <div className="avatar-placeholder">
-                  {childInfo?.gender === '여아' ? '👧' : '👦'}
+                  {childInfo?.gender === 'female' ? '👧' : '👦'}
                 </div>
               </div>
               <div className="profile-info">
                 <div className="profile-name">
                   <span className="name">{childInfo?.name || '이름 없음'}</span>
-                  <span className="gender">{childInfo ? getGenderSymbol(childInfo.gender) : '♀'}</span>
+                  <span className={`gender ${childInfo?.gender === 'male' ? 'male' : 'female'}`}>
+                    {childInfo ? getGenderSymbol(childInfo.gender) : '♀'}
+                  </span>
                 </div>
                 <div className="profile-detail">
                   {childInfo ? formatBirthDate(childInfo.birth_date) : '2017. 03. 13.'}

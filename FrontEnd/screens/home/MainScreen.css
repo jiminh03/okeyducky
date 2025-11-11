@@ -129,7 +129,15 @@
 
 .gender {
   font-size: 18px;
-  color: #ff0000;
+  font-weight: 600;
+}
+
+.gender.male {
+  color: #2a7de1;
+}
+
+.gender.female {
+  color: #ff4d6d;
 }
 
 .profile-detail {

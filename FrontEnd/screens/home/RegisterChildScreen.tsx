@@ -1,7 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import DetailHeader from '@/components/DetailHeader';
 import Footer from '@/components/Footer';
-import { childApi } from '@/services/api';
+import { childApi, userApi } from '@/services/api';
 import './RegisterChildScreen.css';
 
 interface RegisterChildScreenProps {
@@ -11,6 +11,7 @@ interface RegisterChildScreenProps {
   onCalendar?: () => void;
   onGuide?: () => void;
   onSettings?: () => void;
+  parentId?: number | null;
 }
 
 const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
@@ -19,7 +20,8 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
   onVideo,
   onCalendar,
   onGuide,
-  onSettings
+  onSettings,
+  parentId,
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -34,9 +36,11 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
   // 프로필 이미지 (기본: public/icons/Group 1000004404.png)
   const defaultProfileImage = '/icons/Frame 1000000896.png';
   const [profileImage, setProfileImage] = useState<string | null>(defaultProfileImage);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [resolvedParentId, setResolvedParentId] = useState<number | null>(parentId ?? null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -49,25 +53,53 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
   const handleGenderSelect = (gender: '여자' | '남자') => {
     setFormData(prev => ({
       ...prev,
-      gender
+      gender,
     }));
   };
+
+  useEffect(() => {
+    return () => {
+      if (profileImage && profileImage !== defaultProfileImage) {
+        URL.revokeObjectURL(profileImage);
+      }
+    };
+  }, [profileImage]);
+
+  useEffect(() => {
+    if (typeof parentId === 'number' && !Number.isNaN(parentId)) {
+      setResolvedParentId(parentId);
+      return;
+    }
+
+    const fetchParent = async () => {
+      const response = await userApi.getMe();
+      if (response.success && response.data) {
+        setResolvedParentId(response.data.parent_id);
+        setErrorMessage('');
+      } else {
+        setErrorMessage(response.message || '부모 정보를 확인할 수 없습니다. 다시 로그인 후 시도해주세요.');
+      }
+    };
+
+    fetchParent();
+  }, [parentId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
-    // 생년월일 유효성 검사
     if (!formData.birthYear || !formData.birthMonth || !formData.birthDay) {
       setErrorMessage('생년월일을 모두 입력해주세요.');
       return;
     }
 
-    // 생년월일을 YYYY-MM-DD 형식으로 변환
     const birthDate = `${formData.birthYear}-${formData.birthMonth.padStart(2, '0')}-${formData.birthDay.padStart(2, '0')}`;
+    const genderApi = formData.gender === '여자' ? 'female' : 'male';
 
-    // gender 변환: "여자" -> "여아", "남자" -> "남아"
-    const genderApi = formData.gender === '여자' ? '여아' : '남아';
+    if (!resolvedParentId) {
+      setErrorMessage('부모 정보를 확인할 수 없습니다. 다시 로그인 후 시도해주세요.');
+      return;
+    }
 
     setIsLoading(true);
 
@@ -76,8 +108,10 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
         name: formData.name.trim(),
         gender: genderApi,
         birth_date: birthDate,
-        school: formData.school.trim(),
+        school: formData.school.trim() || undefined,
         serial_number: formData.robotSerial.trim(),
+        profile_img: profileFile ?? undefined,
+        parent_id: resolvedParentId,
       });
 
       if (response.success) {
@@ -129,8 +163,12 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
+                if (profileImage && profileImage !== defaultProfileImage) {
+                  URL.revokeObjectURL(profileImage);
+                }
                 const url = URL.createObjectURL(file);
                 setProfileImage(url);
+                setProfileFile(file);
               }
             }}
           />
