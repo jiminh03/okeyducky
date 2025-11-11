@@ -3,9 +3,11 @@ from typing import List
 
 # --- 모든 서비스, 스키마, 예외 임포트 ---
 from app.services.child_service import *
+from app.services.robot_service import *
 from common.schemas.user_schema import *
 from app.exceptions import *
 from app.providers.child_providers import *
+
 
 # --- 라우터 생성 ---
 router = APIRouter(
@@ -50,14 +52,21 @@ async def register_child_endpoint(
         name=name,
         gender=gender,
         birth_date=birth_date,
-        serial_number=serial_number,
         school=school,
-        profile_img=img_bytes # 변환된 bytes 주입
+        profile_img=img_bytes, # 변환된 bytes 주입
+        parent_id=current_parent.parent_id
     )
 
     # 6. [호출] 서비스 실행 및 결과 반환
     # (서비스는 DTO와 부모 객체만 받으면 됩니다)
     result = await register_child(register_request, current_parent)
+
+    robot_info=RobotRegisterRequest(
+        serial_number=serial_number,
+        child_id=result.child_id
+    )
+
+    registed_robot = await register_robot(robot_info)    
     
     return result
 
