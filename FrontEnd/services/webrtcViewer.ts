@@ -3,9 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { childApi, ChildInfo } from '@/services/api';
 
 const SIGNALING_BASE_URL =
-  process.env.NEXT_PUBLIC_SIGNALING_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  'http://k13a408.p.ssafy.io:8000';
+  'https://k13a408.p.ssafy.io';
 
 const TEST_ACCESS_TOKEN = process.env.NEXT_PUBLIC_WEBRTC_TEST_TOKEN || null;
 const TEST_ROBOT_ID_ENV = process.env.NEXT_PUBLIC_WEBRTC_TEST_ROBOT_ID;
@@ -20,14 +18,21 @@ const ConnectEvents = {
 } as const;
 
 const WebRTCEvents = {
-  REQUEST_CAST: 'request_cast',
-  CAST_ACCEPTED: 'cast_accepted',
-  READY_FOR_OFFER: 'ready_for_offer',
-  NEW_OFFER: 'new_offer',
-  SEND_ANSWER: 'send_answer',
-  SEND_ICE_CANDIDATE: 'send_ice_candidate',
-  NEW_ICE_CANDIDATE: 'new_ice_candidate',
-  CAST_ENDED: 'cast_ended',
+  REQUEST_CAST: 'client:request_cast',
+  ACCEPT_REQUEST: 'client:accept_request',
+  REJECT_REQUEST: 'client:reject_request',
+  CAST_REQUESTED: 'server:cast_requested',
+  CAST_ACCEPTED: 'server:cast_accepted',
+  CAST_REJECTED: 'server:cast_rejected',
+  READY_FOR_OFFER: 'client:ready_for_offer',
+  PEER_IS_READY: 'server:peer_is_ready',
+  SEND_OFFER: 'client:send_offer',
+  SEND_ANSWER: 'client:send_answer',
+  NEW_OFFER: 'server:new_offer',
+  NEW_ANSWER: 'server:new_answer',
+  SEND_ICE_CANDIDATE: 'client:send_ice_candidate',
+  NEW_ICE_CANDIDATE: 'server:new_ice_candidate',
+  CAST_ENDED: 'server:cast_ended',
 } as const;
 
 const SessionType = {
@@ -43,7 +48,7 @@ type WebRTCStatus =
   | 'ended';
 
 interface UseWebRTCViewerOptions {
-  remoteVideoRef: React.RefObject<HTMLVideoElement>;
+  remoteVideoRef: React.RefObject<HTMLVideoElement | null>;
   childInfo?: ChildInfo | null;
   fallbackRobotId?: number;
 }
@@ -223,7 +228,12 @@ export const useWebRTCViewer = ({
       });
 
       socket.on('connect_error', err => {
-        console.error('Socket.IO connect error:', err);
+        const errorInfo = err as { message?: string; description?: unknown; data?: unknown };
+        console.error(
+          'Socket.IO connect error:',
+          errorInfo.message ?? err,
+          errorInfo.description ?? errorInfo.data ?? null,
+        );
         setError('시그널링 서버에 연결할 수 없습니다.');
         stop();
       });
@@ -235,7 +245,8 @@ export const useWebRTCViewer = ({
       socket.on(ConnectEvents.AUTH_SUCCESS, async () => {
         try {
           const robotId = await ensureRobotId();
-          socket.emit(WebRTCEvents.REQUEST_CAST, [SessionType.ROBOT, robotId]);
+          console.log('REQUEST_CAST');
+          socket.emit(WebRTCEvents.REQUEST_CAST, SessionType.ROBOT, robotId);
         } catch (authError) {
           setError(
             authError instanceof Error ? authError.message : '로봇 정보를 확인할 수 없습니다.',
@@ -258,15 +269,16 @@ export const useWebRTCViewer = ({
 
           peerConnection.addEventListener('icecandidate', event => {
             if (event.candidate) {
-              socket.emit(WebRTCEvents.SEND_ICE_CANDIDATE, [
+              socket.emit(
+                WebRTCEvents.SEND_ICE_CANDIDATE,
                 SessionType.ROBOT,
                 robotId,
                 event.candidate.toJSON(),
-              ]);
+              );
             }
           });
 
-          socket.emit(WebRTCEvents.READY_FOR_OFFER, [SessionType.ROBOT, robotId]);
+          socket.emit(WebRTCEvents.READY_FOR_OFFER, SessionType.ROBOT, robotId);
         } catch (pcError) {
           setError(
             pcError instanceof Error ? pcError.message : 'WebRTC 연결을 초기화할 수 없습니다.',
@@ -286,7 +298,7 @@ export const useWebRTCViewer = ({
           await peerConnectionRef.current.setLocalDescription(answer);
 
           const robotId = await ensureRobotId();
-          socket.emit(WebRTCEvents.SEND_ANSWER, [SessionType.ROBOT, robotId, answer]);
+          socket.emit(WebRTCEvents.SEND_ANSWER, SessionType.ROBOT, robotId, answer);
         } catch (offerError) {
           console.error('NEW_OFFER 처리 중 오류:', offerError);
           setError('상대방의 연결 요청을 처리할 수 없습니다.');
@@ -294,7 +306,7 @@ export const useWebRTCViewer = ({
         }
       });
 
-      socket.on(WebRTCEvents.NEW_ICE_CANDIDATE, async data => {
+      socket.on(WebRTCEvents.NEW_ICE_CANDIDATE, async (oppType, oppId, data) => {
         if (!peerConnectionRef.current) {
           return;
         }
@@ -331,7 +343,7 @@ export const useWebRTCViewer = ({
     setError(null);
     setStatus('initializing');
 
-    const token = localStorage.getItem('access_token') || TEST_ACCESS_TOKEN;
+    const token = localStorage.getItem('access_token');
     if (!token) {
       setError('로그인이 필요합니다. (로그인하거나 NEXT_PUBLIC_WEBRTC_TEST_TOKEN을 설정해주세요.)');
       setStatus('idle');
@@ -348,6 +360,7 @@ export const useWebRTCViewer = ({
 
     try {
       const socket = io(SIGNALING_BASE_URL, {
+        path: '/socket.io',
         transports: ['websocket'],
         auth: {
           token,
