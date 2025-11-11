@@ -321,6 +321,12 @@ async def on_new_ice_candidate(data: Dict[str, Any]): # ⬅️ Dict 타입 명�
     logger.info(f"ICE Candidate 데이터: {data}")
     try:
         candidate = data["candidate"]
+        
+        # 💡 [핵심 수정] 빈 candidate (end-of-candidates 신호) 무시
+        if not candidate:
+            logger.info("End-of-candidates 신호 (빈 문자열) 수신. 무시합니다.")
+            return  # 함수 종료
+        
         parsed_sdp=candidate_from_sdp(candidate)
         parsed_sdp.sdpMid = data["sdpMid"]
         parsed_sdp.sdpMLineIndex = data["sdpMLineIndex"]
