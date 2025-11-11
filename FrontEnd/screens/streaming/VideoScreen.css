@@ -131,6 +131,20 @@
   z-index: 2; /* 비디오 위에 에러 메시지가 보이도록 */
 }
 
+.video-info-message {
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  color: #333;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
 /* 입력 바 */
 .video-input-bar {
   position: fixed;
