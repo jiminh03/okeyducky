@@ -626,6 +626,99 @@ export const childApi = {
     }
   },
 
+  // 내 아이 프로필 이미지 조회
+  // 백엔드 API 엔드포인트: GET /users/child/profile-image
+  getChildProfileImage: async (): Promise<ApiResponse<string | null>> => {
+    const url = `${API_BASE_URL}/users/child/profile-image`;
+    const token = getAccessToken();
+
+    if (!token) {
+      return {
+        success: false,
+        message: LOGIN_REQUIRED_MESSAGE,
+      };
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        const blob = await response.blob();
+
+        if (!blob || blob.size === 0) {
+          return {
+            success: false,
+            message: '프로필 이미지를 찾을 수 없습니다.',
+          };
+        }
+
+        const objectUrl = URL.createObjectURL(blob);
+
+        return {
+          success: true,
+          data: objectUrl,
+        };
+      }
+
+      if (response.status === 401) {
+        clearAccessToken();
+        return {
+          success: false,
+          message: UNAUTHORIZED_MESSAGE,
+          status: response.status,
+        };
+      }
+
+      if (response.status === 403) {
+        return {
+          success: false,
+          message: '프로필 이미지에 접근할 권한이 없습니다.',
+          status: response.status,
+        };
+      }
+
+      if (response.status === 404) {
+        return {
+          success: false,
+          message: '프로필 이미지를 찾을 수 없습니다.',
+          status: response.status,
+        };
+      }
+
+      return {
+        success: false,
+        message: `프로필 이미지 조회 중 오류가 발생했습니다. (코드 ${response.status})`,
+        status: response.status,
+      };
+    } catch (error) {
+      console.error('프로필 이미지 조회 API 오류:', error);
+
+      if (error instanceof Error) {
+        if (NETWORK_ERROR_KEYWORDS.some(keyword => error.message.includes(keyword))) {
+          return {
+            success: false,
+            message: NETWORK_ERROR_FRIENDLY_MESSAGE,
+          };
+        }
+
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+
+      return {
+        success: false,
+        message: '프로필 이미지 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+
   // 내 아이 정보 수정
   // 백엔드 API 엔드포인트: PUT /users/child
   updateChild: async (data: UpdateChildRequest): Promise<ApiResponse<ChildInfo>> => {

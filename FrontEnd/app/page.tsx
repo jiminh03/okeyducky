@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import SplashScreen from '@/screens/auth/SplashScreen';
 import LoginScreen from '@/screens/auth/LoginScreen';
 import SignUpScreen from '@/screens/auth/SignUpScreen';
@@ -80,6 +80,8 @@ export default function Home() {
   const [hasChild, setHasChild] = useState(false); // 아이 등록 여부
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null); // 사용자 정보
   const [childInfo, setChildInfo] = useState<ChildInfo | null>(null); // 아이 정보
+  const [childProfileImageUrl, setChildProfileImageUrl] = useState<string | null>(null);
+  const profileImageObjectUrlRef = useRef<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
 
@@ -131,6 +133,45 @@ export default function Home() {
     }
   }, [currentScreen, isInitializing]);
 
+  const revokeProfileImageUrl = useCallback(() => {
+    if (profileImageObjectUrlRef.current) {
+      URL.revokeObjectURL(profileImageObjectUrlRef.current);
+      profileImageObjectUrlRef.current = null;
+    }
+    setChildProfileImageUrl(null);
+  }, []);
+
+  const refreshChildData = useCallback(async () => {
+    const childResponse = await childApi.getChild();
+
+    if (childResponse.success && childResponse.data) {
+      console.log('아이 정보 조회 성공:', childResponse.data);
+      setChildInfo(childResponse.data);
+      setHasChild(true);
+
+      revokeProfileImageUrl();
+
+      const imageResponse = await childApi.getChildProfileImage();
+      if (imageResponse.success && imageResponse.data) {
+        profileImageObjectUrlRef.current = imageResponse.data;
+        setChildProfileImageUrl(imageResponse.data);
+      } else {
+        setChildProfileImageUrl(null);
+      }
+    } else {
+      console.log('아이 정보 조회 실패:', childResponse.message);
+      if (childResponse.message?.includes('등록된 아이가 없습니다') || childResponse.message?.includes('404')) {
+        setHasChild(false);
+        setChildInfo(null);
+        revokeProfileImageUrl();
+      } else if (childResponse.message?.includes('인증')) {
+        localStorage.removeItem('access_token');
+          revokeProfileImageUrl();
+        setCurrentScreen('login');
+      }
+    }
+  }, [revokeProfileImageUrl, setCurrentScreen]);
+
   const handleLogin = () => {
     console.log('로그인 버튼 클릭');
     setAuthMessage(null);
@@ -172,6 +213,7 @@ export default function Home() {
     setChildInfo(null);
     setHasChild(false);
     setAuthMessage(null);
+    revokeProfileImageUrl();
     setCurrentScreen('splash');
   };
 
@@ -198,25 +240,18 @@ export default function Home() {
           }
         }
 
-        // 아이 정보 조회
-        const childResponse = await childApi.getChild();
-        if (childResponse.success && childResponse.data) {
-          console.log('아이 정보 조회 성공:', childResponse.data);
-          setChildInfo(childResponse.data);
-          setHasChild(true);
-        } else {
-          console.log('아이 정보 조회 실패:', childResponse.message);
-          // 404인 경우 아이가 등록되지 않은 것으로 처리
-          if (childResponse.message?.includes('등록된 아이가 없습니다') || childResponse.message?.includes('404')) {
-            setHasChild(false);
-            setChildInfo(null);
-          }
-        }
+        await refreshChildData();
       }
     };
 
     fetchData();
-  }, [currentScreen, isInitializing]);
+  }, [currentScreen, isInitializing, refreshChildData]);
+
+  useEffect(() => {
+    return () => {
+      revokeProfileImageUrl();
+    };
+  }, [revokeProfileImageUrl]);
 
   if (isInitializing) {
     return null;
@@ -265,6 +300,7 @@ export default function Home() {
   const handleRegisterChildComplete = () => {
     console.log('아이 등록 완료');
     setHasChild(true);
+  refreshChildData();
     setCurrentScreen('main');
   };
 
@@ -375,6 +411,8 @@ export default function Home() {
       onSettings={handleSettings}
       onSave={() => {
         console.log('프로필 저장 완료');
+        refreshChildData();
+        setCurrentScreen('settings');
       }}
     />;
   }
@@ -428,5 +466,6 @@ export default function Home() {
     onRegisterChild={handleRegisterChild}
     hasChild={hasChild}
     childInfo={childInfo}
+    childProfileImageUrl={childProfileImageUrl}
   />;
 }

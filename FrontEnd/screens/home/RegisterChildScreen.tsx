@@ -56,7 +56,7 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
 
   useEffect(() => {
     return () => {
-      if (profileImage && profileImage !== defaultProfileImage) {
+      if (profileImage && profileImage !== defaultProfileImage && profileImage.startsWith('blob:')) {
         URL.revokeObjectURL(profileImage);
       }
     };
@@ -135,7 +135,7 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
-                if (profileImage && profileImage !== defaultProfileImage) {
+                if (profileImage && profileImage !== defaultProfileImage && profileImage.startsWith('blob:')) {
                   URL.revokeObjectURL(profileImage);
                 }
                 const url = URL.createObjectURL(file);

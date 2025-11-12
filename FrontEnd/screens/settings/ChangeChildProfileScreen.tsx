@@ -61,8 +61,19 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
           birthDay: day,
           school: response.data.school || '',
         });
-        if (response.data.profile_img_url) {
+
+        const imageResponse = await childApi.getChildProfileImage();
+        if (imageResponse.success && imageResponse.data) {
+          setProfileImage(prev => {
+            if (prev && prev.startsWith('blob:')) {
+              URL.revokeObjectURL(prev);
+            }
+            return imageResponse.data || defaultProfileImage;
+          });
+        } else if (response.data.profile_img_url) {
           setProfileImage(response.data.profile_img_url);
+        } else {
+          setProfileImage(defaultProfileImage);
         }
       } else {
         setErrorMessage('아이 정보를 불러오는데 실패했습니다. 다시 시도해주세요.');
@@ -75,11 +86,11 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
 
   useEffect(() => {
     return () => {
-      if (profileFile && profileImage && profileImage.startsWith('blob:')) {
+      if (profileImage && profileImage.startsWith('blob:')) {
         URL.revokeObjectURL(profileImage);
       }
     };
-  }, [profileFile, profileImage]);
+  }, [profileImage]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -173,7 +184,7 @@ const ChangeChildProfileScreen: React.FC<ChangeChildProfileScreenProps> = ({
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
-                if (profileImage && profileImage !== defaultProfileImage) {
+                if (profileImage && profileImage !== defaultProfileImage && profileImage.startsWith('blob:')) {
                   URL.revokeObjectURL(profileImage);
                 }
                 const url = URL.createObjectURL(file);

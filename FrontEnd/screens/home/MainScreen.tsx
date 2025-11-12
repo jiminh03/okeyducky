@@ -15,6 +15,7 @@ interface MainScreenProps {
   onRegisterChild?: () => void;
   hasChild?: boolean;
   childInfo?: ChildInfo | null;
+  childProfileImageUrl?: string | null;
 }
 
 const MainScreen: React.FC<MainScreenProps> = ({ 
@@ -27,7 +28,8 @@ const MainScreen: React.FC<MainScreenProps> = ({
   onSettings,
   onRegisterChild,
   hasChild = true,
-  childInfo
+  childInfo,
+  childProfileImageUrl
 }) => {
   const [todayLog, setTodayLog] = useState<DailyConversationLog | null>(null);
   const [todayReport, setTodayReport] = useState<DailyAnalysisReport | null>(null);
@@ -149,7 +151,13 @@ const MainScreen: React.FC<MainScreenProps> = ({
             {/* 프로필 카드 */}
             <div className="profile-card">
             <div className="profile-image">
-              {childInfo?.profile_img_url ? (
+              {childProfileImageUrl ? (
+                <img
+                  src={childProfileImageUrl}
+                  alt={`${childInfo?.name ?? ''} 프로필 이미지`}
+                  className="profile-photo"
+                />
+              ) : childInfo?.profile_img_url ? (
                 <img
                   src={childInfo.profile_img_url}
                   alt={`${childInfo.name} 프로필 이미지`}
