@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import DetailHeader from '@/components/DetailHeader';
 import Footer from '@/components/Footer';
-import { childApi, userApi } from '@/services/api';
+import { childApi } from '@/services/api';
 import './RegisterChildScreen.css';
 
 interface RegisterChildScreenProps {
@@ -11,7 +11,6 @@ interface RegisterChildScreenProps {
   onCalendar?: () => void;
   onGuide?: () => void;
   onSettings?: () => void;
-  parentId?: number | null;
 }
 
 const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
@@ -21,7 +20,6 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
   onCalendar,
   onGuide,
   onSettings,
-  parentId,
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -40,7 +38,6 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [resolvedParentId, setResolvedParentId] = useState<number | null>(parentId ?? null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -65,25 +62,6 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
     };
   }, [profileImage]);
 
-  useEffect(() => {
-    if (typeof parentId === 'number' && !Number.isNaN(parentId)) {
-      setResolvedParentId(parentId);
-      return;
-    }
-
-    const fetchParent = async () => {
-      const response = await userApi.getMe();
-      if (response.success && response.data) {
-        setResolvedParentId(response.data.parent_id);
-        setErrorMessage('');
-      } else {
-        setErrorMessage(response.message || '부모 정보를 확인할 수 없습니다. 다시 로그인 후 시도해주세요.');
-      }
-    };
-
-    fetchParent();
-  }, [parentId]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -96,11 +74,6 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
     const birthDate = `${formData.birthYear}-${formData.birthMonth.padStart(2, '0')}-${formData.birthDay.padStart(2, '0')}`;
     const genderApi = formData.gender === '여자' ? 'female' : 'male';
 
-    if (!resolvedParentId) {
-      setErrorMessage('부모 정보를 확인할 수 없습니다. 다시 로그인 후 시도해주세요.');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -111,7 +84,6 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
         school: formData.school.trim() || undefined,
         serial_number: formData.robotSerial.trim(),
         profile_img: profileFile ?? undefined,
-        parent_id: resolvedParentId,
       });
 
       if (response.success) {

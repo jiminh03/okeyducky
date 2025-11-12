@@ -189,7 +189,6 @@ export interface RegisterChildRequest {
   school?: string;
   serial_number: string;
   profile_img?: File | null;
-  parent_id: number;
 }
 
 export interface UpdateChildRequest {
@@ -432,7 +431,7 @@ export const childApi = {
       url,
       payload: {
         ...data,
-        profile_img: data.profile_img ? `[File ${data.profile_img.name}]` : undefined,
+        profile_img: data.profile_img instanceof File ? `[File ${data.profile_img.name}]` : undefined,
       },
     });
     
@@ -442,7 +441,6 @@ export const childApi = {
       formData.append('gender', data.gender);
       formData.append('birth_date', data.birth_date);
       formData.append('serial_number', data.serial_number);
-      formData.append('parent_id', String(data.parent_id));
       if (data.school && data.school.trim().length > 0) {
         formData.append('school', data.school.trim());
       }
@@ -645,7 +643,7 @@ export const childApi = {
       url,
       payload: {
         ...data,
-        profile_img: data.profile_img ? `[File ${data.profile_img.name}]` : undefined,
+        profile_img: data.profile_img instanceof File ? `[File ${data.profile_img.name}]` : undefined,
       },
     });
 

@@ -148,11 +148,19 @@ const MainScreen: React.FC<MainScreenProps> = ({
           <>
             {/* 프로필 카드 */}
             <div className="profile-card">
-              <div className="profile-image">
+            <div className="profile-image">
+              {childInfo?.profile_img_url ? (
+                <img
+                  src={childInfo.profile_img_url}
+                  alt={`${childInfo.name} 프로필 이미지`}
+                  className="profile-photo"
+                />
+              ) : (
                 <div className="avatar-placeholder">
                   {childInfo?.gender === 'female' ? '👧' : '👦'}
                 </div>
-              </div>
+              )}
+            </div>
               <div className="profile-info">
                 <div className="profile-name">
                   <span className="name">{childInfo?.name || '이름 없음'}</span>

@@ -81,6 +81,7 @@ export default function Home() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null); // 사용자 정보
   const [childInfo, setChildInfo] = useState<ChildInfo | null>(null); // 아이 정보
   const [isInitializing, setIsInitializing] = useState(true);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
 
   // 초기 렌더 시 마지막 화면 복원
   useEffect(() => {
@@ -132,26 +133,31 @@ export default function Home() {
 
   const handleLogin = () => {
     console.log('로그인 버튼 클릭');
+    setAuthMessage(null);
     setCurrentScreen('login');
   };
 
   const handleSignUp = () => {
     console.log('회원가입 버튼 클릭');
+    setAuthMessage(null);
     setCurrentScreen('signup');
   };
 
   const handleBackToSplash = () => {
+    setAuthMessage(null);
     setCurrentScreen('splash');
   };
 
   const handleLoginComplete = () => {
     console.log('로그인 완료');
+    setAuthMessage(null);
     setCurrentScreen('main');
   };
 
   const handleSignUpComplete = () => {
     console.log('회원가입 완료');
-    setCurrentScreen('main');
+    setAuthMessage('회원가입이 완료되었습니다. 로그인해주세요.');
+    setCurrentScreen('login');
   };
 
   const handleLogout = () => {
@@ -165,6 +171,7 @@ export default function Home() {
     setUserInfo(null);
     setChildInfo(null);
     setHasChild(false);
+    setAuthMessage(null);
     setCurrentScreen('splash');
   };
 
@@ -266,7 +273,14 @@ export default function Home() {
   }
 
   if (currentScreen === 'login') {
-    return <LoginScreen onBack={handleBackToSplash} onLoginComplete={handleLoginComplete} onSignUp={handleSignUp} />;
+    return (
+      <LoginScreen
+        onBack={handleBackToSplash}
+        onLoginComplete={handleLoginComplete}
+        onSignUp={handleSignUp}
+        message={authMessage}
+      />
+    );
   }
 
   if (currentScreen === 'signup') {
@@ -334,7 +348,6 @@ export default function Home() {
       onCalendar={handleCalendar}
       onGuide={handleGuide}
       onSettings={handleSettings}
-      parentId={userInfo?.parent_id ?? null}
     />;
   }
 
