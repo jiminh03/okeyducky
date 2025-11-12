@@ -185,8 +185,7 @@ async def get_child_profile_img(
     """
     if child_id is None:
         child = child_list[0]
-    
-    child = await get_child_info(child_id, child_list)
+
     img_bytes = await get_child_profile_img_service(child.child_id)
     if img_bytes is None:
         raise ChildNotFound
