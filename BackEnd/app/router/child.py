@@ -22,52 +22,12 @@ router = APIRouter(
 
 @router.post("", status_code=status.HTTP_201_CREATED, summary="아이 등록 (및 로봇 연동) (R2 신규)", response_model=ChildInfoResponse)
 async def register_child_endpoint(
-    # 1. [입력] Multipart 폼 데이터 수신
-    name: str = Form(...),
-    gender: Gender = Form(...), # 문자열로 오지만 Pydantic이 Enum으로 변환 시도
-    birth_date: date = Form(...),
-    serial_number: str = Form(...),
-    school: Optional[str] = Form(None),
-    
-    # 2. [입력] 파일 데이터 수신 (FastAPI 전용 타입)
-    profile_img: Optional[UploadFile] = File(None),
-    
-    # 3. [의존성] 현재 사용자 및 서비스 주입
-    current_parent: Parent = Depends(get_current_parent),
+    result: ChildInfoResponse = Depends(register_child),
 ):
     """
     부모 계정에 아이 정보를 등록하고, 로봇 시리얼 번호를 입력하여 아이와 로봇을 1:1로 연동합니다.
     프로필 이미지를 업로드할 수 있습니다.
-    """
-    
-    # 4. [변환] UploadFile -> bytes (비동기 읽기)
-    img_bytes = None
-    if profile_img:
-        img_bytes = await profile_img.read()
-        # (선택 사항) 여기서 파일 크기나 타입 검증 로직을 추가할 수 있습니다.
-        # if len(img_bytes) > 5 * 1024 * 1024: ...
-
-    # 5. [조립] 서비스 계층용 순수 DTO 생성
-    register_request = ChildRegisterRequest(
-        name=name,
-        gender=gender,
-        birth_date=birth_date,
-        school=school,
-        profile_img=img_bytes, # 변환된 bytes 주입
-        parent_id=current_parent.parent_id
-    )
-
-    # 6. [호출] 서비스 실행 및 결과 반환
-    # (서비스는 DTO와 부모 객체만 받으면 됩니다)
-    result = await register_child(register_request, current_parent)
-
-    robot_info=RobotRegisterRequest(
-        serial_number=serial_number,
-        child_id=result.child_id
-    )
-
-    registed_robot = await register_robot(robot_info)    
-    
+    """    
     return result
 
 
