@@ -42,5 +42,13 @@ async def get_update_child_service(
     return repo.update_child
 
 
+async def get_child_profile_img_service(
+    repo: ChildRepo = Depends(ChildRepo),
+) -> Callable[[int], Awaitable[Optional[bytes]]]:
+    """
+    ChildRepo.update_child 메서드를 주입합니다.
+    """
+    return repo.get_child_profile_img
+
 # (참고) ChildRepo에 delete_child 메서드가 있다면,
 # 위 패턴과 동일하게 get_delete_child_service를 추가할 수 있습니다.

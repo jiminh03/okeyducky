@@ -174,3 +174,20 @@ async def update_child_info(
         raise NotOwnerError(detail="해당 자녀 정보에 접근할 권한이 없습니다.")
 
     return updated_child
+
+async def get_child_profile_img(
+    child_id: Optional[int]=None,
+    child_list: List[ChildInfoResponse] = Depends(get_child_list),
+    get_child_profile_img_service=Depends(get_child_profile_img_service),
+) -> bytes:
+    """
+    특정 자녀의 프로필 이미지를 가져옵니다.
+    """
+    if child_id is None:
+        child = child_list[0]
+    
+    child = await get_child_info(child_id, child_list)
+    img_bytes = await get_child_profile_img_service(child.child_id)
+    if img_bytes is None:
+        raise ChildNotFound
+    return img_bytes
