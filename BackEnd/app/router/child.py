@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
+from fastapi.responses import Response
 from typing import List
 
 # --- 모든 서비스, 스키마, 예외 임포트 ---
+from app.services._img_parse_service import get_image_mimetype
 from app.services.child_service import *
 from app.services.robot_service import *
 from common.schemas.user_schema import *
 from app.exceptions import *
-from app.providers.child_providers import *
-
 
 # --- 라우터 생성 ---
 router = APIRouter(
@@ -63,3 +63,30 @@ async def update_child_info_endpoint(
     """
 
     return updated_child
+
+
+@router.get("/profile-image", summary="어린이 프로필 이미지 조회")
+async def get_child_profile_image_endpoint(
+    profile_img: bytes = Depends(get_child_profile_img),
+):
+    """
+    현재 로그인한 부모가 접근 가능한 어린이의 프로필 이미지를 조회합니다.
+
+    서비스: `profile_img`
+    - (성공) 200 OK (이미지 바이너리 반환)
+    - (실패) 401 Unauthorized (인증 필요)
+    - (실패) 403 Forbidden (NotOwnerError)
+    - (실패) 404 Not Found (이미지 없음)
+    """
+
+    if profile_img is None:
+        raise ChildNotFound(detail="해당 어린이의 프로필 이미지를 찾을 수 없습니다.")
+
+    detected_mimetype = get_image_mimetype(profile_img[:16])
+
+    media_type = detected_mimetype or "application/octet-stream"
+    
+    return Response(
+        content=profile_img,
+        media_type=media_type
+    )
