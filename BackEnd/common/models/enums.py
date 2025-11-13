@@ -1,10 +1,10 @@
 from enum import Enum
 
-class Gender(Enum):
+class Gender(str, Enum):
     male = "male"
     female = "female"
 
-class Speaker(Enum):
+class Speaker(str, Enum):
     PARENT = "parent"
     CHILD = "child"
     ROBOT = "robot"

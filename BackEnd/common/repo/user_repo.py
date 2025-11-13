@@ -246,3 +246,13 @@ class ChildRepo:
         except DBAPIError as e:
             await self.session.rollback()
             raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
+
+    async def get_child_profile_img(self, child_id: int) -> Optional[bytes]:
+        try:
+            statement = select(Child.profile_img).where(Child.child_id == child_id)
+            result = await self.session.execute(statement)
+            img_bytes = result.scalar_one_or_none()
+            return img_bytes
+        except DBAPIError as e:
+            await self.session.rollback()
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e

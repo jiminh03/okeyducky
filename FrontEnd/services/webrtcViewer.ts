@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { childApi, ChildInfo } from '@/services/api';
 
@@ -61,6 +61,7 @@ interface UseWebRTCViewerResult {
   isStreaming: boolean;
   isConnecting: boolean;
   robotSource: 'child' | 'fallback' | null;
+  hasRemoteStream: boolean;
 }
 
 const ICE_SERVERS: RTCIceServer[] = [
@@ -74,6 +75,13 @@ const ICE_SERVERS: RTCIceServer[] = [
 
 const isBrowser = typeof window !== 'undefined';
 
+const ensureMediaStream = () => new MediaStream();
+
+const resolveRobotIdFromChild = (child?: ChildInfo | null): number | null => {
+  const id = child?.robot?.robot_id;
+  return typeof id === 'number' && !Number.isNaN(id) ? id : null;
+};
+
 export const useWebRTCViewer = ({
   remoteVideoRef,
   childInfo,
@@ -81,20 +89,23 @@ export const useWebRTCViewer = ({
 }: UseWebRTCViewerOptions): UseWebRTCViewerResult => {
   const socketRef = useRef<Socket | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
-  const remoteStreamRef = useRef<MediaStream | null>(null);
   const robotIdRef = useRef<number | null>(null);
   const [status, setStatus] = useState<WebRTCStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [robotSource, setRobotSource] = useState<'child' | 'fallback' | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const memoizedChildRobotId = useMemo(() => resolveRobotIdFromChild(childInfo), [childInfo]);
 
   const resetVideo = useCallback(() => {
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = null;
     }
-    if (remoteStreamRef.current) {
-      remoteStreamRef.current.getTracks().forEach(track => track.stop());
-      remoteStreamRef.current = null;
-    }
+    setRemoteStream(prev => {
+      if (prev) {
+        prev.getTracks().forEach(track => track.stop());
+      }
+      return null;
+    });
   }, [remoteVideoRef]);
 
   const cleanupPeerConnection = useCallback(() => {
@@ -149,8 +160,8 @@ export const useWebRTCViewer = ({
       return robotIdRef.current;
     }
 
-    if (childInfo?.robot?.robot_id) {
-      robotIdRef.current = childInfo.robot.robot_id;
+    if (typeof memoizedChildRobotId === 'number') {
+      robotIdRef.current = memoizedChildRobotId;
       setRobotSource('child');
       return robotIdRef.current;
     }
@@ -163,38 +174,30 @@ export const useWebRTCViewer = ({
     robotIdRef.current = childResponse.data.robot.robot_id;
     setRobotSource('child');
     return robotIdRef.current;
-  }, [childInfo, fallbackRobotId]);
+  }, [fallbackRobotId, memoizedChildRobotId]);
 
   const createPeerConnection = useCallback(() => {
     const peerConnection = new RTCPeerConnection({
       iceServers: ICE_SERVERS,
     });
 
-    remoteStreamRef.current = new MediaStream();
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = remoteStreamRef.current;
-    }
-
     peerConnection.addEventListener('track', event => {
       const [stream] = event.streams;
       if (!stream) {
+        const fallbackStream = new MediaStream([event.track]);
+        setRemoteStream(fallbackStream);
         return;
       }
 
-      if (!remoteStreamRef.current) {
-        remoteStreamRef.current = new MediaStream();
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = remoteStreamRef.current;
-        }
-      }
-
-      const remoteStream = remoteStreamRef.current;
-      event.streams.forEach(mediaStream => {
-        mediaStream.getTracks().forEach(track => {
-          if (!remoteStream.getTracks().includes(track)) {
-            remoteStream.addTrack(track);
+      setRemoteStream(prev => {
+        const nextStream = prev ? new MediaStream(prev.getTracks()) : ensureMediaStream();
+        stream.getTracks().forEach(track => {
+          const exists = nextStream.getTracks().some(existing => existing.id === track.id);
+          if (!exists) {
+            nextStream.addTrack(track);
           }
         });
+        return nextStream;
       });
     });
 
@@ -378,6 +381,28 @@ export const useWebRTCViewer = ({
   }, [ensureRobotId, registerSocketHandlers]);
 
   useEffect(() => {
+    if (!remoteStream || !remoteVideoRef.current) {
+      return;
+    }
+
+    const videoEl = remoteVideoRef.current;
+    videoEl.srcObject = remoteStream;
+
+    const playPromise = videoEl.play();
+    if (playPromise && typeof playPromise.then === 'function') {
+      playPromise.catch(err => {
+        console.warn('비디오 자동 재생이 차단되었습니다. 사용자 인터랙션이 필요할 수 있습니다.', err);
+      });
+    }
+
+    return () => {
+      if (videoEl.srcObject === remoteStream) {
+        videoEl.srcObject = null;
+      }
+    };
+  }, [remoteStream, remoteVideoRef]);
+
+  useEffect(() => {
     return () => {
       stop();
     };
@@ -391,6 +416,7 @@ export const useWebRTCViewer = ({
     isStreaming: status === 'streaming',
     isConnecting: status === 'initializing' || status === 'requesting',
     robotSource,
+    hasRemoteStream: Boolean(remoteStream),
   };
 };
 

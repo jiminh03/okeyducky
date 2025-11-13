@@ -37,6 +37,7 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
     isStreaming,
     isConnecting,
     robotSource,
+    hasRemoteStream,
   } = useWebRTCViewer({
     remoteVideoRef,
     childInfo,
@@ -126,11 +127,12 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
           )}
 
           {/* WebRTC 비디오 스트림 (상대방 화면만 표시) - 버튼 누르면 회색 배경을 덮음 */}
-          {isStreaming && (
+          {(isStreaming || hasRemoteStream || isConnecting) && (
             <video
               ref={remoteVideoRef}
               autoPlay
               playsInline
+              muted
               className="remote-video-fullscreen"
             />
           )}
