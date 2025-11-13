@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import DetailHeader from '@/components/DetailHeader';
 import Footer from '@/components/Footer';
-import { childApi } from '@/services/api';
+import { childApi, CHILD_PROFILE_IMAGE_CACHE_KEY } from '@/services/api';
 import './RegisterChildScreen.css';
 
 interface RegisterChildScreenProps {
@@ -53,6 +53,14 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
       gender,
     }));
   };
+
+  const convertFileToDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
 
   useEffect(() => {
     return () => {
@@ -132,7 +140,7 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
             type="file"
             accept="image/*"
             style={{ display: 'none' }}
-            onChange={(e) => {
+            onChange={async (e) => {
               const file = e.target.files?.[0];
               if (file) {
                 if (profileImage && profileImage !== defaultProfileImage && profileImage.startsWith('blob:')) {
@@ -141,6 +149,24 @@ const RegisterChildScreen: React.FC<RegisterChildScreenProps> = ({
                 const url = URL.createObjectURL(file);
                 setProfileImage(url);
                 setProfileFile(file);
+
+                try {
+                  const dataUrl = await convertFileToDataUrl(file);
+                  if (typeof sessionStorage !== 'undefined') {
+                    sessionStorage.setItem(CHILD_PROFILE_IMAGE_CACHE_KEY, dataUrl);
+                  }
+                } catch (error) {
+                  console.error('프로필 이미지 데이터 URL 변환 실패:', error);
+                }
+              } else {
+                if (profileImage && profileImage !== defaultProfileImage && profileImage.startsWith('blob:')) {
+                  URL.revokeObjectURL(profileImage);
+                }
+                setProfileImage(defaultProfileImage);
+                setProfileFile(null);
+                if (typeof sessionStorage !== 'undefined') {
+                  sessionStorage.removeItem(CHILD_PROFILE_IMAGE_CACHE_KEY);
+                }
               }
             }}
           />
