@@ -50,9 +50,9 @@ async def register_child_endpoint(
         name=name,
         gender=gender,
         birth_date=birth_date,
-        serial_number=serial_number,
         school=school,
-        profile_img=img_bytes # 변환된 bytes 주입
+        profile_img=img_bytes,  # 변환된 bytes 주입
+        parent_id=current_parent.parent_id,
     )
 
     # 6. [호출] 서비스 실행 및 결과 반환

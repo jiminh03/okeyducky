@@ -26,6 +26,25 @@ const LOGIN_REQUIRED_MESSAGE = '로그인이 필요합니다.';
 const UNAUTHORIZED_MESSAGE = '인증이 만료되었습니다. 다시 로그인해주세요.';
 
 const hasLocalStorage = typeof localStorage !== 'undefined';
+const hasSessionStorage = typeof sessionStorage !== 'undefined';
+
+export const CHILD_PROFILE_IMAGE_CACHE_KEY = 'child_profile_image_cache';
+
+const fileToDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+const blobToDataUrl = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
 
 const getAccessToken = (): string | null => {
   if (!hasLocalStorage) {
@@ -459,6 +478,7 @@ export const childApi = {
       // 201: 아이 및 로봇 등록 성공
       if (response.status === 201) {
         const responseData: RegisterChildResponse = await response.json();
+
         return {
           success: true,
           data: responseData,
@@ -558,6 +578,7 @@ export const childApi = {
       // 200: 조회 성공
       if (response.status === 200) {
         const responseData: ChildInfo = await response.json();
+
         return {
           success: true,
           data: responseData,
@@ -639,6 +660,21 @@ export const childApi = {
       };
     }
 
+    if (hasSessionStorage) {
+      try {
+        const cachedImage = sessionStorage.getItem(CHILD_PROFILE_IMAGE_CACHE_KEY);
+        if (cachedImage) {
+          return {
+            success: true,
+            data: cachedImage,
+            status: 200,
+          };
+        }
+      } catch (storageError) {
+        console.error('프로필 이미지 캐시 접근 실패:', storageError);
+      }
+    }
+
     try {
       const response = await fetch(url, {
         method: 'GET',
@@ -651,22 +687,39 @@ export const childApi = {
         const blob = await response.blob();
 
         if (!blob || blob.size === 0) {
+          if (hasSessionStorage) {
+            sessionStorage.removeItem(CHILD_PROFILE_IMAGE_CACHE_KEY);
+          }
           return {
             success: false,
             message: '프로필 이미지를 찾을 수 없습니다.',
           };
         }
 
-        const objectUrl = URL.createObjectURL(blob);
+        let dataUrl: string | null = null;
+        let fallbackObjectUrl: string | null = null;
+        try {
+          dataUrl = await blobToDataUrl(blob);
+          if (hasSessionStorage && dataUrl) {
+            sessionStorage.setItem(CHILD_PROFILE_IMAGE_CACHE_KEY, dataUrl);
+          }
+        } catch (convertError) {
+          console.error('프로필 이미지 변환 실패:', convertError);
+          fallbackObjectUrl = URL.createObjectURL(blob);
+        }
 
         return {
           success: true,
-          data: objectUrl,
+          data: dataUrl ?? fallbackObjectUrl,
+          status: response.status,
         };
       }
 
       if (response.status === 401) {
         clearAccessToken();
+        if (hasSessionStorage) {
+          sessionStorage.removeItem(CHILD_PROFILE_IMAGE_CACHE_KEY);
+        }
         return {
           success: false,
           message: UNAUTHORIZED_MESSAGE,
@@ -683,6 +736,9 @@ export const childApi = {
       }
 
       if (response.status === 404) {
+        if (hasSessionStorage) {
+          sessionStorage.removeItem(CHILD_PROFILE_IMAGE_CACHE_KEY);
+        }
         return {
           success: false,
           message: '프로필 이미지를 찾을 수 없습니다.',

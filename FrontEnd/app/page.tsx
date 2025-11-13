@@ -16,7 +16,7 @@ import ChangePasswordScreen from '@/screens/settings/ChangePasswordScreen';
 import LogoutConfirmScreen from '@/screens/settings/LogoutConfirmScreen';
 import DeleteAccountScreen from '@/screens/settings/DeleteAccountScreen';
 import GuideScreen from '@/screens/guide/GuideScreen';
-import { userApi, UserInfo, childApi, ChildInfo } from '@/services/api';
+import { userApi, UserInfo, childApi, ChildInfo, CHILD_PROFILE_IMAGE_CACHE_KEY } from '@/services/api';
 
 type Screen =
   | 'splash'
@@ -135,40 +135,63 @@ export default function Home() {
 
   const revokeProfileImageUrl = useCallback(() => {
     if (profileImageObjectUrlRef.current) {
-      URL.revokeObjectURL(profileImageObjectUrlRef.current);
+      if (profileImageObjectUrlRef.current.startsWith('blob:')) {
+        URL.revokeObjectURL(profileImageObjectUrlRef.current);
+      }
       profileImageObjectUrlRef.current = null;
     }
     setChildProfileImageUrl(null);
   }, []);
 
   const refreshChildData = useCallback(async () => {
-    const childResponse = await childApi.getChild();
+    const childPromise = childApi.getChild();
+    const imagePromise = childApi.getChildProfileImage();
+
+    const [childResult, imageResult] = await Promise.allSettled([childPromise, imagePromise]);
+
+    const childResponse =
+      childResult.status === 'fulfilled' ? childResult.value : { success: false as const, message: (childResult.reason as Error)?.message };
 
     if (childResponse.success && childResponse.data) {
       console.log('아이 정보 조회 성공:', childResponse.data);
       setChildInfo(childResponse.data);
       setHasChild(true);
-
-      revokeProfileImageUrl();
-
-      const imageResponse = await childApi.getChildProfileImage();
-      if (imageResponse.success && imageResponse.data) {
-        profileImageObjectUrlRef.current = imageResponse.data;
-        setChildProfileImageUrl(imageResponse.data);
-      } else {
-        setChildProfileImageUrl(null);
-      }
     } else {
-      console.log('아이 정보 조회 실패:', childResponse.message);
-      if (childResponse.message?.includes('등록된 아이가 없습니다') || childResponse.message?.includes('404')) {
+      console.log('아이 정보 조회 실패:', childResponse?.message);
+      if (childResponse?.message?.includes('등록된 아이가 없습니다') || childResponse?.message?.includes('404')) {
         setHasChild(false);
         setChildInfo(null);
         revokeProfileImageUrl();
-      } else if (childResponse.message?.includes('인증')) {
-        localStorage.removeItem('access_token');
-          revokeProfileImageUrl();
-        setCurrentScreen('login');
+        return;
       }
+
+      if (childResponse?.message?.includes('인증')) {
+        localStorage.removeItem('access_token');
+        setCurrentScreen('login');
+        revokeProfileImageUrl();
+      }
+      return;
+    }
+
+    const imageResponse =
+      imageResult.status === 'fulfilled' ? imageResult.value : { success: false as const, message: (imageResult.reason as Error)?.message };
+
+    if (imageResponse.success && imageResponse.data) {
+      if (profileImageObjectUrlRef.current && profileImageObjectUrlRef.current !== imageResponse.data) {
+        if (profileImageObjectUrlRef.current.startsWith('blob:')) {
+          URL.revokeObjectURL(profileImageObjectUrlRef.current);
+        }
+        profileImageObjectUrlRef.current = null;
+      }
+
+      if (imageResponse.data.startsWith('blob:')) {
+        profileImageObjectUrlRef.current = imageResponse.data;
+      } else {
+        profileImageObjectUrlRef.current = null;
+      }
+      setChildProfileImageUrl(imageResponse.data);
+    } else {
+      revokeProfileImageUrl();
     }
   }, [revokeProfileImageUrl, setCurrentScreen]);
 
@@ -206,6 +229,9 @@ export default function Home() {
     try {
       localStorage.removeItem('access_token');
       localStorage.removeItem(STORAGE_KEY_CURRENT_SCREEN);
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem(CHILD_PROFILE_IMAGE_CACHE_KEY);
+      }
     } catch (error) {
       console.error('로그아웃 시 스토리지 정리 오류:', error);
     }

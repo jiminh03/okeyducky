@@ -146,6 +146,7 @@ class ChildRepo:
                 gender=child.gender,
                 birth_date=child.birth_date,
                 school=child.school,
+                profile_img=child.profile_img,
                 parent_id=child.parent_id,
             )
             self.session.add(new_child)
