@@ -15,6 +15,7 @@ interface MainScreenProps {
   onRegisterChild?: () => void;
   hasChild?: boolean;
   childInfo?: ChildInfo | null;
+  childProfileImageUrl?: string | null;
 }
 
 const MainScreen: React.FC<MainScreenProps> = ({ 
@@ -27,7 +28,8 @@ const MainScreen: React.FC<MainScreenProps> = ({
   onSettings,
   onRegisterChild,
   hasChild = true,
-  childInfo
+  childInfo,
+  childProfileImageUrl
 }) => {
   const [todayLog, setTodayLog] = useState<DailyConversationLog | null>(null);
   const [todayReport, setTodayReport] = useState<DailyAnalysisReport | null>(null);
@@ -113,8 +115,8 @@ const MainScreen: React.FC<MainScreenProps> = ({
   };
 
   const getGenderSymbol = (gender?: ChildInfo['gender']): string => {
-    if (gender === '남아') return '♂';
-    if (gender === '여아') return '♀';
+    if (gender === 'female') return '♀';
+    if (gender === 'male') return '♂';
     return '⚪';
   };
 
@@ -148,15 +150,31 @@ const MainScreen: React.FC<MainScreenProps> = ({
           <>
             {/* 프로필 카드 */}
             <div className="profile-card">
-              <div className="profile-image">
+            <div className="profile-image">
+              {childProfileImageUrl ? (
+                <img
+                  src={childProfileImageUrl}
+                  alt={`${childInfo?.name ?? ''} 프로필 이미지`}
+                  className="profile-photo"
+                />
+              ) : childInfo?.profile_img_url ? (
+                <img
+                  src={childInfo.profile_img_url}
+                  alt={`${childInfo.name} 프로필 이미지`}
+                  className="profile-photo"
+                />
+              ) : (
                 <div className="avatar-placeholder">
-                  {childInfo?.gender === '여아' ? '👧' : '👦'}
+                  {childInfo?.gender === 'female' ? '👧' : '👦'}
                 </div>
-              </div>
+              )}
+            </div>
               <div className="profile-info">
                 <div className="profile-name">
                   <span className="name">{childInfo?.name || '이름 없음'}</span>
-                  <span className="gender">{childInfo ? getGenderSymbol(childInfo.gender) : '♀'}</span>
+                  <span className={`gender ${childInfo?.gender === 'male' ? 'male' : 'female'}`}>
+                    {childInfo ? getGenderSymbol(childInfo.gender) : '♀'}
+                  </span>
                 </div>
                 <div className="profile-detail">
                   {childInfo ? formatBirthDate(childInfo.birth_date) : '2017. 03. 13.'}

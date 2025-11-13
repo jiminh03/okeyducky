@@ -6,9 +6,10 @@ interface LoginScreenProps {
   onBack: () => void;
   onLoginComplete: () => void;
   onSignUp: () => void;
+  message?: string | null;
 }
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSignUp }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSignUp, message }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -86,6 +87,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onBack, onLoginComplete, onSi
 
         {/* 로그인 폼 */}
         <form onSubmit={handleSubmit} className="login-form">
+          {message && (
+            <p
+              className="form-info"
+              style={{ color: '#2a7de1', fontSize: '14px', marginBottom: '12px', textAlign: 'center' }}
+            >
+              {message}
+            </p>
+          )}
           {error && <p className="form-error">{error}</p>}
           {/* 아이디(이메일) */}
           <div className="form-group">
