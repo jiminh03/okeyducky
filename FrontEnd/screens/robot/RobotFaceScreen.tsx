@@ -37,8 +37,14 @@ const positions = {
   beak: { x: 1024, y: 1080 },
 };
 
+type EmotionType = 'neutral' | 'happy' | 'sad';
+
 const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
-  const { emotion } = useRobotFaceSocket({ head: true });
+  const { emotion: socketEmotion } = useRobotFaceSocket({ head: true });
+  const [manualEmotion, setManualEmotion] = useState<EmotionType | null>(null);
+  
+  // 수동으로 선택한 emotion이 있으면 그것을 사용, 없으면 소켓에서 받은 emotion 사용
+  const emotion = manualEmotion || socketEmotion;
   const isHappy = emotion === 'happy';
   const heartPath = useMemo(() => getHeartPath(features.heartSize), []);
   const [isBlinking, setIsBlinking] = useState(false);
@@ -110,6 +116,16 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
     onExit?.();
   };
 
+  const handleEmotionChange = (newEmotion: EmotionType) => {
+    setManualEmotion(newEmotion);
+  };
+
+  const emotions: { value: EmotionType; label: string; emoji: string }[] = [
+    { value: 'neutral', label: '보통', emoji: '😐' },
+    { value: 'happy', label: '행복', emoji: '😊' },
+    { value: 'sad', label: '슬픔', emoji: '😢' },
+  ];
+
   return (
     <div
       className="robot-face-fullscreen"
@@ -122,6 +138,22 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
           ←
         </button>
       )}
+      
+      {/* 표정 선택 버튼 */}
+      <div className="emotion-controls">
+        {emotions.map((emotionOption) => (
+          <button
+            key={emotionOption.value}
+            type="button"
+            className={`emotion-btn ${emotion === emotionOption.value ? 'active' : ''}`}
+            onClick={() => handleEmotionChange(emotionOption.value)}
+            aria-label={emotionOption.label}
+            title={emotionOption.label}
+          >
+            <span className="emotion-emoji">{emotionOption.emoji}</span>
+          </button>
+        ))}
+      </div>
       <div className={`robot-face-stage emotion-${emotion}`}>
         <svg
           className="robot-face-svg"
