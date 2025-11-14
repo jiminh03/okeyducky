@@ -6,7 +6,6 @@
   justify-content: center;
   align-items: center;
   position: relative;
-  overflow: hidden;
 }
 
 .robot-face-fullscreen[role='button'] {
@@ -48,4 +47,140 @@
   width: 100%;
   height: auto;
   display: block;
+}
+
+/* 눈 깜빡임 애니메이션 */
+.eye-group {
+  transition: transform 0.3s ease;
+}
+
+.eye {
+  transition: ry 0.15s ease-out, cy 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.eye-highlight {
+  transition: opacity 0.15s ease-out, cy 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 하트 눈 애니메이션 */
+.eye-heart {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              fill 0.3s ease;
+  transform-origin: center;
+  animation: heart-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes heart-pulse {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(0, 0) scale(1.05);
+  }
+}
+
+/* 표정 변화 애니메이션 */
+.robot-face-stage {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 행복한 표정 */
+.robot-face-stage.emotion-happy .eye-group {
+  transform: translateY(-2px);
+}
+
+.robot-face-stage.emotion-happy .eye-heart {
+  animation: happy-heart 0.8s ease-in-out;
+}
+
+@keyframes happy-heart {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(0, -5px) scale(1.08);
+  }
+}
+
+/* 슬픈 표정 */
+.robot-face-stage.emotion-sad .eye-group {
+  transform: translateY(2px);
+}
+
+.robot-face-stage.emotion-sad .eye {
+  animation: sad-eyes 0.6s ease-in-out;
+}
+
+@keyframes sad-eyes {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.05);
+  }
+}
+
+/* 볼 홍조 애니메이션 */
+.blush {
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+              rx 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              ry 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.robot-face-stage.emotion-happy .blush {
+  animation: happy-blush 0.8s ease-in-out;
+}
+
+@keyframes happy-blush {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.robot-face-stage.emotion-sad .blush {
+  animation: sad-blush 0.8s ease-in-out;
+}
+
+@keyframes sad-blush {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+}
+
+/* 부리 애니메이션 */
+.beak {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.robot-face-stage.emotion-happy .beak {
+  animation: happy-beak 0.6s ease-in-out;
+}
+
+@keyframes happy-beak {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.02);
+  }
+}
+
+.robot-face-stage.emotion-sad .beak {
+  animation: sad-beak 0.6s ease-in-out;
+}
+
+@keyframes sad-beak {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(5px) scale(0.98);
+  }
 }
