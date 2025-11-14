@@ -114,20 +114,19 @@
   transition: opacity 0.15s ease-out, cy 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 하트 눈 애니메이션 */
+/* 하트 눈 애니메이션 - 중심 고정 후 양옆위아래로 균등하게 커짐 */
 .eye-heart {
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              fill 0.3s ease;
-  transform-origin: center;
-  animation: heart-pulse 1.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: heart-gentle-pulse 2s ease-in-out infinite;
 }
 
-@keyframes heart-pulse {
+@keyframes heart-gentle-pulse {
   0%, 100% {
-    transform: translate(0, 0) scale(1);
+    transform: scale(1);
   }
   50% {
-    transform: translate(0, 0) scale(1.05);
+    transform: scale(1.1);
   }
 }
 
@@ -141,18 +140,7 @@
   transform: translateY(-2px);
 }
 
-.robot-face-stage.emotion-happy .eye-heart {
-  animation: happy-heart 0.8s ease-in-out;
-}
-
-@keyframes happy-heart {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(0, -5px) scale(1.08);
-  }
-}
+/* happy 표정 전환 시 하트 애니메이션은 heart-lively가 계속 실행되므로 별도 애니메이션 불필요 */
 
 /* 슬픈 표정 */
 .robot-face-stage.emotion-sad .eye-group {

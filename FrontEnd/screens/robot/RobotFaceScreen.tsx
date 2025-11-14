@@ -161,16 +161,18 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
           {/* 왼쪽 눈 */}
           <g className="eye-group eye-left">
             {isHappy ? (
-              <image
-                className="eye eye-heart"
-                xlinkHref={heartSrc}
-                href={heartSrc}
-                x={positions.eyeLeft.x - features.heartSize / 2}
-                y={positions.eyeLeft.y - features.heartSize / 2 + eyeOffset.y}
-                width={features.heartSize}
-                height={features.heartSize}
-                preserveAspectRatio="xMidYMid meet"
-              />
+              <g transform={`translate(${positions.eyeLeft.x}, ${positions.eyeLeft.y + eyeOffset.y})`}>
+                <image
+                  className="eye eye-heart"
+                  xlinkHref={heartSrc}
+                  href={heartSrc}
+                  x={-features.heartSize / 2}
+                  y={-features.heartSize / 2}
+                  width={features.heartSize}
+                  height={features.heartSize}
+                  preserveAspectRatio="xMidYMid meet"
+                />
+              </g>
             ) : isSad ? (
               <>
                 {/* 슬픈 눈: 세로로 긴 파란색 직사각형 (눈물) */}
@@ -220,16 +222,18 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
           {/* 오른쪽 눈 */}
           <g className="eye-group eye-right">
             {isHappy ? (
-              <image
-                className="eye eye-heart"
-                xlinkHref={heartSrc}
-                href={heartSrc}
-                x={positions.eyeRight.x - features.heartSize / 2}
-                y={positions.eyeRight.y - features.heartSize / 2 + eyeOffset.y}
-                width={features.heartSize}
-                height={features.heartSize}
-                preserveAspectRatio="xMidYMid meet"
-              />
+              <g transform={`translate(${positions.eyeRight.x}, ${positions.eyeRight.y + eyeOffset.y})`}>
+                <image
+                  className="eye eye-heart"
+                  xlinkHref={heartSrc}
+                  href={heartSrc}
+                  x={-features.heartSize / 2}
+                  y={-features.heartSize / 2}
+                  width={features.heartSize}
+                  height={features.heartSize}
+                  preserveAspectRatio="xMidYMid meet"
+                />
+              </g>
             ) : isSad ? (
               <>
                 {/* 슬픈 눈: 세로로 긴 파란색 직사각형 (눈물) */}
