@@ -132,7 +132,6 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
               ref={remoteVideoRef}
               autoPlay
               playsInline
-              muted
               className="remote-video-fullscreen"
             />
           )}

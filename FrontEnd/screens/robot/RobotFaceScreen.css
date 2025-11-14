@@ -1,0 +1,51 @@
+.robot-face-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.robot-face-fullscreen[role='button'] {
+  cursor: pointer;
+}
+
+.robot-face-back {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  color: #333;
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+  z-index: 10;
+}
+
+.robot-face-back:hover {
+  background: rgba(0, 0, 0, 0.16);
+  transform: translateY(-1px);
+}
+
+.robot-face-stage {
+  position: relative;
+  width: min(90vw, 1300px);
+  max-width: 1500px;
+}
+
+.robot-face-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}

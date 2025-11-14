@@ -13,6 +13,7 @@ interface MainScreenProps {
   onGuide?: () => void;
   onSettings?: () => void;
   onRegisterChild?: () => void;
+  onLogoClick?: () => void;
   hasChild?: boolean;
   childInfo?: ChildInfo | null;
   childProfileImageUrl?: string | null;
@@ -27,6 +28,7 @@ const MainScreen: React.FC<MainScreenProps> = ({
   onGuide,
   onSettings,
   onRegisterChild,
+  onLogoClick,
   hasChild = true,
   childInfo,
   childProfileImageUrl
@@ -129,7 +131,7 @@ const MainScreen: React.FC<MainScreenProps> = ({
   return (
     <div className="main-screen">
       {/* 상단 헤더 */}
-      <Header />
+      <Header onLogoClick={onLogoClick} />
 
       {/* 메인 콘텐츠 */}
       <div className={`main-content-area ${!hasChild ? 'no-scroll' : ''}`}>

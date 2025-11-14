@@ -16,6 +16,7 @@ import ChangePasswordScreen from '@/screens/settings/ChangePasswordScreen';
 import LogoutConfirmScreen from '@/screens/settings/LogoutConfirmScreen';
 import DeleteAccountScreen from '@/screens/settings/DeleteAccountScreen';
 import GuideScreen from '@/screens/guide/GuideScreen';
+import RobotFaceScreen from '@/screens/robot/RobotFaceScreen';
 import { userApi, UserInfo, childApi, ChildInfo, CHILD_PROFILE_IMAGE_CACHE_KEY } from '@/services/api';
 
 type Screen =
@@ -33,7 +34,8 @@ type Screen =
   | 'change-child-profile'
   | 'change-password'
   | 'logout-confirm'
-  | 'delete-account';
+  | 'delete-account'
+  | 'robot-face';
 
 const STORAGE_KEY_CURRENT_SCREEN = 'current_screen';
 
@@ -53,6 +55,7 @@ const VALID_SCREENS: Screen[] = [
   'change-password',
   'logout-confirm',
   'delete-account',
+  'robot-face',
 ];
 
 const AUTH_REQUIRED_SCREENS: Screen[] = [
@@ -68,6 +71,7 @@ const AUTH_REQUIRED_SCREENS: Screen[] = [
   'change-password',
   'logout-confirm',
   'delete-account',
+  'robot-face',
 ];
 
 const isScreen = (value: string | null): value is Screen =>
@@ -318,6 +322,16 @@ export default function Home() {
     setCurrentScreen('settings');
   };
 
+  const handleOpenRobotFace = () => {
+    console.log('로봇 얼굴 페이지로 이동');
+    setCurrentScreen('robot-face');
+  };
+
+  const handleCloseRobotFace = () => {
+    console.log('로봇 얼굴 페이지 종료');
+    setCurrentScreen('main');
+  };
+
   const handleRegisterChild = () => {
     console.log('아이 등록 페이지로 이동');
     setCurrentScreen('register-child');
@@ -413,6 +427,10 @@ export default function Home() {
     />;
   }
 
+  if (currentScreen === 'robot-face') {
+    return <RobotFaceScreen onExit={handleCloseRobotFace} />;
+  }
+
   if (currentScreen === 'settings') {
     return <SettingsScreen 
       onHome={() => setCurrentScreen('main')}
@@ -490,6 +508,7 @@ export default function Home() {
     onGuide={handleGuide}
     onSettings={handleSettings}
     onRegisterChild={handleRegisterChild}
+  onLogoClick={handleOpenRobotFace}
     hasChild={hasChild}
     childInfo={childInfo}
     childProfileImageUrl={childProfileImageUrl}
