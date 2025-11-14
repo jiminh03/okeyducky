@@ -184,66 +184,10 @@
   transition: opacity 0.3s ease;
 }
 
-/* 볼 홍조 애니메이션 */
+/* 볼 홍조 - opacity만 변경, 움직임 없음 */
 .blush {
-  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-              rx 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-              ry 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  /* transform, scale 애니메이션 제거 - 고정 위치 유지 */
 }
 
-.robot-face-stage.emotion-happy .blush {
-  animation: happy-blush 0.8s ease-in-out;
-}
-
-@keyframes happy-blush {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-.robot-face-stage.emotion-sad .blush {
-  animation: sad-blush 0.8s ease-in-out;
-}
-
-@keyframes sad-blush {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(0.9);
-  }
-}
-
-/* 부리 애니메이션 */
-.beak {
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.robot-face-stage.emotion-happy .beak {
-  animation: happy-beak 0.6s ease-in-out;
-}
-
-@keyframes happy-beak {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-5px) scale(1.02);
-  }
-}
-
-.robot-face-stage.emotion-sad .beak {
-  animation: sad-beak 0.6s ease-in-out;
-}
-
-@keyframes sad-beak {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(5px) scale(0.98);
-  }
-}
+/* 부리 - 고정 위치 유지, 애니메이션 없음 (애니메이션 제거됨) */
