@@ -175,25 +175,25 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
               </g>
             ) : isSad ? (
               <>
-                {/* 슬픈 눈: 세로로 긴 파란색 직사각형 (눈물) */}
+                {/* 슬픈 눈: 세로로 긴 파란색 직사각형 (눈물) - 더 두껍고 크게, 각진 모서리 */}
                 <rect
                   className="eye eye-sad"
-                  x={positions.eyeLeft.x - features.eyeRadius * 0.3}
-                  y={positions.eyeLeft.y - features.eyeRadius * 0.8 + eyeOffset.y}
-                  width={features.eyeRadius * 0.6}
-                  height={features.eyeRadius * 1.6}
-                  rx={features.eyeRadius * 0.15}
+                  x={positions.eyeLeft.x - features.eyeRadius * 0.5}
+                  y={positions.eyeLeft.y - features.eyeRadius * 0.2 + eyeOffset.y}
+                  width={features.eyeRadius * 1.0}
+                  height={features.eyeRadius * 2.6}
+                  rx="0"
                   fill="#87ceeb"
                 />
-                {/* 눈 위의 얇은 어두운 회색 가로선 */}
+                {/* 눈 위의 두꺼운 어두운 회색 가로선 */}
                 <line
                   className="eye-line"
-                  x1={positions.eyeLeft.x - features.eyeRadius * 0.4}
-                  y1={positions.eyeLeft.y - features.eyeRadius * 0.8 + eyeOffset.y}
-                  x2={positions.eyeLeft.x + features.eyeRadius * 0.4}
-                  y2={positions.eyeLeft.y - features.eyeRadius * 0.8 + eyeOffset.y}
+                  x1={positions.eyeLeft.x - features.eyeRadius * 0.7}
+                  y1={positions.eyeLeft.y - features.eyeRadius * 0.2 + eyeOffset.y}
+                  x2={positions.eyeLeft.x + features.eyeRadius * 0.7}
+                  y2={positions.eyeLeft.y - features.eyeRadius * 0.2 + eyeOffset.y}
                   stroke="#4d4d4d"
-                  strokeWidth="3"
+                  strokeWidth="20"
                 />
               </>
             ) : (
@@ -236,25 +236,25 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
               </g>
             ) : isSad ? (
               <>
-                {/* 슬픈 눈: 세로로 긴 파란색 직사각형 (눈물) */}
+                {/* 슬픈 눈: 세로로 긴 파란색 직사각형 (눈물) - 더 두껍고 크게, 각진 모서리 */}
                 <rect
                   className="eye eye-sad"
-                  x={positions.eyeRight.x - features.eyeRadius * 0.3}
-                  y={positions.eyeRight.y - features.eyeRadius * 0.8 + eyeOffset.y}
-                  width={features.eyeRadius * 0.6}
-                  height={features.eyeRadius * 1.6}
-                  rx={features.eyeRadius * 0.15}
+                  x={positions.eyeRight.x - features.eyeRadius * 0.5}
+                  y={positions.eyeRight.y - features.eyeRadius * 0.2 + eyeOffset.y}
+                  width={features.eyeRadius * 1.0}
+                  height={features.eyeRadius * 2.6}
+                  rx="0"
                   fill="#87ceeb"
                 />
-                {/* 눈 위의 얇은 어두운 회색 가로선 */}
+                {/* 눈 위의 두꺼운 어두운 회색 가로선 */}
                 <line
                   className="eye-line"
-                  x1={positions.eyeRight.x - features.eyeRadius * 0.4}
-                  y1={positions.eyeRight.y - features.eyeRadius * 0.8 + eyeOffset.y}
-                  x2={positions.eyeRight.x + features.eyeRadius * 0.4}
-                  y2={positions.eyeRight.y - features.eyeRadius * 0.8 + eyeOffset.y}
+                  x1={positions.eyeRight.x - features.eyeRadius * 0.7}
+                  y1={positions.eyeRight.y - features.eyeRadius * 0.2 + eyeOffset.y}
+                  x2={positions.eyeRight.x + features.eyeRadius * 0.7}
+                  y2={positions.eyeRight.y - features.eyeRadius * 0.2 + eyeOffset.y}
                   stroke="#4d4d4d"
-                  strokeWidth="3"
+                  strokeWidth="20"
                 />
               </>
             ) : (
@@ -280,24 +280,29 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
             )}
           </g>
 
-          <ellipse
-            className="blush blush-left"
-            cx={positions.blushLeft.x}
-            cy={positions.blushLeft.y}
-            rx={features.blush.rx}
-            ry={features.blush.ry}
-            fill="rgba(255, 192, 203, 1)"
-            opacity={isHappy ? 0.8 : emotion === 'sad' ? 0.4 : features.blush.opacity}
-          />
-          <ellipse
-            className="blush blush-right"
-            cx={positions.blushRight.x}
-            cy={positions.blushRight.y}
-            rx={features.blush.rx}
-            ry={features.blush.ry}
-            fill="rgba(255, 192, 203, 1)"
-            opacity={isHappy ? 0.8 : emotion === 'sad' ? 0.4 : features.blush.opacity}
-          />
+          {/* 볼 홍조 - 슬픈 표정일 때만 숨김 */}
+          {emotion !== 'sad' && (
+            <>
+              <ellipse
+                className="blush blush-left"
+                cx={positions.blushLeft.x}
+                cy={positions.blushLeft.y}
+                rx={features.blush.rx}
+                ry={features.blush.ry}
+                fill="rgba(255, 192, 203, 1)"
+                opacity={isHappy ? 0.8 : features.blush.opacity}
+              />
+              <ellipse
+                className="blush blush-right"
+                cx={positions.blushRight.x}
+                cy={positions.blushRight.y}
+                rx={features.blush.rx}
+                ry={features.blush.ry}
+                fill="rgba(255, 192, 203, 1)"
+                opacity={isHappy ? 0.8 : features.blush.opacity}
+              />
+            </>
+          )}
 
           <image
             className="beak"
