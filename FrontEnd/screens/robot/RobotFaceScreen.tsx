@@ -16,17 +16,7 @@ const features = {
   eyeHighlightRadius: 48,
   blush: { rx: 210, ry: 76, opacity: 0.62 },
   beak: { width: 660, height: 360 },
-  heartSize: 210, // 하트 크기
-};
-
-// 하트 모양 SVG path (중심 기준, 크기 조정 가능)
-const getHeartPath = (size: number) => {
-  const scale = size / 200;
-  return `M 0,${-20 * scale} 
-          C ${-50 * scale},${-70 * scale} ${-100 * scale},${-70 * scale} ${-100 * scale},${-20 * scale}
-          C ${-100 * scale},${20 * scale} ${-50 * scale},${70 * scale} 0,${120 * scale}
-          C ${50 * scale},${70 * scale} ${100 * scale},${20 * scale} ${100 * scale},${-20 * scale}
-          C ${100 * scale},${-70 * scale} ${50 * scale},${-70 * scale} 0,${-20 * scale} Z`;
+  heartSize: 420, // 하트 크기 (더 크게)
 };
 
 const positions = {
@@ -46,15 +36,20 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
   // 수동으로 선택한 emotion이 있으면 그것을 사용, 없으면 소켓에서 받은 emotion 사용
   const emotion = manualEmotion || socketEmotion;
   const isHappy = emotion === 'happy';
-  const heartPath = useMemo(() => getHeartPath(features.heartSize), []);
   const [isBlinking, setIsBlinking] = useState(false);
   const [eyeRy, setEyeRy] = useState(features.eyeRadius);
-  const beakSrc = useMemo(() => encodeURI('/icons/오리 입.png'), []);
+  const isSad = emotion === 'sad';
+  const beakSrc = useMemo(() => {
+    return emotion === 'sad' 
+      ? encodeURI('/icons/오리 입 슬플 때.png')
+      : encodeURI('/icons/오리 입.png');
+  }, [emotion]);
+  const heartSrc = useMemo(() => '/icons/fi-ss-heart.png', []);
 
-  // 눈 깜빡임 애니메이션 (happy일 때는 하트이므로 깜빡임 안 함)
+  // 눈 깜빡임 애니메이션 (happy일 때는 하트이므로 깜빡임 안 함, sad일 때도 눈물이므로 깜빡임 안 함)
   useEffect(() => {
-    if (isHappy) {
-      return; // happy일 때는 깜빡임 안 함
+    if (isHappy || isSad) {
+      return; // happy나 sad일 때는 깜빡임 안 함
     }
 
     let blinkTimeout: NodeJS.Timeout;
@@ -166,12 +161,39 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
           {/* 왼쪽 눈 */}
           <g className="eye-group eye-left">
             {isHappy ? (
-              <path
+              <image
                 className="eye eye-heart"
-                d={heartPath}
-                fill="#ff1744"
-                transform={`translate(${positions.eyeLeft.x}, ${positions.eyeLeft.y + eyeOffset.y})`}
+                xlinkHref={heartSrc}
+                href={heartSrc}
+                x={positions.eyeLeft.x - features.heartSize / 2}
+                y={positions.eyeLeft.y - features.heartSize / 2 + eyeOffset.y}
+                width={features.heartSize}
+                height={features.heartSize}
+                preserveAspectRatio="xMidYMid meet"
               />
+            ) : isSad ? (
+              <>
+                {/* 슬픈 눈: 세로로 긴 파란색 직사각형 (눈물) */}
+                <rect
+                  className="eye eye-sad"
+                  x={positions.eyeLeft.x - features.eyeRadius * 0.3}
+                  y={positions.eyeLeft.y - features.eyeRadius * 0.8 + eyeOffset.y}
+                  width={features.eyeRadius * 0.6}
+                  height={features.eyeRadius * 1.6}
+                  rx={features.eyeRadius * 0.15}
+                  fill="#87ceeb"
+                />
+                {/* 눈 위의 얇은 어두운 회색 가로선 */}
+                <line
+                  className="eye-line"
+                  x1={positions.eyeLeft.x - features.eyeRadius * 0.4}
+                  y1={positions.eyeLeft.y - features.eyeRadius * 0.8 + eyeOffset.y}
+                  x2={positions.eyeLeft.x + features.eyeRadius * 0.4}
+                  y2={positions.eyeLeft.y - features.eyeRadius * 0.8 + eyeOffset.y}
+                  stroke="#4d4d4d"
+                  strokeWidth="3"
+                />
+              </>
             ) : (
               <>
                 <ellipse
@@ -198,12 +220,39 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
           {/* 오른쪽 눈 */}
           <g className="eye-group eye-right">
             {isHappy ? (
-              <path
+              <image
                 className="eye eye-heart"
-                d={heartPath}
-                fill="#ff1744"
-                transform={`translate(${positions.eyeRight.x}, ${positions.eyeRight.y + eyeOffset.y})`}
+                xlinkHref={heartSrc}
+                href={heartSrc}
+                x={positions.eyeRight.x - features.heartSize / 2}
+                y={positions.eyeRight.y - features.heartSize / 2 + eyeOffset.y}
+                width={features.heartSize}
+                height={features.heartSize}
+                preserveAspectRatio="xMidYMid meet"
               />
+            ) : isSad ? (
+              <>
+                {/* 슬픈 눈: 세로로 긴 파란색 직사각형 (눈물) */}
+                <rect
+                  className="eye eye-sad"
+                  x={positions.eyeRight.x - features.eyeRadius * 0.3}
+                  y={positions.eyeRight.y - features.eyeRadius * 0.8 + eyeOffset.y}
+                  width={features.eyeRadius * 0.6}
+                  height={features.eyeRadius * 1.6}
+                  rx={features.eyeRadius * 0.15}
+                  fill="#87ceeb"
+                />
+                {/* 눈 위의 얇은 어두운 회색 가로선 */}
+                <line
+                  className="eye-line"
+                  x1={positions.eyeRight.x - features.eyeRadius * 0.4}
+                  y1={positions.eyeRight.y - features.eyeRadius * 0.8 + eyeOffset.y}
+                  x2={positions.eyeRight.x + features.eyeRadius * 0.4}
+                  y2={positions.eyeRight.y - features.eyeRadius * 0.8 + eyeOffset.y}
+                  stroke="#4d4d4d"
+                  strokeWidth="3"
+                />
+              </>
             ) : (
               <>
                 <ellipse
