@@ -30,20 +30,49 @@ const positions = {
 type EmotionType = 'neutral' | 'happy' | 'sad';
 
 const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
-  const { emotion: socketEmotion } = useRobotFaceSocket({ head: true });
+  const { emotion: socketEmotion, speaking: socketSpeaking } = useRobotFaceSocket({ head: true });
   const [manualEmotion, setManualEmotion] = useState<EmotionType | null>(null);
+  const [manualSpeaking, setManualSpeaking] = useState(false);
   
   // 수동으로 선택한 emotion이 있으면 그것을 사용, 없으면 소켓에서 받은 emotion 사용
   const emotion = manualEmotion || socketEmotion;
+  // 수동 speaking 또는 소켓 speaking 중 하나라도 true이면 말하는 상태
+  const isSpeaking = manualSpeaking || socketSpeaking;
+  
   const isHappy = emotion === 'happy';
   const [isBlinking, setIsBlinking] = useState(false);
   const [eyeRy, setEyeRy] = useState(features.eyeRadius);
   const isSad = emotion === 'sad';
+  
+  // 말하는 상태일 때 입 이미지 번갈아가기
+  const [isSpeakingMouth, setIsSpeakingMouth] = useState(false);
+  
+  useEffect(() => {
+    if (!isSpeaking) {
+      setIsSpeakingMouth(false);
+      return;
+    }
+    
+    // 말하는 상태일 때 입 이미지를 번갈아가며 변경 (약 200ms마다)
+    const interval = setInterval(() => {
+      setIsSpeakingMouth(prev => !prev);
+    }, 200);
+    
+    return () => clearInterval(interval);
+  }, [isSpeaking]);
+  
   const beakSrc = useMemo(() => {
-    return emotion === 'sad' 
-      ? encodeURI('/icons/오리 입 슬플 때.png')
-      : encodeURI('/icons/오리 입.png');
-  }, [emotion]);
+    if (emotion === 'sad') {
+      return encodeURI('/icons/오리 입 슬플 때.png');
+    }
+    // 말하는 상태일 때는 평상시 입과 말할 때 입을 번갈아가며 표시
+    if (isSpeaking) {
+      return isSpeakingMouth 
+        ? encodeURI('/icons/오리 말할 때 입.png')
+        : encodeURI('/icons/오리 입.png');
+    }
+    return encodeURI('/icons/오리 입.png');
+  }, [emotion, isSpeaking, isSpeakingMouth]);
   const heartSrc = useMemo(() => '/icons/fi-ss-heart.png', []);
 
   // 눈 깜빡임 애니메이션 (happy일 때는 하트이므로 깜빡임 안 함, sad일 때도 눈물이므로 깜빡임 안 함)
@@ -115,6 +144,10 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
     setManualEmotion(newEmotion);
   };
 
+  const handleSpeakingToggle = () => {
+    setManualSpeaking(prev => !prev);
+  };
+
   const emotions: { value: EmotionType; label: string; emoji: string }[] = [
     { value: 'neutral', label: '보통', emoji: '😐' },
     { value: 'happy', label: '행복', emoji: '😊' },
@@ -148,6 +181,16 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
             <span className="emotion-emoji">{emotionOption.emoji}</span>
           </button>
         ))}
+        {/* 말하는 표정 버튼 */}
+        <button
+          type="button"
+          className={`emotion-btn ${isSpeaking ? 'active' : ''}`}
+          onClick={handleSpeakingToggle}
+          aria-label="말하기"
+          title="말하기"
+        >
+          <span className="emotion-emoji">🗣️</span>
+        </button>
       </div>
       <div className={`robot-face-stage emotion-${emotion}`}>
         <svg

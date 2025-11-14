@@ -14,6 +14,7 @@ export interface RobotFacePayload {
   emotion?: RobotEmotion;
   message?: string;
   confidence?: number;
+  speaking?: boolean; // 말하는 상태 여부
   [key: string]: unknown;
 }
 
@@ -29,6 +30,7 @@ interface UseRobotFaceSocketOptions {
 interface UseRobotFaceSocketResult {
   status: RobotFaceSocketStatus;
   emotion: RobotEmotion;
+  speaking: boolean; // 말하는 상태
   lastPayload: RobotFacePayload | null;
   lastUpdated: number | null;
   error: string | null;
@@ -53,6 +55,7 @@ export const useRobotFaceSocket = (options?: UseRobotFaceSocketOptions): UseRobo
 
   const [status, setStatus] = useState<RobotFaceSocketStatus>('idle');
   const [emotion, setEmotion] = useState<RobotEmotion>('neutral');
+  const [speaking, setSpeaking] = useState<boolean>(false);
   const [lastPayload, setLastPayload] = useState<RobotFacePayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
@@ -80,6 +83,9 @@ export const useRobotFaceSocket = (options?: UseRobotFaceSocketOptions): UseRobo
         setLastPayload(payload);
         if (payload?.emotion) {
           setEmotion(payload.emotion);
+        }
+        if (payload?.speaking !== undefined) {
+          setSpeaking(payload.speaking);
         }
         setLastUpdated(Date.now());
       });
@@ -152,6 +158,7 @@ export const useRobotFaceSocket = (options?: UseRobotFaceSocketOptions): UseRobo
   useEffect(() => {
     if (!enabled) {
       setEmotion('neutral');
+      setSpeaking(false);
       setLastPayload(null);
       setLastUpdated(null);
     }
@@ -160,6 +167,7 @@ export const useRobotFaceSocket = (options?: UseRobotFaceSocketOptions): UseRobo
   return {
     status,
     emotion,
+    speaking,
     lastPayload,
     lastUpdated,
     error,
