@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { ChildInfo } from '@/services/api';
+import { ChildInfo, robotMessageApi } from '@/services/api';
 import { useWebRTCViewer } from '@/services/webrtcViewer';
 import './VideoScreen.css';
 
@@ -23,6 +23,8 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
   childInfo,
 }) => {
   const [message, setMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const fallbackRobotIdEnv = process.env.NEXT_PUBLIC_TEST_ROBOT_ID;
   const parsedFallbackRobotId = fallbackRobotIdEnv ? Number(fallbackRobotIdEnv) : undefined;
@@ -44,10 +46,36 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
     fallbackRobotId: hasFallbackRobot ? parsedFallbackRobotId : undefined,
   });
 
-  const handleSend = () => {
-    if (message.trim()) {
-      console.log('메시지 전송:', message);
-      setMessage('');
+  const handleSend = async () => {
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage || isSending) {
+      return;
+    }
+
+    if (!childInfo?.child_id) {
+      setSendError('아이 정보가 없습니다.');
+      return;
+    }
+
+    setIsSending(true);
+    setSendError(null);
+
+    try {
+      const result = await robotMessageApi.sendMessage(trimmedMessage, childInfo.child_id);
+      
+      if (result.success) {
+        setMessage('');
+        console.log('메시지 전송 성공:', trimmedMessage);
+      } else {
+        setSendError(result.message || '메시지 전송에 실패했습니다.');
+        console.error('메시지 전송 실패:', result.message);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '메시지 전송 중 오류가 발생했습니다.';
+      setSendError(errorMessage);
+      console.error('메시지 전송 중 예외 발생:', error);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -120,7 +148,14 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
             </div>
           )}
 
-          {primaryMessage && !error && (
+          {/* 메시지 전송 에러 */}
+          {sendError && (
+            <div className="video-error-message">
+              {sendError}
+            </div>
+          )}
+
+          {primaryMessage && !error && !sendError && (
             <div className="video-info-message">
               {primaryMessage}
             </div>
@@ -132,7 +167,6 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
               ref={remoteVideoRef}
               autoPlay
               playsInline
-              muted
               className="remote-video-fullscreen"
             />
           )}
@@ -158,7 +192,7 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
           <button 
             className="video-send-button"
             onClick={handleSend}
-            disabled={!message.trim()}
+            disabled={!message.trim() || isSending}
           >
             <svg 
               width="24" 

@@ -906,6 +906,108 @@ export const childApi = {
   },
 };
 
+// 로봇 메시지 전송 API
+export const robotMessageApi = {
+  // 부모가 로봇에게 메시지 전송
+  // 백엔드 API 엔드포인트: POST /api/robot/message 또는 POST /api/dialogue/send
+  sendMessage: async (message: string, childId?: number): Promise<ApiResponse<unknown>> => {
+    const token = getAccessToken();
+    
+    if (!token) {
+      return {
+        success: false,
+        message: LOGIN_REQUIRED_MESSAGE,
+      };
+    }
+
+    // 백엔드 엔드포인트는 백엔드 구현에 맞춰 수정 필요
+    // 예상 엔드포인트: /api/robot/message 또는 /api/dialogue/send
+    const url = `${API_BASE_URL}/api/robot/message`;
+    
+    try {
+      const requestBody: Record<string, unknown> = {
+        message: message.trim(),
+        speaker: 'robot_parent', // 부모가 보낸 메시지
+      };
+
+      // childId가 있으면 포함
+      if (childId) {
+        requestBody.child_id = childId;
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      // 200, 201: 전송 성공
+      if (response.status === 200 || response.status === 201) {
+        const responseData = await response.json().catch(() => ({}));
+        return {
+          success: true,
+          data: responseData,
+        };
+      }
+
+      // 401: 인증 필요
+      if (response.status === 401) {
+        clearAccessToken();
+        return {
+          success: false,
+          message: UNAUTHORIZED_MESSAGE,
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '메시지 전송 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '메시지 전송 중 오류가 발생했습니다.',
+        status: response.status,
+      };
+    } catch (error) {
+      console.error('메시지 전송 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: NETWORK_ERROR_FRIENDLY_MESSAGE,
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: NETWORK_ERROR_FRIENDLY_MESSAGE,
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+};
+
 // 리포트 API
 export const reportApi = {
   // 일일 대화 로그 조회

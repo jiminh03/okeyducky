@@ -16,6 +16,7 @@ import ChangePasswordScreen from '@/screens/settings/ChangePasswordScreen';
 import LogoutConfirmScreen from '@/screens/settings/LogoutConfirmScreen';
 import DeleteAccountScreen from '@/screens/settings/DeleteAccountScreen';
 import GuideScreen from '@/screens/guide/GuideScreen';
+import RobotFaceScreen from '@/screens/robot/RobotFaceScreen';
 import { userApi, UserInfo, childApi, ChildInfo, CHILD_PROFILE_IMAGE_CACHE_KEY } from '@/services/api';
 
 type Screen =
@@ -33,7 +34,8 @@ type Screen =
   | 'change-child-profile'
   | 'change-password'
   | 'logout-confirm'
-  | 'delete-account';
+  | 'delete-account'
+  | 'robot-face';
 
 const STORAGE_KEY_CURRENT_SCREEN = 'current_screen';
 
@@ -53,6 +55,7 @@ const VALID_SCREENS: Screen[] = [
   'change-password',
   'logout-confirm',
   'delete-account',
+  'robot-face',
 ];
 
 const AUTH_REQUIRED_SCREENS: Screen[] = [
@@ -68,6 +71,7 @@ const AUTH_REQUIRED_SCREENS: Screen[] = [
   'change-password',
   'logout-confirm',
   'delete-account',
+  'robot-face',
 ];
 
 const isScreen = (value: string | null): value is Screen =>
@@ -84,6 +88,7 @@ export default function Home() {
   const profileImageObjectUrlRef = useRef<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [isLoadingChildData, setIsLoadingChildData] = useState(false);
 
   // 초기 렌더 시 마지막 화면 복원
   useEffect(() => {
@@ -144,54 +149,59 @@ export default function Home() {
   }, []);
 
   const refreshChildData = useCallback(async () => {
-    const childPromise = childApi.getChild();
-    const imagePromise = childApi.getChildProfileImage();
+    setIsLoadingChildData(true);
+    try {
+      const childPromise = childApi.getChild();
+      const imagePromise = childApi.getChildProfileImage();
 
-    const [childResult, imageResult] = await Promise.allSettled([childPromise, imagePromise]);
+      const [childResult, imageResult] = await Promise.allSettled([childPromise, imagePromise]);
 
-    const childResponse =
-      childResult.status === 'fulfilled' ? childResult.value : { success: false as const, message: (childResult.reason as Error)?.message };
+      const childResponse =
+        childResult.status === 'fulfilled' ? childResult.value : { success: false as const, message: (childResult.reason as Error)?.message };
 
-    if (childResponse.success && childResponse.data) {
-      console.log('아이 정보 조회 성공:', childResponse.data);
-      setChildInfo(childResponse.data);
-      setHasChild(true);
-    } else {
-      console.log('아이 정보 조회 실패:', childResponse?.message);
-      if (childResponse?.message?.includes('등록된 아이가 없습니다') || childResponse?.message?.includes('404')) {
-        setHasChild(false);
-        setChildInfo(null);
-        revokeProfileImageUrl();
+      if (childResponse.success && childResponse.data) {
+        console.log('아이 정보 조회 성공:', childResponse.data);
+        setChildInfo(childResponse.data);
+        setHasChild(true);
+      } else {
+        console.log('아이 정보 조회 실패:', childResponse?.message);
+        if (childResponse?.message?.includes('등록된 아이가 없습니다') || childResponse?.message?.includes('404')) {
+          setHasChild(false);
+          setChildInfo(null);
+          revokeProfileImageUrl();
+          return;
+        }
+
+        if (childResponse?.message?.includes('인증')) {
+          localStorage.removeItem('access_token');
+          setCurrentScreen('login');
+          revokeProfileImageUrl();
+        }
         return;
       }
 
-      if (childResponse?.message?.includes('인증')) {
-        localStorage.removeItem('access_token');
-        setCurrentScreen('login');
+      const imageResponse =
+        imageResult.status === 'fulfilled' ? imageResult.value : { success: false as const, message: (imageResult.reason as Error)?.message };
+
+      if (imageResponse.success && imageResponse.data) {
+        if (profileImageObjectUrlRef.current && profileImageObjectUrlRef.current !== imageResponse.data) {
+          if (profileImageObjectUrlRef.current.startsWith('blob:')) {
+            URL.revokeObjectURL(profileImageObjectUrlRef.current);
+          }
+          profileImageObjectUrlRef.current = null;
+        }
+
+        if (imageResponse.data.startsWith('blob:')) {
+          profileImageObjectUrlRef.current = imageResponse.data;
+        } else {
+          profileImageObjectUrlRef.current = null;
+        }
+        setChildProfileImageUrl(imageResponse.data);
+      } else {
         revokeProfileImageUrl();
       }
-      return;
-    }
-
-    const imageResponse =
-      imageResult.status === 'fulfilled' ? imageResult.value : { success: false as const, message: (imageResult.reason as Error)?.message };
-
-    if (imageResponse.success && imageResponse.data) {
-      if (profileImageObjectUrlRef.current && profileImageObjectUrlRef.current !== imageResponse.data) {
-        if (profileImageObjectUrlRef.current.startsWith('blob:')) {
-          URL.revokeObjectURL(profileImageObjectUrlRef.current);
-        }
-        profileImageObjectUrlRef.current = null;
-      }
-
-      if (imageResponse.data.startsWith('blob:')) {
-        profileImageObjectUrlRef.current = imageResponse.data;
-      } else {
-        profileImageObjectUrlRef.current = null;
-      }
-      setChildProfileImageUrl(imageResponse.data);
-    } else {
-      revokeProfileImageUrl();
+    } finally {
+      setIsLoadingChildData(false);
     }
   }, [revokeProfileImageUrl, setCurrentScreen]);
 
@@ -212,9 +222,38 @@ export default function Home() {
     setCurrentScreen('splash');
   };
 
-  const handleLoginComplete = () => {
+  const handleLoginComplete = async () => {
     console.log('로그인 완료');
     setAuthMessage(null);
+    
+    // 아이 정보를 먼저 조회한 후 화면 전환
+    setIsLoadingChildData(true);
+    try {
+      // 사용자 정보 조회
+      const userResponse = await userApi.getMe();
+      if (userResponse.success && userResponse.data) {
+        console.log('사용자 정보 조회 성공:', userResponse.data);
+        setUserInfo(userResponse.data);
+      } else {
+        console.error('사용자 정보 조회 실패:', userResponse.message);
+        // 인증 오류인 경우 로그인 화면으로 이동
+        if (userResponse.message?.includes('인증')) {
+          localStorage.removeItem('access_token');
+          setCurrentScreen('login');
+          setIsLoadingChildData(false);
+          return;
+        }
+      }
+
+      // 아이 정보 조회
+      await refreshChildData();
+    } catch (error) {
+      console.error('로그인 완료 후 데이터 조회 중 오류:', error);
+    } finally {
+      setIsLoadingChildData(false);
+    }
+    
+    // 아이 정보 조회 완료 후 메인 화면으로 전환
     setCurrentScreen('main');
   };
 
@@ -318,6 +357,16 @@ export default function Home() {
     setCurrentScreen('settings');
   };
 
+  const handleOpenRobotFace = () => {
+    console.log('로봇 얼굴 페이지로 이동');
+    setCurrentScreen('robot-face');
+  };
+
+  const handleCloseRobotFace = () => {
+    console.log('로봇 얼굴 페이지 종료');
+    setCurrentScreen('main');
+  };
+
   const handleRegisterChild = () => {
     console.log('아이 등록 페이지로 이동');
     setCurrentScreen('register-child');
@@ -413,6 +462,10 @@ export default function Home() {
     />;
   }
 
+  if (currentScreen === 'robot-face') {
+    return <RobotFaceScreen onExit={handleCloseRobotFace} />;
+  }
+
   if (currentScreen === 'settings') {
     return <SettingsScreen 
       onHome={() => setCurrentScreen('main')}
@@ -490,7 +543,8 @@ export default function Home() {
     onGuide={handleGuide}
     onSettings={handleSettings}
     onRegisterChild={handleRegisterChild}
-    hasChild={hasChild}
+  onLogoClick={handleOpenRobotFace}
+    hasChild={isLoadingChildData ? undefined : hasChild}
     childInfo={childInfo}
     childProfileImageUrl={childProfileImageUrl}
   />;
