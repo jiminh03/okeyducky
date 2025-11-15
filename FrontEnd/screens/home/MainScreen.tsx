@@ -14,7 +14,7 @@ interface MainScreenProps {
   onSettings?: () => void;
   onRegisterChild?: () => void;
   onLogoClick?: () => void;
-  hasChild?: boolean;
+  hasChild?: boolean | undefined;
   childInfo?: ChildInfo | null;
   childProfileImageUrl?: string | null;
 }
@@ -135,7 +135,14 @@ const MainScreen: React.FC<MainScreenProps> = ({
 
       {/* 메인 콘텐츠 */}
       <div className={`main-content-area ${!hasChild ? 'no-scroll' : ''}`}>
-        {!hasChild ? (
+        {hasChild === undefined ? (
+          /* 로딩 중 */
+          <div className="empty-state-container">
+            <div style={{ color: '#999', fontSize: '16px', padding: '40px 0', textAlign: 'center' }}>
+              로딩 중...
+            </div>
+          </div>
+        ) : !hasChild ? (
           /* 아이 미등록 상태 */
           <div className="empty-state-container">
             <div 
@@ -150,45 +157,56 @@ const MainScreen: React.FC<MainScreenProps> = ({
         ) : (
           /* 아이 등록 상태 */
           <>
-            {/* 프로필 카드 */}
-            <div className="profile-card">
-            <div className="profile-image">
-              {childProfileImageUrl ? (
-                <img
-                  src={childProfileImageUrl}
-                  alt={`${childInfo?.name ?? ''} 프로필 이미지`}
-                  className="profile-photo"
-                />
-              ) : childInfo?.profile_img_url ? (
-                <img
-                  src={childInfo.profile_img_url}
-                  alt={`${childInfo.name} 프로필 이미지`}
-                  className="profile-photo"
-                />
-              ) : (
-                <div className="avatar-placeholder">
-                  {childInfo?.gender === 'female' ? '👧' : '👦'}
+            {/* 프로필 카드 - childInfo가 실제로 존재할 때만 표시 */}
+            {childInfo ? (
+              <div className="profile-card">
+                <div className="profile-image">
+                  {childProfileImageUrl ? (
+                    <img
+                      src={childProfileImageUrl}
+                      alt={`${childInfo.name} 프로필 이미지`}
+                      className="profile-photo"
+                    />
+                  ) : childInfo.profile_img_url ? (
+                    <img
+                      src={childInfo.profile_img_url}
+                      alt={`${childInfo.name} 프로필 이미지`}
+                      className="profile-photo"
+                    />
+                  ) : (
+                    <div className="avatar-placeholder">
+                      {childInfo.gender === 'female' ? '👧' : '👦'}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-              <div className="profile-info">
-                <div className="profile-name">
-                  <span className="name">{childInfo?.name || '이름 없음'}</span>
-                  <span className={`gender ${childInfo?.gender === 'male' ? 'male' : 'female'}`}>
-                    {childInfo ? getGenderSymbol(childInfo.gender) : '♀'}
-                  </span>
-                </div>
-                <div className="profile-detail">
-                  {childInfo ? formatBirthDate(childInfo.birth_date) : '2017. 03. 13.'}
-                </div>
-                <div className="profile-detail">
-                  {childInfo?.school || '명덕초등학교 2학년'}
+                <div className="profile-info">
+                  <div className="profile-name">
+                    <span className="name">{childInfo.name}</span>
+                    <span className={`gender ${childInfo.gender === 'male' ? 'male' : 'female'}`}>
+                      {getGenderSymbol(childInfo.gender)}
+                    </span>
+                  </div>
+                  <div className="profile-detail">
+                    {formatBirthDate(childInfo.birth_date)}
+                  </div>
+                  {childInfo.school && (
+                    <div className="profile-detail">
+                      {childInfo.school}
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="empty-state-container">
+                <div style={{ color: '#999', fontSize: '16px', padding: '40px 0', textAlign: 'center' }}>
+                  로딩 중...
+                </div>
+              </div>
+            )}
 
-            {/* 카드 컨테이너 */}
-            <div className="cards-container">
+            {/* 카드 컨테이너 - childInfo가 있을 때만 표시 */}
+            {childInfo && (
+              <div className="cards-container">
               {/* 오늘 대화 카드 */}
               <div className="content-card today-conversation-card">
                 <div className="card-header">
@@ -250,7 +268,8 @@ const MainScreen: React.FC<MainScreenProps> = ({
                   )}
                 </div>
               </div>
-            </div>
+              </div>
+            )}
           </>
         )}
       </div>
