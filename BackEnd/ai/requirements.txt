@@ -1,0 +1,19 @@
+# Core LangChain framework
+langchain
+langchain-core
+langchain-community
+
+# OpenAI Integration
+langchain-openai
+openai
+
+# Memory & Database
+redis
+
+# Web Server & API (FastAPI)
+fastapi
+uvicorn
+pydantic
+
+# Environment Variables
+python-dotenv

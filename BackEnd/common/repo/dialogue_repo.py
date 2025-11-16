@@ -3,11 +3,11 @@ from typing import List, Optional
 from sqlalchemy.exc import IntegrityError, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select # ⬅️ [개선] SQLAlchemy 2.0+ 스타일 'select'
+from sqlalchemy import select 
 
 from common.modules.db_instance import db
 
-from common.models.dialogue_model import DailyReport, DialogueLog # ⬅️ [변경] 모델 둘 다 임포트
+from common.models.dialogue_model import DailyReport, DialogueLog 
 from common.schemas.dialogue_schema import *
 
 from common.exceptions import *
@@ -19,7 +19,7 @@ class DialogueRepo:
 
     async def create_daily_report(
         self, report: DailyReportCreate
-    ) -> DailyReportResponse: # ⬅️ [변경] 반환 타입 DTO로
+    ) -> DailyReportResponse:
         try:
             new_report = DailyReport(
                 date=report.date,
@@ -53,9 +53,8 @@ class DialogueRepo:
                 .options(selectinload(DailyReport.dialogue_logs))
             )
             result = await self.session.execute(stmt)
-            final_loaded_report = result.scalar_one() # 'DailyReport' (SQLModel) 객체
-
-            # ⬇️ [변경] SQLModel 객체를 Pydantic DTO로 변환하여 반환
+            final_loaded_report = result.scalar_one() 
+            
             return DailyReportResponse.model_validate(final_loaded_report)
         
         except IntegrityError as e:
@@ -70,9 +69,7 @@ class DialogueRepo:
         self, report_id: int, report_update: DailyReportUpdateRequest
     ) -> Optional[DailyReportResponse]: # ⬅️ [변경] 반환 타입 DTO로
         try:
-            # (참고: get_daily_report_by_id가 DTO를 반환하도록 변경되었으므로,
-            #  업데이트를 위해선 SQLModel 객체를 직접 가져오는 .get()이 필요합니다.)
-            report = await self.session.get(DailyReport, report_id) # ⬅️ [변경] .get() 사용
+            report = await self.session.get(DailyReport, report_id)
             
             if not report:
                 return None
@@ -84,8 +81,6 @@ class DialogueRepo:
             await self.session.commit()
             await self.session.refresh(report)
 
-            # ⬇️ [변경] SQLModel 객체를 Pydantic DTO로 변환하여 반환
-            # (refresh 후 dialogue_logs를 로드하기 위해 다시 조회)
             loaded_report = await self.get_daily_report_by_id(report.report_id)
             return loaded_report
         
@@ -129,7 +124,6 @@ class DialogueRepo:
 
             db_reports = result.scalars().all() # 'List[DailyReport]' (SQLModel)
 
-            # ⬇️ [변경] List[SQLModel] -> List[Pydantic DTO]로 변환
             response_list = [DailyReportResponse.model_validate(report) for report in db_reports]
             return response_list
         
@@ -148,7 +142,6 @@ class DialogueRepo:
             await self.session.commit()
             await self.session.refresh(new_log)
             
-            # ⬇️ [변경] SQLModel 객체를 Pydantic DTO로 변환하여 반환
             return DialogueLogResponse.model_validate(new_log)
         
         except IntegrityError as e:
