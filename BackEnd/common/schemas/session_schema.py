@@ -6,11 +6,13 @@ from pydantic import BaseModel
 
 
 # SessionType을 Enum으로 정의합니다.
-class SessionType(Enum):
+class SessionType(str, Enum):
     """세션 타입을 나타내는 열거형"""
 
     PARENT = "parent"  # 부모 (Parent) 세션션
     ROBOT = "robot"  # 로봇 (Robot) 세션
+    AI_SERV = "ai_serv"  # AI 서버
+    ROBOT_HEAD = "robot_head"  # 로봇 머리
 
 
 class ConnectionInfo:

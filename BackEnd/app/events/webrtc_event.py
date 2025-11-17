@@ -1,7 +1,5 @@
 from typing import Dict, Optional
 
-# SessionInfo를 세션 객체의 실제 타입으로 가정하고 추가했습니다.
-# 만약 타입이 다르다면 실제 타입으로 변경해주세요.
 from common.schemas.session_schema import ConnectionInfo, SessionType 
 from common.modules.session_manager import SessionManager
 from common.modules.webrtc_manager import WebRTCManager

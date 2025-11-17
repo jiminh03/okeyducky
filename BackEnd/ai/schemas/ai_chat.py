@@ -1,11 +1,9 @@
 from pydantic import BaseModel
 
+from common.schemas.dialogue_schema import DialogueLogBase
 
-class ChildStartRequest(BaseModel):
+class ChildStartRequest(DialogueLogBase):
     child_id: str
-    text: str
 
-
-class ParentStartRequest(BaseModel):
+class ParentStartRequest(DialogueLogBase):
     child_id: str
-    text: str

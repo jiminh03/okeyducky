@@ -15,6 +15,9 @@ from common.schemas.user_schema import RobotTokenPayload, TokenPayload
 async def connect(sid, environ, auth: Dict[str, str]):
     print(f"✅ [연결 시도] 클라이언트 접속. sid: {sid}")
 
+    if auth.get("session_type") is SessionType.AI_SERV:
+        return
+
     redis_client = await red.get_redis_client()
     session_manager = SessionManager(redis_client=redis_client)
 

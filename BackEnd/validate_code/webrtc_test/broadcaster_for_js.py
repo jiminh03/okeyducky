@@ -74,6 +74,7 @@ class PyAudioStreamTrack(AudioStreamTrack):
         self.stream = self.p.open(
             format=FORMAT, channels=CHANNELS, rate=RATE,
             input=True, frames_per_buffer=FRAMES_PER_BUFFER,
+            input_device_index=1
         )
         self.samples_per_frame = int(RATE * AUDIO_PTIME)
         logger.info("PyAudioStreamTrack initialized (mic input)")
