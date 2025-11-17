@@ -2,10 +2,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 const DEFAULT_SOCKET_URL = process.env.NEXT_PUBLIC_ROBOT_FACE_SOCKET_URL || 'https://k13a408.p.ssafy.io';
-const DEFAULT_SOCKET_NAMESPACE = process.env.NEXT_PUBLIC_ROBOT_FACE_SOCKET_NAMESPACE || '/robot-face';
 const DEFAULT_SOCKET_PATH = process.env.NEXT_PUBLIC_ROBOT_FACE_SOCKET_PATH || '/socket.io';
-const DEFAULT_EMOTION_EVENT = process.env.NEXT_PUBLIC_ROBOT_FACE_EVENT || 'robot-face:emotion';
 const DEFAULT_REGISTER_EVENT = process.env.NEXT_PUBLIC_ROBOT_FACE_REGISTER_EVENT || 'robot-face:register';
+
+const ConnectEvents = {
+  AUTH_SUCCESS: 'auth_success',
+  AUTH_FAILURE: 'auth_failure',
+} as const;
+
+// 백엔드 FaceEvent Enum에 대응하는 이벤트 이름
+export enum FaceEvent {
+  FACE_NORMAL = 'server:face_normal',
+  FACE_TALKING = 'server:face_talking',
+  FACE_HEART = 'server:face_heart',
+  FACE_SAD = 'server:face_sad',
+}
 
 export type RobotEmotion = 'neutral' | 'happy' | 'sad';
 
@@ -64,29 +75,72 @@ export const useRobotFaceSocket = (options?: UseRobotFaceSocketOptions): UseRobo
   const registerHandlers = useCallback(
     (socket: Socket) => {
       socket.on('connect', () => {
+        console.log('✅ [로봇 표정 소켓] 연결 성공');
         setStatus('open');
         setError(null);
+      });
+
+      socket.on(ConnectEvents.AUTH_SUCCESS, () => {
+        console.log('🔑 [로봇 표정 소켓] 인증 성공');
         socket.emit(DEFAULT_REGISTER_EVENT, { head });
       });
 
+      socket.on(ConnectEvents.AUTH_FAILURE, (message) => {
+        const errorMsg = typeof message === 'string' ? message : '인증에 실패했습니다. 다시 로그인해주세요.';
+        console.error('❌ [로봇 표정 소켓] 인증 실패:', errorMsg);
+        setError(errorMsg);
+        setStatus('error');
+      });
+
       socket.on('disconnect', () => {
+        console.log('🔌 [로봇 표정 소켓] 연결 종료');
         setStatus('closed');
       });
 
       socket.on('connect_error', err => {
-        console.error('로봇 표정 소켓 연결 오류:', err);
-        setError(err?.message ?? '웹소켓 연결 중 오류가 발생했습니다.');
+        const errorInfo = err as { message?: string; description?: unknown; data?: unknown; type?: string };
+        const errorMessage = errorInfo?.message || err?.toString() || '알 수 없는 오류';
+        console.error('❌ [로봇 표정 소켓] 연결 오류:', {
+          message: errorMessage,
+          error: err,
+          type: errorInfo?.type,
+          description: errorInfo?.description,
+          data: errorInfo?.data,
+        });
+        setError(`웹소켓 연결 실패: ${errorMessage}`);
         setStatus('error');
       });
 
-      socket.on(DEFAULT_EMOTION_EVENT, (payload: RobotFacePayload) => {
-        setLastPayload(payload);
-        if (payload?.emotion) {
-          setEmotion(payload.emotion);
-        }
-        if (payload?.speaking !== undefined) {
-          setSpeaking(payload.speaking);
-        }
+      // 백엔드 FaceEvent 이벤트들 리스닝
+      socket.on(FaceEvent.FACE_NORMAL, () => {
+        console.log('😐 [로봇 표정] 평소 얼굴');
+        setEmotion('neutral');
+        setSpeaking(false);
+        setLastPayload({ emotion: 'neutral', speaking: false });
+        setLastUpdated(Date.now());
+      });
+
+      socket.on(FaceEvent.FACE_TALKING, () => {
+        console.log('🗣️ [로봇 표정] 말하는 얼굴');
+        setEmotion('neutral');
+        setSpeaking(true);
+        setLastPayload({ emotion: 'neutral', speaking: true });
+        setLastUpdated(Date.now());
+      });
+
+      socket.on(FaceEvent.FACE_HEART, () => {
+        console.log('❤️ [로봇 표정] 하트눈 얼굴');
+        setEmotion('happy');
+        setSpeaking(true);
+        setLastPayload({ emotion: 'happy', speaking: true });
+        setLastUpdated(Date.now());
+      });
+
+      socket.on(FaceEvent.FACE_SAD, () => {
+        console.log('😢 [로봇 표정] 슬픈 얼굴');
+        setEmotion('sad');
+        setSpeaking(true);
+        setLastPayload({ emotion: 'sad', speaking: true });
         setLastUpdated(Date.now());
       });
     },
@@ -112,9 +166,19 @@ export const useRobotFaceSocket = (options?: UseRobotFaceSocketOptions): UseRobo
     setError(null);
 
     const token = isBrowser ? localStorage.getItem('access_token') : null;
-    const url = `${DEFAULT_SOCKET_URL}${DEFAULT_SOCKET_NAMESPACE.startsWith('/') ? '' : '/'}${DEFAULT_SOCKET_NAMESPACE}`;
+    
+    // 토큰이 없으면 연결하지 않음
+    if (!token) {
+      console.error('❌ [로봇 표정 소켓] 토큰이 없습니다.');
+      setError('로그인이 필요합니다.');
+      setStatus('error');
+      return undefined;
+    }
 
-    const socket = io(url, {
+    console.log('🔄 [로봇 표정 소켓] 연결 시도 중...');
+    
+    // 기본 네임스페이스(/)로 연결 (백엔드에서 기본 네임스페이스만 사용)
+    const socket = io(DEFAULT_SOCKET_URL, {
       path: DEFAULT_SOCKET_PATH,
       transports: ['websocket'],
       autoConnect: false,
@@ -123,7 +187,10 @@ export const useRobotFaceSocket = (options?: UseRobotFaceSocketOptions): UseRobo
       query: {
         head: head ? 'true' : 'false',
       },
-      auth: token ? { token } : undefined,
+      auth: {
+        token,
+        session_type: 'parent', // 부모가 로봇 얼굴을 보는 것이므로 parent
+      },
     });
 
     registerHandlers(socket);
