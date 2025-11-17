@@ -4,7 +4,6 @@ import os
 from common.models.enums import Speaker
 from common.schemas.dialogue_schema import DialogueLogBase
 from common.modules.db_instance import db # ⬅️ DB 인스턴스 직접 임포트
-from app.services.dialogue_service import register_dialogue_log_manual # ⬅️ (수정) 수동 저장 함수
 
 async def trigger_ai_server_task(
     child_id: int, 
@@ -20,9 +19,9 @@ async def trigger_ai_server_task(
         return
     
     if user_speaker is Speaker.PARENT:
-        api_url = f"{AI_SERVER_URL}/parent_start/{child_id}"
+        api_url = f"{AI_SERVER_URL}/ai_chat/parent_start/{child_id}"
     elif user_speaker is Speaker.CHILD:
-        api_url = f"{AI_SERVER_URL}/child_start/{child_id}"
+        api_url = f"{AI_SERVER_URL}/ai_chat/child_start/{child_id}"
 
     ai_payload = {
         "text": user_text,
@@ -36,8 +35,10 @@ async def trigger_ai_server_task(
             response.raise_for_status() 
             
             ai_response_data = response.json()
-            ai_message = ai_response_data.get("answer", "AI 응답 파싱 실패")
-            print(f"--- 🤖 AI 서버 응답 수신: {ai_message[:50]}... ---")
+            ai_status = ai_response_data.get("status", "no status")
+            ai_message = ai_response_data.get("message", "AI 응답 파싱 실패")
+            print(f"--- 🤖 AI 서버 상태: {ai_status}... ---")
+            print(f"--- 🤖 AI 서버 응답 수신: {ai_message}... ---")
 
     except httpx.HTTPStatusError as e:
         print(f"🚨 AI 서버 HTTP 오류 (Child: {child_id}): {e}")

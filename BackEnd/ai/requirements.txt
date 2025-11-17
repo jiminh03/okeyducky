@@ -14,7 +14,7 @@ redis
 fastapi
 uvicorn
 pydantic
-python-socketio[asyncio_client]
+python-socketio[client]
 asyncmy
 
 # Environment Variables

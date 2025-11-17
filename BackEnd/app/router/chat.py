@@ -6,7 +6,9 @@ from common.schemas.dialogue_schema import ChatRequest
 # (가정) Speaker Enum 임포트 (라우터가 사용해야 함)
 from common.models.enums import Speaker 
 
-from ai.ai_service.chat_service import trigger_ai_server_task 
+from app.services.chat_service import trigger_ai_server_task
+
+
 
 # --- 라우터 생성 ---
 router = APIRouter(

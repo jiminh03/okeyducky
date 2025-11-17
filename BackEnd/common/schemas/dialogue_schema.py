@@ -42,3 +42,6 @@ class DailyReportCreate(DailyReportBase):
 class DailyReportUpdateRequest(BaseModel):
     daily_summary: Optional[str] = None
     analysis_summary: Optional[str] = None
+
+class ChatRequest(BaseModel):
+    text: str

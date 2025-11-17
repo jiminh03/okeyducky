@@ -14,9 +14,12 @@ from common.schemas.user_schema import RobotTokenPayload, TokenPayload
 @sio.on(ConnectEvents.CONNECT)
 async def connect(sid, environ, auth: Dict[str, str]):
     print(f"✅ [연결 시도] 클라이언트 접속. sid: {sid}")
-
-    if auth.get("session_type") is SessionType.AI_SERV:
-        return
+    print(f"--- auth data: {auth} ---")
+    
+    if auth.get("session_type") == SessionType.AI_SERV.value:
+        print(f"🤖 [AI 서버] 연결 확인됨. 인증을 생략합니다. sid: {sid}")
+        await sio.emit(ConnectEvents.AUTH_SUCCESS, to=sid)
+        return # <-- 이제 이 return이 정상적으로 실행됩니다.
 
     redis_client = await red.get_redis_client()
     session_manager = SessionManager(redis_client=redis_client)

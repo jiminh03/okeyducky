@@ -27,11 +27,13 @@ from app.router import child
 from app.router import dialogue
 from app.router import parent
 from app.router import robot
+from app.router import chat
 
 from app.modules.websocket_module import sio
 
 from app.events.connection_event import *
 from app.events.webrtc_event import *
+from app.events.tts_event import *
 
 from common.modules.db_instance import db, red
 import socketio
@@ -153,6 +155,7 @@ app.include_router(child.router)
 app.include_router(robot.router)
 app.include_router(dialogue.router)
 app.include_router(auth.router)
+app.include_router(chat.router)
 
 IS_DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 if IS_DEBUG:

@@ -30,7 +30,10 @@ from common.modules.db_instance import db
 from ai.routers import ai_chat, ai_report
 
 # 웹소켓
-from ai.websocket import sio
+from ai.websocket import sio_ai
+
+from ai.request import *
+
 from common.schemas.session_schema import SessionType
 
 BASE_URL = os.getenv("BACKEND_URL")
@@ -56,10 +59,10 @@ async def lifespan(app: FastAPI):
     async def connect_to_be():
         while True:
             try:
-                await sio.connect(
+                await sio_ai.connect(
                     BASE_URL, 
                     transports=['websocket'], 
-                    auth={"session_type": SESSION_TYPE, 'token': "ai"}
+                    auth={"session_type": SESSION_TYPE, 'token': "ai"},
                 )
                 break # 연결 성공 시 루프 탈출
             except socketio.exceptions.ConnectionError as e:
@@ -67,14 +70,14 @@ async def lifespan(app: FastAPI):
                 await asyncio.sleep(5)
     
     # 백그라운드에서 BE 서버 연결 및 대기 시작
-    # sio.wait()는 connect_to_be 안에서 실행되어야 함
+    # sio_ai.wait()는 connect_to_be 안에서 실행되어야 함
     asyncio.create_task(connect_to_be())
     
     yield # 즉시 FastAPI 앱 시작
     
     # --- 종료 로직 ---
-    if sio.sid:
-        await sio.disconnect()
+    if sio_ai.sid:
+        await sio_ai.disconnect()
     print("--- FastAPI app shutdown. ---")
 
 # FastAPI 앱 인스턴스 생성

@@ -10,8 +10,9 @@ from ai.ai_service.chat_service import (
     process_parent_interaction,
 )
 from ai.schemas.ai_chat import ChildStartRequest, ParentStartRequest
-from ai.services.dialogue_service import register_dialogue_log
+from ai.services.dialogue_service import register_child_dialogue, register_dialogue_log, register_parent_dialogue
 from common.schemas.dialogue_schema import (
+    ChatRequest,
     DailyReportCreate,
     DailyReportUpdateRequest,
     DailyReportResponse,
@@ -31,8 +32,7 @@ from ai.providers.dialogue_providers import (
 
 from pydantic import BaseModel
 
-class ChatRequest(BaseModel):
-    text: str
+
 
 router = APIRouter(
     prefix="/ai_chat",
@@ -47,18 +47,14 @@ async def parent_chat(
     child_id: int,
     request_data: ChatRequest,
     background_tasks: BackgroundTasks,
-    save_log_service=Depends(register_dialogue_log),
+    parent_log=Depends(register_parent_dialogue),
 ):
-    await save_log_service(
-        log=DialogueLogBase(message=request_data.text, speaker="parent"),
-        child_id=child_id,
-    )
 
     # C. [작업 위임] 백그라운드 작업 추가 (부모 로직)
     background_tasks.add_task(process_parent_interaction, child_id, request_data.text,)
 
     # D. 즉시 응답
-    return {"status": "queued", "message": "Parent message is being sent to the robot."}
+    return {"status": "queued", "message": f"{parent_log} is being sent to the robot."}
 
 
 # --- 2. 아이 발화 라우터 ---
@@ -67,20 +63,15 @@ async def child_chat(
     child_id: int,
     request_data: ChatRequest,
     background_tasks: BackgroundTasks,
-    save_log_service=Depends(register_dialogue_log),
+    child_log=Depends(register_child_dialogue),
 ):
-    await save_log_service(
-        log=DialogueLogBase(message=request_data.text, speaker="parent"),
-        child_id=child_id,
-    )
 
     # C. [작업 위임] 백그라운드 작업 추가 (아이 로직 + 서비스 의존성 전달)
     background_tasks.add_task(
         process_child_interaction,
         child_id,
-        request_data.text,
-        save_log_service,  # 나중에 로봇 응답 저장용으로 전달
+        request_data.text
     )
 
     # D. 즉시 응답
-    return {"status": "processing", "message": "AI is thinking..."}
+    return {"status": "processing", "message": f"AI is thinking about {child_log}..."}
