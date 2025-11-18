@@ -18,6 +18,7 @@ from common.schemas.session_schema import ConnectionInfo, SessionType  # (가정
 class SessionKeyType(str, Enum):
     SID = "sid"
     ROBOT_ID = "robot_id"
+    ROBOT_HEAD_ID = "robot_head_id"
     PARENT_ID = "parent_id"
 
 
@@ -49,7 +50,9 @@ class SessionManager:
 
                 # 'set' 대신 'setex' (Set with Expiry) 사용
                 pipe.setex(sid_key, self.SESSION_EXPIRE_SECONDS, session_data_json)
-                logger.info(f"[SETEX] {sid_key} (Expires: {self.SESSION_EXPIRE_SECONDS}s)")
+                logger.info(
+                    f"[SETEX] {sid_key} (Expires: {self.SESSION_EXPIRE_SECONDS}s)"
+                )
 
                 if session_info.session_type == SessionType.ROBOT:
                     robot_id_key = self._get_key(
@@ -66,7 +69,15 @@ class SessionManager:
                     pipe.setex(
                         parent_id_key, self.SESSION_EXPIRE_SECONDS, session_info.sid
                     )
-                    logger.info(f"[SETEX-INDEX] {parent_id_key} -> {session_info.sid}")                    
+                    logger.info(f"[SETEX-INDEX] {parent_id_key} -> {session_info.sid}")
+                elif session_info.session_type == SessionType.ROBOT_HEAD:
+                    robot_head_id_key = self._get_key(
+                        SessionKeyType.ROBOT_HEAD_ID, session_info.id
+                    )
+                    pipe.setex(
+                        robot_head_id_key, self.SESSION_EXPIRE_SECONDS, session_info.sid
+                    )
+                    logger.info(f"[SETEX-INDEX] {robot_head_id_key} -> {session_info.sid}")
 
                 await pipe.execute()
             logger.info(f"--- 세션 생성이 완료되었습니다 (SID: {session_info.sid}) ---")
@@ -98,7 +109,9 @@ class SessionManager:
             sid = await self.redis_client.get(robot_id_key)
 
             if not sid:
-                logger.info(f"(robot_id: {robot_id}) -> 해당 인덱스를 찾을 수 없습니다.")
+                logger.info(
+                    f"(robot_id: {robot_id}) -> 해당 인덱스를 찾을 수 없습니다."
+                )
                 return None
 
             logger.info(
@@ -117,7 +130,9 @@ class SessionManager:
             return ConnectionInfo.from_dict(json.loads(session_data_json))
 
         except redis.RedisError as e:
-            logger.info(f"🚨 Redis get_session_by_robot_id 실패 (RobotID: {robot_id}): {e}")
+            logger.info(
+                f"🚨 Redis get_session_by_robot_id 실패 (RobotID: {robot_id}): {e}"
+            )
             return None
 
     async def get_session_by_parent_id(
@@ -129,7 +144,9 @@ class SessionManager:
             sid = await self.redis_client.get(parent_id_key)
 
             if not sid:
-                logger.info(f"(parent_id: {parent_id}) -> 해당 인덱스를 찾을 수 없습니다.")
+                logger.info(
+                    f"(parent_id: {parent_id}) -> 해당 인덱스를 찾을 수 없습니다."
+                )
                 return None
 
             logger.info(
@@ -151,11 +168,45 @@ class SessionManager:
                 f"🚨 Redis get_session_by_parent_id 실패 (ParentID: {parent_id}): {e}"
             )
             return None
+    
+    async def get_session_by_robot_head_id(
+        self, robot_head_id: int
+    ) -> Optional[ConnectionInfo]:
+        """Robot Head ID 인덱스를 조회한 후, SID로 세션 정보를 조회합니다."""
+        robot_head_id_key = self._get_key(SessionKeyType.ROBOT_HEAD_ID, robot_head_id)
+        try:
+            sid = await self.redis_client.get(robot_head_id_key)
+
+            if not sid:
+                logger.info(
+                    f"(robot_head_id: {robot_head_id}) -> 해당 인덱스를 찾을 수 없습니다."
+                )
+                return None
+
+            logger.info(
+                f"(robot_head_id: {robot_head_id}) -> sid({sid})를 찾았습니다. 세부 정보를 조회합니다."
+            )
+            sid_key = self._get_key(SessionKeyType.SID, sid)
+            session_data_json = await self.redis_client.get(sid_key)
+
+            if not session_data_json:
+                logger.info(
+                    f"⚠️ 데이터 불일치! (robot_head_id: {robot_head_id}) -> (sid: {sid})를 찾았으나, 실제 세션 데이터가 없습니다."
+                )
+                return None
+            
+            return ConnectionInfo.from_dict(json.loads(session_data_json))
+
+        except redis.RedisError as e:
+            logger.info(
+                f"🚨 Redis get_session_by_parent_id 실패 (ParentID: {robot_head_id}): {e}"
+            )
+            return None
 
     async def delete_session(self, session_info: ConnectionInfo) -> bool:
         """
         'ConnectionInfo' 객체를 직접 받아 불필요한 GET 요청을 제거합니다.
-        """    
+        """
         if not session_info:
             logger.info("⚠️ 삭제할 세션 정보가 없습니다.")
             return False
