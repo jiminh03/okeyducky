@@ -27,5 +27,6 @@ async def request_tts(sentence)->HttpxBinaryResponseContent:
     return _client.audio.speech.create(
         model=MODEL,
         voice=VOICE,
-        input=sentence
+        input=sentence,
+        response_format="pcm"
     )

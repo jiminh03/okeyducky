@@ -1,3 +1,5 @@
+from loguru import logger
+
 import os
 from dotenv import load_dotenv
 # .env 파일 로드
@@ -184,11 +186,11 @@ async def on_cast_accepted(data: Dict[str, Any]):
     @pc.on("connectionstatechange")
     async def on_connectionstatechange():
         # 현재 연결 상태를 로그로 남깁니다.
-        print(f"Connection state is {pc.connectionState}")
+        logger.info(f"Connection state is {pc.connectionState}")
 
         # 연결이 끊기거나 실패한 상태에서는 transport에 접근하지 않고 함수를 종료합니다.
         if pc.connectionState in ["failed", "disconnected", "closed"]:
-            print("Connection closed or failed.")
+            logger.info("Connection closed or failed.")
             return
 
         # "connected" 또는 "connecting" 상태일 때
@@ -197,13 +199,13 @@ async def on_cast_accepted(data: Dict[str, Any]):
             try:
                 selected_pair = pc.sctp.transport.transport.getSelectedCandidatePair()
                 if selected_pair:
-                    print(f"Selected pair: {selected_pair.local.ip} <-> {selected_pair.remote.ip}")
+                    logger.info(f"Selected pair: {selected_pair.local.ip} <-> {selected_pair.remote.ip}")
             except Exception as e:
                 # getSelectedCandidatePair()가 실패할 경우를 대비
-                print(f"Error getting selected pair: {e}")
+                logger.info(f"Error getting selected pair: {e}")
         else:
             # "connecting" 상태와 같이 아직 transport가 설정되지 않은 경우일 수 있습니다.
-            print("SCTP transport not yet available.")
+            logger.info("SCTP transport not yet available.")
 
     @pc.on("iceconnectionstatechange")
     def on_iceconnectionstatechange():
@@ -264,15 +266,15 @@ async def main():
     
     # 1. (요청대로) HTTP로 먼저 로그인하여 토큰/ID 획득
     try:
-        print("--- [HTTP 1] 부모 로그인 (토큰 획득) ---")
+        logger.info("--- [HTTP 1] 부모 로그인 (토큰 획득) ---")
         log_data = {"email": TEST_EMAIL, "password": TEST_PASSWORD}
         resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/auth/login", json=log_data)
         assert resp.status_code == 200, f"로그인 실패: {resp.text}"
         ACCESS_TOKEN = resp.json()["access_token"]
-        print(f"✅ 부모 로그인 성공 (Token: {ACCESS_TOKEN[:10]}...)")
+        logger.info(f"✅ 부모 로그인 성공 (Token: {ACCESS_TOKEN[:10]}...)")
         
         # (가정) 자녀 목록을 조회하여 연결할 로봇 ID 획득
-        print("--- [HTTP 2] 자녀/로봇 ID 획득 ---")
+        logger.info("--- [HTTP 2] 자녀/로봇 ID 획득 ---")
         resp = http_client.get(f"{BASE_URL}{DEBUG_PREFIX}/child/list", headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
         assert resp.status_code == 200, f"자녀 목록 조회 실패: {resp.text}"
         children = resp.json()
@@ -280,11 +282,11 @@ async def main():
         robot = resp.json()
         
         if not robot or not robot.get("robot_id"):
-             print(f"🚨 오류: {TEST_EMAIL} 계정에 로봇이 연결된 자녀가 없습니다.")
+             logger.info(f"🚨 오류: {TEST_EMAIL} 계정에 로봇이 연결된 자녀가 없습니다.")
              return
         
         ROBOT_ID = robot.get("robot_id")
-        print(f"✅ 통화 대상 로봇 ID 획득: {ROBOT_ID}")
+        logger.info(f"✅ 통화 대상 로봇 ID 획득: {ROBOT_ID}")
 
     except requests.exceptions.ConnectionError:
         logger.error(f"HTTP 연결 실패. '{BASE_URL}' 서버가 실행 중인지 확인하세요.")

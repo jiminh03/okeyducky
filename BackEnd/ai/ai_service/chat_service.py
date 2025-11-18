@@ -1,3 +1,5 @@
+from loguru import logger
+
 import asyncio
 import re
 from typing import Callable, Awaitable
@@ -61,19 +63,14 @@ async def process_child_interaction(
 
         # 2. [Task 2] AI 답변 DB에 저장
         if full_response_buffer:
-            print(f"[DB 저장] AI 응답: {full_response_buffer}")
+            logger.info(f"[DB 저장] AI 응답: {full_response_buffer}")
             await save_log_service(
                 log=DialogueLogBase(message=full_response_buffer, speaker="robot"),
                 child_id=child_id,
             )
 
     except Exception as e:
-        print(f"[AI Error] process_child_interaction 실패: {e}")
-        # (선택) 에러 발생 시 DB에 에러 로그 저장
-        await save_log_service(
-            log=DialogueLogBase(message=f"AI 응답 생성 실패: {e}", speaker="error"),
-            child_id=child_id,
-        )
+        logger.info(f"[AI Error] process_child_interaction 실패: {e}")
 
 
 # --- 2. 부모 발화 처리 (메모리 주입 -> TTS) ---
@@ -89,7 +86,7 @@ async def process_parent_interaction(child_id: int, parent_text: str):
         history.add_message(HumanMessage(content=f"[부모님의 메시지]: {parent_text}"))
 
         # 2. [Task 1] TTS 스트리밍 시작 (큐에 제출)
-        print(f"[TTS 제출] 부모 발화: {parent_text}")
+        logger.info(f"[TTS 제출] 부모 발화: {parent_text}")
         asyncio.create_task(tts_service.submit_task(child_id_str, parent_text))
     except Exception as e:
-        print(f"[TTS Error] process_parent_interaction 실패: {e}")
+        logger.info(f"[TTS Error] process_parent_interaction 실패: {e}")

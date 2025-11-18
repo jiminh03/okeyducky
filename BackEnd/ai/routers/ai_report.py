@@ -1,3 +1,5 @@
+from loguru import logger
+
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 import asyncio
 from datetime import date
@@ -39,7 +41,7 @@ async def update_daily_report(
     AI로부터 리포트를 생성하고, 오늘 날짜의 DB 레코드에 업데이트합니다.
     """
 
-    print(f"AI 리포트 생성 중... (Child ID: {child_id})")
+    logger.info(f"AI 리포트 생성 중... (Child ID: {child_id})")
     ai_content = await create_daily_report(str(child_id))
 
     # --- 3. DB 저장을 위해 데이터 가공 ---
@@ -70,8 +72,8 @@ async def update_daily_report(
         report_id = new_report.report_id
 
     # B. AI가 생성한 내용으로 리포트 업데이트 (dialogue_service.update_daily_report 로직)
-    print(f"DB에 리포트 저장 중... (Report ID: {report_id})")
+    logger.info(f"DB에 리포트 저장 중... (Report ID: {report_id})")
     updated_report = await update_daily_report_svc(report_id, update_payload)
 
-    print("리포트 생성 및 저장 완료.")
+    logger.info("리포트 생성 및 저장 완료.")
     return updated_report

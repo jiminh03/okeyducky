@@ -1,3 +1,5 @@
+from loguru import logger
+
 from dotenv import load_dotenv
 # .env 파일 로드 (가장 먼저 실행)
 load_dotenv()
@@ -43,16 +45,16 @@ SESSION_TYPE = SessionType.AI_SERV.value
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """애플리케이션 시작과 종료 시 처리할 로직"""
-    print("--- AI Server startup: creating DB tables... ---")
+    logger.info("--- AI Server startup: creating DB tables... ---")
     await db.create_db_and_tables()
-    print("--- DB tables created successfully. ---")
+    logger.info("--- DB tables created successfully. ---")
 
     # Redis 연결 확인
     try:
         await red.ping()
-        print("--- Redis connect successfully. ---")
+        logger.info("--- Redis connect successfully. ---")
     except redis.exceptions.ConnectionError as e:
-        print(f"--- Redis connect fail: {e} ---")
+        logger.info(f"--- Redis connect fail: {e} ---")
         exit() # Redis 연결 실패 시 앱 종료
 
     # [수정] BE 서버에 비동기(논블로킹) 연결
@@ -66,7 +68,7 @@ async def lifespan(app: FastAPI):
                 )
                 break # 연결 성공 시 루프 탈출
             except socketio.exceptions.ConnectionError as e:
-                print(f"--- BE 서버 연결 실패: {e}. 5초 후 재시도... ---")
+                logger.info(f"--- BE 서버 연결 실패: {e}. 5초 후 재시도... ---")
                 await asyncio.sleep(5)
     
     # 백그라운드에서 BE 서버 연결 및 대기 시작
@@ -78,7 +80,7 @@ async def lifespan(app: FastAPI):
     # --- 종료 로직 ---
     if sio_ai.sid:
         await sio_ai.disconnect()
-    print("--- FastAPI app shutdown. ---")
+    logger.info("--- FastAPI app shutdown. ---")
 
 # FastAPI 앱 인스턴스 생성
 app = FastAPI(lifespan=lifespan)

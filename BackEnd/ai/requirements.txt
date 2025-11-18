@@ -19,3 +19,5 @@ asyncmy
 
 # Environment Variables
 python-dotenv
+
+loguru

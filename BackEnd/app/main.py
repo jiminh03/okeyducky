@@ -1,3 +1,5 @@
+from loguru import logger
+
 from dotenv import load_dotenv
 # .env 파일 로드
 load_dotenv()
@@ -50,19 +52,19 @@ from common.exceptions import CustomException, DatabaseError, IntegrityViolation
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """애플리케이션 시작과 종료 시 처리할 로직"""
-    print("--- FastAPI app startup: creating DB tables... ---")
+    logger.info("--- FastAPI app startup: creating DB tables... ---")
     await db.create_db_and_tables()
-    print("--- DB tables created successfully. ---")
+    logger.info("--- DB tables created successfully. ---")
 
     # 연결 확인
     try:
         await red.ping()
-        print("Redis connect successfully")
+        logger.info("Redis connect successfully")
     except redis.exceptions.ConnectionError as e:
-        print(f"Redis connect fail: {e}")
+        logger.info(f"Redis connect fail: {e}")
         exit()
     yield
-    print("--- FastAPI app shutdown. ---")
+    logger.info("--- FastAPI app shutdown. ---")
 
 # FastAPI 앱 인스턴스 생성
 app = FastAPI(lifespan=lifespan)
@@ -112,9 +114,9 @@ async def custom_exception_handler(request: Request, exc: CustomException):
     # --- ⬆️ [반영된 코드] ---
 
     # 3. (요청 사항) 간단한 에러 로그 출력
-    print(f"--- ⚠️  Handled Exception ({status_code}) ---")
-    print(f"Path: {request.url.path}")
-    print(f"Error: {exc.__class__.__name__} | Detail: {exc.detail}")
+    logger.info(f"--- ⚠️  Handled Exception ({status_code}) ---")
+    logger.info(f"Path: {request.url.path}")
+    logger.info(f"Error: {exc.__class__.__name__} | Detail: {exc.detail}")
     
     # 4. 클라이언트에 HTTP 에러 응답 전송
     return JSONResponse(
@@ -132,9 +134,9 @@ async def generic_exception_handler(request: Request, exc: Exception):
     'CustomException'이 아닌, 예상치 못한 모든 오류를 처리합니다.
     """
     
-    print(f"--- 🚨 UNHANDLED Exception (500) ---")
-    print(f"Path: {request.url.path}")
-    print(f"Error: {exc.__class__.__name__} | Detail: {str(exc)}")
+    logger.info(f"--- 🚨 UNHANDLED Exception (500) ---")
+    logger.info(f"Path: {request.url.path}")
+    logger.info(f"Error: {exc.__class__.__name__} | Detail: {str(exc)}")
     
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -159,11 +161,11 @@ app.include_router(chat.router)
 
 IS_DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 if IS_DEBUG:
-    print("--- ⚠️  디버그/검증용 라우터를 포함합니다. ---")
+    logger.info("--- ⚠️  디버그/검증용 라우터를 포함합니다. ---")
     app.include_router(debug_repo)
     app.include_router(manual_debug_router)
 else:
-    print("--- 릴리즈 모드로 실행합니다. (디버그 라우터 제외) ---")
+    logger.info("--- 릴리즈 모드로 실행합니다. (디버그 라우터 제외) ---")
 
 # Socket.IO 앱을 FastAPI 앱에 마운트
 # 이 한 줄이 '/socket.io' 경로로 들어오는

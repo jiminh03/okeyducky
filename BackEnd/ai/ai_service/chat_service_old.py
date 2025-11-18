@@ -1,3 +1,5 @@
+from loguru import logger
+
 import asyncio
 from typing import Callable, Awaitable
 from dotenv import load_dotenv
@@ -36,7 +38,7 @@ async def run_chat_with_parsing(
                         full_response_buffer += " "
                     full_response_buffer += clean_sentence
 
-                    print(f"\n   [AI 파서] ➡️  TTS 큐에 제출: '{clean_sentence}'")
+                    logger.info(f"\n   [AI 파서] ➡️  TTS 큐에 제출: '{clean_sentence}'")
                     
                     # [호출 방식]
                     # await tts_func(...) : 큐에 put()하는 것을 기다림 (잠깐 블로킹)
@@ -46,7 +48,7 @@ async def run_chat_with_parsing(
                         tts_func(child_id, clean_sentence)
                     )
                     
-                    print("🐥 오리(Raw): ", end="", flush=True)
+                    logger.info("🐥 오리(Raw): ", end="", flush=True)
 
             sentence_buffer = parts[-1].lstrip()
 
@@ -57,11 +59,11 @@ async def run_chat_with_parsing(
             full_response_buffer += " "
         full_response_buffer += final_part
         
-        print(f"\n   [AI 파서] ➡️  TTS 큐에 제출(나머지): '{final_part}'")
+        logger.info(f"\n   [AI 파서] ➡️  TTS 큐에 제출(나머지): '{final_part}'")
         # 마지막 문장도 큐에 제출
         asyncio.create_task(
             tts_func(child_id, final_part)
         )
 
-    print("\n" + "-" * 50)
-    print(f"💾 [DB 저장용 전체 텍스트]: {full_response_buffer}")
+    logger.info("\n" + "-" * 50)
+    logger.info(f"💾 [DB 저장용 전체 텍스트]: {full_response_buffer}")

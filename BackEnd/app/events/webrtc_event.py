@@ -23,7 +23,7 @@ async def _get_session_info(
     elif client_type == SessionType.ROBOT.value:
         session_info = await sess_man.get_session_by_robot_id(client_id)
     else:
-        print(f"{client_type} client type not exist")
+        logger.info(f"{client_type} client type not exist")
 
     return session_info
 
@@ -31,7 +31,7 @@ async def _get_session_info(
 # WebRTC 요청 및 요청 알림 이벤트
 @sio.on(WebRTCEvents.REQUEST_CAST)
 async def on_request_cast(sid, opp_clnt_type: SessionType, opp_clnt_id: int):
-    print(f"WebRTC log: Requesting Cast ,sid: {sid}")
+    logger.info(f"WebRTC log: Requesting Cast ,sid: {sid}")
     redis_client = await red.get_redis_client()
     sess_man = SessionManager(redis_client)
     requested_session_info = await _get_session_info(
@@ -46,7 +46,7 @@ async def on_request_cast(sid, opp_clnt_type: SessionType, opp_clnt_id: int):
 
 @sio.on(WebRTCEvents.ACCPET_REQUEST)
 async def on_request_cast(sid, opp_clnt_type: SessionType, opp_clnt_id: int):
-    print(f"WebRTC log: Cast Accepted ,sid: {sid}")
+    logger.info(f"WebRTC log: Cast Accepted ,sid: {sid}")
     redis_client = await red.get_redis_client()
     sess_man = SessionManager(redis_client) 
     requested_session_info = await _get_session_info(sess_man, opp_clnt_type, opp_clnt_id)
@@ -60,7 +60,7 @@ async def on_request_cast(sid, opp_clnt_type: SessionType, opp_clnt_id: int):
 
 @sio.on(WebRTCEvents.READY_FOR_OFFER)
 async def on_ready_for_offer(sid, opp_clnt_type: SessionType, opp_clnt_id: int):
-    print(f"WebRTC log: Ready for Offer ,sid: {sid}")
+    logger.info(f"WebRTC log: Ready for Offer ,sid: {sid}")
     redis_client = await red.get_redis_client()
     sess_man = SessionManager(redis_client) 
     requested_session_info = await _get_session_info(sess_man, opp_clnt_type, opp_clnt_id)
@@ -78,7 +78,7 @@ async def on_ready_for_offer(sid, opp_clnt_type: SessionType, opp_clnt_id: int):
 @sio.on(WebRTCEvents.SEND_OFFER)
 async def on_send_offer(sid, offer_clnt_type: SessionType, offer_clnt_id: int, offer_data: Dict[str, str]):
     """(로봇 -> 서버) 로봇이 Offer를 등록하는 이벤트"""
-    print(f"WebRTC log: Sending Offer ,sid: {sid}")
+    logger.info(f"WebRTC log: Sending Offer ,sid: {sid}")
     redis_client = await red.get_redis_client()
 
     sess_man = SessionManager(redis_client) 
@@ -91,7 +91,7 @@ async def on_send_offer(sid, offer_clnt_type: SessionType, offer_clnt_id: int, o
 @sio.on(WebRTCEvents.SEND_ANSWER)
 async def on_send_answer(sid, offer_clnt_type: SessionType, offer_clnt_id: int, answer_data: Dict[str, str]):
     """(FE -> 서버) FE가 Answer를 제출하는 이벤트"""
-    print(f"WebRTC log: Sending Answer ,sid: {sid}")
+    logger.info(f"WebRTC log: Sending Answer ,sid: {sid}")
     redis_client = await red.get_redis_client()
     sess_man = SessionManager(redis_client) 
     session_info= await _get_session_info(sess_man, offer_clnt_type, offer_clnt_id)
@@ -102,7 +102,7 @@ async def on_send_answer(sid, offer_clnt_type: SessionType, offer_clnt_id: int, 
 @sio.on(WebRTCEvents.SEND_ICE_CANDIDATE)
 async def on_send_ice_candidate(sid, opp_clnt_type: SessionType, opp_clnt_id: int ,data):
     """(로봇/FE -> 서버) ICE Candidate를 중계하는 이벤트"""
-    print(f"WebRTC log: ice exchange ,sid: {sid}")
+    logger.info(f"WebRTC log: ice exchange ,sid: {sid}")
     redis_client = await red.get_redis_client()
     sess_man = SessionManager(redis_client)
     
@@ -114,9 +114,9 @@ async def on_send_ice_candidate(sid, opp_clnt_type: SessionType, opp_clnt_id: in
         if session_info:
             recv_sid = session_info.sid
             # 상대방에게 'server:new_ice_candidate' 이벤트를 보냅니다.
-            print(f"[ICE 전송] ,sid: {sid} -> {recv_sid} ICE Candidate 수신")
+            logger.info(f"[ICE 전송] ,sid: {sid} -> {recv_sid} ICE Candidate 수신")
             await sio.emit(WebRTCEvents.NEW_ICE_CANDIDATE, data, to=recv_sid)
         else:
-            print(f"{opp_clnt_type} {opp_clnt_id} session_info not exist")
+            logger.info(f"{opp_clnt_type} {opp_clnt_id} session_info not exist")
     else:
-        print("data not exist")
+        logger.info("data not exist")

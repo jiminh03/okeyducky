@@ -1,3 +1,5 @@
+from loguru import logger
+
 import requests
 import time
 import sys
@@ -26,10 +28,16 @@ http_client = requests.Session()
 sio_robot = socketio.Client(http_session=http_client, logger=True, engineio_logger=True)
 
 # --- 오디오 스트림 설정 ---
-SAMPLE_RATE = 22050  # ⬅️ (중요) AI 서버가 생성하는 오디오의 Sample Rate
+SAMPLE_RATE = 24000  # ⬅️ (중요) AI 서버가 생성하는 오디오의 Sample Rate
 CHANNELS = 1
-DTYPE = "float32"  # ⬅️ (중요) AI 서버가 보내는 오디오 형식 (float32 또는 int16)
+DTYPE = "int16"  # ⬅️ (중요) AI 서버가 보내는 오디오 형식 (float32 또는 int16)
 audio_stream = None
+
+# 3. PyAudio 설정 (OpenAI PCM 기본값)
+# FORMAT = pyaudio.paInt16  # 16-bit
+# CHANNELS = 1               # 1-channel (모노)
+# RATE = 24000               # 24kHz
+# CHUNK_SIZE = 1024
 
 auth_done = threading.Event()
 stream_started = threading.Event()
@@ -40,21 +48,8 @@ stream_started = threading.Event()
 # ===================================================================
 @sio_robot.event
 def connect():
-    print("🤖 [Robot] WebSocket 연결 성공.")
-
-
-@sio_robot.event
-def auth_success():
-    print("🔑 [Robot] 'AUTH_SUCCESS' 이벤트 수신!")
-    auth_done.set()  # 메인 스레드에 "인증 완료" 신호
-
-
-# ⬇️ --- (수정 1) 'on_stream_start'가 데이터를 받아도 오류가 나지 않도록 수정 --- ⬇️
-@sio_robot.on(RobotTTSEvents.STREAM_START)
-def on_stream_start(data=None):
-    """서버(AI)가 스트림 시작을 알림"""
     global audio_stream
-    print(f"🔊 [Robot] 'STREAM_START' 수신. 오디오 스트림 준비...")
+    logger.info("🤖 [Robot] WebSocket 연결 성공.")
     try:
         audio_stream = sd.RawOutputStream(
             samplerate=SAMPLE_RATE, channels=CHANNELS, dtype=DTYPE
@@ -62,7 +57,22 @@ def on_stream_start(data=None):
         audio_stream.start()
         stream_started.set()  # ⬅️ 인자 없이 호출해야 합니다.
     except Exception as e:
-        print(f"🚨 오디오 스트림 시작 실패: {e}")
+        logger.info(f"🚨 오디오 스트림 시작 실패: {e}")
+
+
+@sio_robot.event
+def auth_success():
+    logger.info("🔑 [Robot] 'AUTH_SUCCESS' 이벤트 수신!")
+    auth_done.set()  # 메인 스레드에 "인증 완료" 신호
+
+
+# ⬇️ --- (수정 1) 'on_stream_start'가 데이터를 받아도 오류가 나지 않도록 수정 --- ⬇️
+@sio_robot.on(RobotTTSEvents.STREAM_START)
+def on_stream_start(data=None):
+    """서버(AI)가 스트림 시작을 알림"""
+
+    logger.info(f"🔊 [Robot] 'STREAM_START' 수신.")
+    
 # ⬆️ --- (수정 1) 여기까지 --- ⬆️
 
 
@@ -70,29 +80,22 @@ def on_stream_start(data=None):
 def on_audio_chunk(data: bytes):
     """서버(AI)가 보낸 오디오 청크(bytes)를 수신"""
     if audio_stream:
-        # print(f"🎧 [Robot] 'AUDIO_CHUNK' 수신 (Size: {len(data)})") # (디버깅용)
+        # logger.info(f"🎧 [Robot] 'AUDIO_CHUNK' 수신 (Size: {len(data)})") # (디버깅용)
         audio_stream.write(data)
     else:
-        print("⚠️ [Robot] 오디오 청크를 받았으나, 스트림이 준비되지 않았습니다.")
+        logger.info("⚠️ [Robot] 오디오 청크를 받았으나, 스트림이 준비되지 않았습니다.")
 
 
 @sio_robot.on(RobotTTSEvents.STREAM_END)  # ⬅️ [수신 3] tts_event.py 참조
 def on_stream_end():
     """서버(AI)가 스트림 종료를 알림"""
     global audio_stream
-    print("🏁 [Robot] 'STREAM_END' 수신. 오디오 스트림 종료.")
-    if audio_stream:
-        audio_stream.stop()
-        audio_stream.close()
-        audio_stream = None
-
-    # 테스트가 끝나면 자동으로 종료되도록 disconnect 호출
-    sio_robot.disconnect()
+    logger.info("🏁 [Robot] 'STREAM_END' 수신. 오디오 스트림 종료.")
 
 
 @sio_robot.event
 def disconnect():
-    print("🔌 [Robot] WebSocket 연결 종료.")
+    logger.info("🔌 [Robot] WebSocket 연결 종료.")
     if audio_stream:
         audio_stream.stop()
         audio_stream.close()
@@ -106,14 +109,14 @@ def main():
     try:
 
         # --- 3단계: 로봇으로 로그인 (진짜 토큰 획득) ---
-        print("--- [HTTP 3] 로봇 로그인 (토큰 획득) ---")
+        logger.info("--- [HTTP 3] 로봇 로그인 (토큰 획득) ---")
         robot_log_data = {"robot_id": ROBOT_ID, "serial_number": TEST_ROBOT_SN}
         resp = http_client.post(
             f"{BASE_URL}{DEBUG_PREFIX}/auth/login/robot", json=robot_log_data
         )
         resp.raise_for_status()
         robot_access_token = resp.json()["access_token"]
-        print(f"✅ 로봇 로그인 성공 (Token: {robot_access_token[:10]}...)")
+        logger.info(f"✅ 로봇 로그인 성공 (Token: {robot_access_token[:10]}...)")
 
         # --- 4단계: WebSocket 연결 및 인증 ---
         auth_payload = {
@@ -127,27 +130,27 @@ def main():
         if not auth_done.wait(timeout=10):
             raise RuntimeError("🤖 [Robot] 'AUTH_SUCCESS' 타임아웃")
 
-        print("✅ 로봇 인증 성공! AI 서버의 오디오 스트림 대기 중...")
+        logger.info("✅ 로봇 인증 성공! AI 서버의 오디오 스트림 대기 중...")
 
         # ⬇️ --- (수정 2) Ctrl+C에 반응하도록 'wait()' 대신 루프 사용 --- ⬇️
         while sio_robot.connected:
             time.sleep(1)
-        print("--- 테스트 종료 ---")
+        logger.info("--- 테스트 종료 ---")
         # ⬆️ --- (수정 2) 여기까지 --- ⬆️
 
     except KeyboardInterrupt:
-        print("\n--- 🛑 (Ctrl+C) 사용자 요청으로 테스트를 중단합니다. ---")
+        logger.info("\n--- 🛑 (Ctrl+C) 사용자 요청으로 테스트를 중단합니다. ---")
     except requests.exceptions.ConnectionError as e:
-        print(f"--- 🚨 연결 실패: '{e.request.url}'에 서버가 실행되고 있는지 확인하세요. ---")
+        logger.info(f"--- 🚨 연결 실패: '{e.request.url}'에 서버가 실행되고 있는지 확인하세요. ---")
     except requests.exceptions.HTTPError as e:
-        print(f"--- 🚨 HTTP 오류: {e.response.status_code} - {e.response.text} ---")
+        logger.info(f"--- 🚨 HTTP 오류: {e.response.status_code} - {e.response.text} ---")
     except Exception as e:
-        print(f"\n--- 🚨 테스트 중단: {e} ---")
+        logger.info(f"\n--- 🚨 테스트 중단: {e} ---")
         import traceback
         traceback.print_exc()
     finally:
         if sio_robot.connected:
-            print("🔌 [Robot] 연결을 정리하고 종료합니다...")
+            logger.info("🔌 [Robot] 연결을 정리하고 종료합니다...")
             sio_robot.disconnect()
 
 
