@@ -36,7 +36,7 @@ async def connect(sid, environ, auth: Dict[str, str]):
     clnt_id = None
     try:
         token_payload = crypt_module.decode_jwt_payload(session_request.token)
-        if session_request.session_type == SessionType.PARENT:
+        if session_request.session_type == SessionType.PARENT or session_request.session_type == SessionType.ROBOT_HEAD:
             clnt_id = TokenPayload.model_validate(token_payload).parent_id
         elif session_request.session_type == SessionType.ROBOT:
             clnt_id = RobotTokenPayload.model_validate(token_payload).robot_id
