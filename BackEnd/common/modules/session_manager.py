@@ -114,9 +114,9 @@ class SessionManager:
                 )
                 return None
 
-            logger.info(
-                f"(robot_id: {robot_id}) -> sid({sid})를 찾았습니다. 세부 정보를 조회합니다."
-            )
+            # logger.info(
+            #     f"(robot_id: {robot_id}) -> sid({sid})를 찾았습니다. 세부 정보를 조회합니다."
+            # )
             # 중복 로직을 피하기 위해 SID 키로 직접 조회합니다.
             sid_key = self._get_key(SessionKeyType.SID, sid)
             session_data_json = await self.redis_client.get(sid_key)
@@ -149,9 +149,9 @@ class SessionManager:
                 )
                 return None
 
-            logger.info(
-                f"(parent_id: {parent_id}) -> sid({sid})를 찾았습니다. 세부 정보를 조회합니다."
-            )
+            # logger.info(
+            #     f"(parent_id: {parent_id}) -> sid({sid})를 찾았습니다. 세부 정보를 조회합니다."
+            # )
             sid_key = self._get_key(SessionKeyType.SID, sid)
             session_data_json = await self.redis_client.get(sid_key)
 
@@ -183,9 +183,9 @@ class SessionManager:
                 )
                 return None
 
-            logger.info(
-                f"(robot_head_id: {robot_head_id}) -> sid({sid})를 찾았습니다. 세부 정보를 조회합니다."
-            )
+            # logger.info(
+            #     f"(robot_head_id: {robot_head_id}) -> sid({sid})를 찾았습니다. 세부 정보를 조회합니다."
+            # )
             sid_key = self._get_key(SessionKeyType.SID, sid)
             session_data_json = await self.redis_client.get(sid_key)
 
