@@ -13,9 +13,10 @@ const ConnectEvents = {
 // 백엔드 FaceEvent Enum에 대응하는 이벤트 이름
 export enum FaceEvent {
   FACE_NORMAL = 'server:face_normal',
-  FACE_TALKING = 'server:face_talking',
   FACE_HEART = 'server:face_heart',
   FACE_SAD = 'server:face_sad',
+  FACE_SPEAKING = 'server:face_speaking',
+  FACE_NOT_SPEAKING = 'server:face_not_speaking',
 }
 
 export type RobotEmotion = 'neutral' | 'happy' | 'sad';
@@ -40,8 +41,8 @@ interface UseRobotFaceSocketOptions {
 
 interface UseRobotFaceSocketResult {
   status: RobotFaceSocketStatus;
-  emotion: RobotEmotion;
-  speaking: boolean; // 말하는 상태
+  emotion: RobotEmotion; // 눈 상태 (neutral, happy, sad)
+  speaking: boolean; // 입 상태 (말하는/말하지 않는)
   lastPayload: RobotFacePayload | null;
   lastUpdated: number | null;
   error: string | null;
@@ -112,35 +113,45 @@ export const useRobotFaceSocket = (options?: UseRobotFaceSocketOptions): UseRobo
       });
 
       // 백엔드 FaceEvent 이벤트들 리스닝
+      // 평소, 하트눈, 슬픈 얼굴: 눈만 변경
       socket.on(FaceEvent.FACE_NORMAL, () => {
-        console.log('😐 [로봇 표정] 평소 얼굴');
+        console.log('😐 [로봇 표정] 평소 얼굴 (눈만 변경)');
         setEmotion('neutral');
-        setSpeaking(false);
-        setLastPayload({ emotion: 'neutral', speaking: false });
-        setLastUpdated(Date.now());
-      });
-
-      socket.on(FaceEvent.FACE_TALKING, () => {
-        console.log('🗣️ [로봇 표정] 말하는 얼굴');
-        setEmotion('neutral');
-        setSpeaking(true);
-        setLastPayload({ emotion: 'neutral', speaking: true });
+        // 입 상태는 변경하지 않음
+        setLastPayload({ emotion: 'neutral' });
         setLastUpdated(Date.now());
       });
 
       socket.on(FaceEvent.FACE_HEART, () => {
-        console.log('❤️ [로봇 표정] 하트눈 얼굴');
+        console.log('❤️ [로봇 표정] 하트눈 얼굴 (눈만 변경)');
         setEmotion('happy');
-        setSpeaking(true);
-        setLastPayload({ emotion: 'happy', speaking: true });
+        // 입 상태는 변경하지 않음
+        setLastPayload({ emotion: 'happy' });
         setLastUpdated(Date.now());
       });
 
       socket.on(FaceEvent.FACE_SAD, () => {
-        console.log('😢 [로봇 표정] 슬픈 얼굴');
+        console.log('😢 [로봇 표정] 슬픈 얼굴 (눈만 변경)');
         setEmotion('sad');
+        // 입 상태는 변경하지 않음
+        setLastPayload({ emotion: 'sad' });
+        setLastUpdated(Date.now());
+      });
+
+      // 말하는 얼굴, 말하지 않는 얼굴: 입만 변경
+      socket.on(FaceEvent.FACE_SPEAKING, () => {
+        console.log('🗣️ [로봇 표정] 말하는 얼굴 (입만 변경)');
         setSpeaking(true);
-        setLastPayload({ emotion: 'sad', speaking: true });
+        // 눈 상태는 변경하지 않음
+        setLastPayload({ speaking: true });
+        setLastUpdated(Date.now());
+      });
+
+      socket.on(FaceEvent.FACE_NOT_SPEAKING, () => {
+        console.log('😐 [로봇 표정] 말하지 않는 얼굴 (입만 변경)');
+        setSpeaking(false);
+        // 눈 상태는 변경하지 않음
+        setLastPayload({ speaking: false });
         setLastUpdated(Date.now());
       });
     },
