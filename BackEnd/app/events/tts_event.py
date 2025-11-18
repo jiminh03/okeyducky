@@ -98,5 +98,5 @@ async def on_audio_chunk(sid, data: dict):
         await sio.emit(
             RobotTTSEvents.AUDIO_CHUNK,
             to=requested_session_info.sid,
-            data=chunk
+            data=data
         )

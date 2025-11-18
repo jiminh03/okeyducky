@@ -1,5 +1,7 @@
 from typing import Dict, Optional
 
+from loguru import logger
+
 from common.schemas.session_schema import ConnectionInfo, SessionType 
 from common.modules.session_manager import SessionManager
 from common.modules.webrtc_manager import WebRTCManager

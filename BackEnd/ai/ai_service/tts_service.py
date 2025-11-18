@@ -35,9 +35,7 @@ async def _actual_tts_and_send(child_id: str, sentence: str):
 
 class TTSService:
     def __init__(self):
-        # {child_id: asyncio.Queue[str]}
         self.queues: Dict[str, asyncio.Queue] = {}
-        # {child_id: asyncio.Task} (워커 태스크)
         self.workers: Dict[str, asyncio.Task] = {}
 
     async def _tts_worker(self, child_id: str):

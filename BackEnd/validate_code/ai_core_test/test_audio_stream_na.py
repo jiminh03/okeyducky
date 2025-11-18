@@ -1,3 +1,4 @@
+import base64
 from loguru import logger
 import pyaudio
 import requests
@@ -25,7 +26,7 @@ TEST_ROBOT_SN = "SN-WEBRTC-WEBRTC"
 http_client = requests.Session()
 
 # --- Socket.IO 클라이언트 ---
-sio_robot = socketio.Client(http_session=http_client, logger=True, engineio_logger=True)
+sio_robot = socketio.Client(http_session=http_client, logger=True, engineio_logger=False)
 
 # --- PyAudio 설정 (OpenAI PCM 기본값) ---
 FORMAT = pyaudio.paInt16  # 16-bit
@@ -111,12 +112,14 @@ def on_stream_start(data=None):
     logger.info(f"🔊 [Robot] 'STREAM_START' 수신 (로직 무시).")
 
 @sio_robot.on(RobotTTSEvents.AUDIO_CHUNK)
-def on_audio_chunk(data: bytes):
+def on_audio_chunk(data: dict):
     """
     [수정] 청크를 큐에 쌓기만 합니다. (재생 X)
     """
     # logger.debug("🎧 [Robot] 'AUDIO_CHUNK' 수신. 큐에 저장.") # 로그가 너무 많으므로 주석 처리
-    audio_queue.put(data)
+    frame_b64 = data.get("chunk")
+    frame = base64.b64decode(frame_b64)
+    audio_queue.put(frame)
 
 @sio_robot.on(RobotTTSEvents.STREAM_END)
 def on_stream_end():
