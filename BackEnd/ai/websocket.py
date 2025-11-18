@@ -5,7 +5,7 @@ import socketio
 from common.schemas.socket_event_schema import ConnectEvents
 
 # 1. 단 하나의 'sio_ai' 인스턴스를 생성합니다.
-sio_ai = socketio.AsyncClient(logger=True, engineio_logger=True)
+sio_ai = socketio.AsyncClient(logger=False, engineio_logger=False)
 
 
 @sio_ai.event
