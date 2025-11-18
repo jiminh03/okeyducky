@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useRobotFaceSocket } from '@/services/robotFaceSocket';
+import { useRobotFaceSocket, RobotEmotion } from '@/services/robotFaceSocket';
 import './RobotFaceScreen.css';
 
 interface RobotFaceScreenProps {
@@ -27,11 +27,9 @@ const positions = {
   beak: { x: 1024, y: 1080 },
 };
 
-type EmotionType = 'neutral' | 'happy' | 'sad';
-
-const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
+ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
   const { emotion: socketEmotion, speaking: socketSpeaking } = useRobotFaceSocket({ head: true });
-  const [manualEmotion, setManualEmotion] = useState<EmotionType | null>(null);
+  const [manualEmotion, setManualEmotion] = useState<RobotEmotion | null>(null);
   const [manualSpeaking, setManualSpeaking] = useState(false);
   
   // 수동으로 선택한 emotion이 있으면 그것을 사용, 없으면 소켓에서 받은 emotion 사용
@@ -105,7 +103,7 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
         clearTimeout(blinkTimeout);
       }
     };
-  }, [isHappy]);
+  }, [isHappy, isSad]);
 
   // emotion에 따른 눈 위치 조정
   const getEyeOffset = () => {
@@ -140,7 +138,7 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
     onExit?.();
   };
 
-  const handleEmotionChange = (newEmotion: EmotionType) => {
+  const handleEmotionChange = (newEmotion: RobotEmotion) => {
     setManualEmotion(newEmotion);
   };
 
@@ -148,7 +146,7 @@ const RobotFaceScreen: React.FC<RobotFaceScreenProps> = ({ onExit }) => {
     setManualSpeaking(prev => !prev);
   };
 
-  const emotions: { value: EmotionType; label: string; emoji: string }[] = [
+  const emotions: { value: RobotEmotion; label: string; emoji: string }[] = [
     { value: 'neutral', label: '보통', emoji: '😐' },
     { value: 'happy', label: '행복', emoji: '😊' },
     { value: 'sad', label: '슬픔', emoji: '😢' },
