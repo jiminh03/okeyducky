@@ -1,3 +1,5 @@
+from loguru import logger
+
 import os
 
 import json
@@ -47,7 +49,7 @@ class SessionManager:
 
                 # 'set' 대신 'setex' (Set with Expiry) 사용
                 pipe.setex(sid_key, self.SESSION_EXPIRE_SECONDS, session_data_json)
-                print(f"[SETEX] {sid_key} (Expires: {self.SESSION_EXPIRE_SECONDS}s)")
+                logger.info(f"[SETEX] {sid_key} (Expires: {self.SESSION_EXPIRE_SECONDS}s)")
 
                 if session_info.session_type == SessionType.ROBOT:
                     robot_id_key = self._get_key(
@@ -56,7 +58,7 @@ class SessionManager:
                     pipe.setex(
                         robot_id_key, self.SESSION_EXPIRE_SECONDS, session_info.sid
                     )
-                    print(f"[SETEX-INDEX] {robot_id_key} -> {session_info.sid}")
+                    logger.info(f"[SETEX-INDEX] {robot_id_key} -> {session_info.sid}")
                 elif session_info.session_type == SessionType.PARENT:
                     parent_id_key = self._get_key(
                         SessionKeyType.PARENT_ID, session_info.id
@@ -64,12 +66,12 @@ class SessionManager:
                     pipe.setex(
                         parent_id_key, self.SESSION_EXPIRE_SECONDS, session_info.sid
                     )
-                    print(f"[SETEX-INDEX] {parent_id_key} -> {session_info.sid}")                    
+                    logger.info(f"[SETEX-INDEX] {parent_id_key} -> {session_info.sid}")                    
 
                 await pipe.execute()
-            print(f"--- 세션 생성이 완료되었습니다 (SID: {session_info.sid}) ---")
+            logger.info(f"--- 세션 생성이 완료되었습니다 (SID: {session_info.sid}) ---")
         except redis.RedisError as e:
-            print(f"🚨 Redis 세션 생성 실패 (SID: {session_info.sid}): {e}")
+            logger.info(f"🚨 Redis 세션 생성 실패 (SID: {session_info.sid}): {e}")
             # (선택) 여기서 'DatabaseError' 같은 커스텀 예외를 raise 할 수 있습니다.
 
     async def get_session_by_sid(self, sid: str) -> Optional[ConnectionInfo]:
@@ -79,14 +81,14 @@ class SessionManager:
             session_data_json = await self.redis_client.get(sid_key)
 
             if session_data_json:
-                print(f"(sid: {sid}) -> 세션을 찾았습니다.")
+                logger.info(f"(sid: {sid}) -> 세션을 찾았습니다.")
                 # 원본의 .from_dict() 메서드 사용
                 return ConnectionInfo.from_dict(json.loads(session_data_json))
 
-            print(f"(sid: {sid}) -> 세션을 찾을 수 없습니다.")
+            logger.info(f"(sid: {sid}) -> 세션을 찾을 수 없습니다.")
             return None
         except redis.RedisError as e:
-            print(f"🚨 Redis get_session_by_sid 실패 (SID: {sid}): {e}")
+            logger.info(f"🚨 Redis get_session_by_sid 실패 (SID: {sid}): {e}")
             return None
 
     async def get_session_by_robot_id(self, robot_id: int) -> Optional[ConnectionInfo]:
@@ -96,10 +98,10 @@ class SessionManager:
             sid = await self.redis_client.get(robot_id_key)
 
             if not sid:
-                print(f"(robot_id: {robot_id}) -> 해당 인덱스를 찾을 수 없습니다.")
+                logger.info(f"(robot_id: {robot_id}) -> 해당 인덱스를 찾을 수 없습니다.")
                 return None
 
-            print(
+            logger.info(
                 f"(robot_id: {robot_id}) -> sid({sid})를 찾았습니다. 세부 정보를 조회합니다."
             )
             # 중복 로직을 피하기 위해 SID 키로 직접 조회합니다.
@@ -107,7 +109,7 @@ class SessionManager:
             session_data_json = await self.redis_client.get(sid_key)
 
             if not session_data_json:
-                print(
+                logger.info(
                     f"⚠️ 데이터 불일치! (robot_id: {robot_id}) -> (sid: {sid})를 찾았으나, 실제 세션 데이터가 없습니다."
                 )
                 return None
@@ -115,7 +117,7 @@ class SessionManager:
             return ConnectionInfo.from_dict(json.loads(session_data_json))
 
         except redis.RedisError as e:
-            print(f"🚨 Redis get_session_by_robot_id 실패 (RobotID: {robot_id}): {e}")
+            logger.info(f"🚨 Redis get_session_by_robot_id 실패 (RobotID: {robot_id}): {e}")
             return None
 
     async def get_session_by_parent_id(
@@ -127,17 +129,17 @@ class SessionManager:
             sid = await self.redis_client.get(parent_id_key)
 
             if not sid:
-                print(f"(parent_id: {parent_id}) -> 해당 인덱스를 찾을 수 없습니다.")
+                logger.info(f"(parent_id: {parent_id}) -> 해당 인덱스를 찾을 수 없습니다.")
                 return None
 
-            print(
+            logger.info(
                 f"(parent_id: {parent_id}) -> sid({sid})를 찾았습니다. 세부 정보를 조회합니다."
             )
             sid_key = self._get_key(SessionKeyType.SID, sid)
             session_data_json = await self.redis_client.get(sid_key)
 
             if not session_data_json:
-                print(
+                logger.info(
                     f"⚠️ 데이터 불일치! (parent_id: {parent_id}) -> (sid: {sid})를 찾았으나, 실제 세션 데이터가 없습니다."
                 )
                 return None
@@ -145,7 +147,7 @@ class SessionManager:
             return ConnectionInfo.from_dict(json.loads(session_data_json))
 
         except redis.RedisError as e:
-            print(
+            logger.info(
                 f"🚨 Redis get_session_by_parent_id 실패 (ParentID: {parent_id}): {e}"
             )
             return None
@@ -155,7 +157,7 @@ class SessionManager:
         'ConnectionInfo' 객체를 직접 받아 불필요한 GET 요청을 제거합니다.
         """    
         if not session_info:
-            print("⚠️ 삭제할 세션 정보가 없습니다.")
+            logger.info("⚠️ 삭제할 세션 정보가 없습니다.")
             return False
 
         try:
@@ -178,16 +180,16 @@ class SessionManager:
                 # 'pipe.delete'에 리스트를 한 번에 전달
                 if keys_to_delete:
                     pipe.delete(*keys_to_delete)
-                    print(f"[DELETE] {keys_to_delete}")
+                    logger.info(f"[DELETE] {keys_to_delete}")
 
                 results = await pipe.execute()
 
             deleted_count = results[0] if results else 0
-            print(
+            logger.info(
                 f"--- 세션 삭제 완료 (SID: {session_info.sid}), 총 {deleted_count}개 키 삭제됨. ---"
             )
             return deleted_count > 0
 
         except redis.RedisError as e:
-            print(f"🚨 Redis 세션 삭제 실패 (SID: {session_info.sid}): {e}")
+            logger.info(f"🚨 Redis 세션 삭제 실패 (SID: {session_info.sid}): {e}")
             return False

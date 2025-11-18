@@ -1,3 +1,5 @@
+from loguru import logger
+
 import os
 import json
 from typing import AsyncGenerator, Callable
@@ -56,17 +58,17 @@ class MysqlSessionManager:
         SQLModel 메타데이터를 기반으로 모든 테이블을 생성합니다.
         (이 로직은 SQLModel 공통이라 변경 필요 없음)
         """
-        print("데이터베이스 테이블 생성을 시도합니다...")
+        logger.info("데이터베이스 테이블 생성을 시도합니다...")
         try:
             async with self.engine.begin() as conn:
                 await conn.run_sync(SQLModel.metadata.create_all)
                 await conn.commit()
-                print("--- Database tables created successfully. ---")
+                logger.info("--- Database tables created successfully. ---")
 
         except OperationalError as e:
-            print(f"데이터베이스 연결 또는 테이블 생성에 실패했습니다: {e}")
+            logger.info(f"데이터베이스 연결 또는 테이블 생성에 실패했습니다: {e}")
         except Exception as e:
-            print(f"테이블 생성 중 예상치 못한 오류가 발생했습니다: {e}")
+            logger.info(f"테이블 생성 중 예상치 못한 오류가 발생했습니다: {e}")
 
     async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
         """
@@ -109,8 +111,8 @@ class RedisSessionManager:
         try:
             # ping은 'get_redis_client'가 아닌 self.redis_client를 직접 사용
             await self.redis_client.ping()
-            print("Redis에 성공적으로 연결되었습니다.")
+            logger.info("Redis에 성공적으로 연결되었습니다.")
             return True
         except redis.exceptions.ConnectionError as e:
-            print(f"Redis 연결 실패: {e}")
+            logger.info(f"Redis 연결 실패: {e}")
             return False

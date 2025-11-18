@@ -1,3 +1,5 @@
+from loguru import logger
+
 import os
 from dotenv import load_dotenv
 # .env 파일 로드
@@ -74,6 +76,7 @@ class PyAudioStreamTrack(AudioStreamTrack):
         self.stream = self.p.open(
             format=FORMAT, channels=CHANNELS, rate=RATE,
             input=True, frames_per_buffer=FRAMES_PER_BUFFER,
+            input_device_index=1
         )
         self.samples_per_frame = int(RATE * AUDIO_PTIME)
         logger.info("PyAudioStreamTrack initialized (mic input)")
@@ -370,20 +373,20 @@ if __name__ == "__main__":
 
     # 부모, 자녀, 로봇 모두 등록된 것 사용하기
 
-    print("--- [HTTP 2] 로그인 (토큰 획득) ---")
+    logger.info("--- [HTTP 2] 로그인 (토큰 획득) ---")
     log_data = {"email": TEST_EMAIL, "password": TEST_PASSWORD}
     resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/auth/login", json=log_data)
     assert resp.status_code == 200, f"로그인 실패: {resp.text} (auth_service.py 수정 필요)"
     access_token = resp.json()["access_token"]
-    print(f"✅ 로그인 성공 (Token: {access_token})")
+    logger.info(f"✅ 로그인 성공 (Token: {access_token})")
 
-    print("--- [HTTP 5] 로봇 로그인 (토큰 획득) ---")
+    logger.info("--- [HTTP 5] 로봇 로그인 (토큰 획득) ---")
     robot_id=ROBOT_ID
     log_data = {"robot_id": robot_id, "serial_number": TEST_ROBOT_SN}
     resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/auth/login/robot", json=log_data)
     assert resp.status_code == 200, f"로그인 실패: {resp.text} (auth_service.py 수정 필요)"
     robot_access_token = resp.json()["access_token"]
-    print(f"✅ 로그인 성공 (Token: {robot_access_token[:10]}...)")
+    logger.info(f"✅ 로그인 성공 (Token: {robot_access_token[:10]}...)")
     ROBOT_ID = robot_id
     ACCESS_TOKEN = robot_access_token
 

@@ -1,3 +1,5 @@
+from loguru import logger
+
 import os
 import redis.asyncio as redis
 import json
@@ -21,7 +23,7 @@ class WebRTCManager:
 
     async def _register_sdp(self, key: str, packet: Dict[str, Any], sdp_type: str):
         await self.redis_client.set(key, json.dumps(packet), ex=SDP_EXPIRATION_SECONDS)
-        print(
+        logger.info(
             f"WebRTC log: Registered {sdp_type} with key '{key}' (expires in {SDP_EXPIRATION_SECONDS}s)"
         )
 
@@ -41,11 +43,11 @@ class WebRTCManager:
         data_str = await self.redis_client.getdel(key)
 
         if data_str:
-            print(f"WebRTC log: Consumed {sdp_type} from key '{key}'")
+            logger.info(f"WebRTC log: Consumed {sdp_type} from key '{key}'")
             # ❗ Redis에서 가져온 JSON 문자열을 파이썬 딕셔너리로 파싱합니다.
             return json.loads(data_str)
 
-        print(f"No {sdp_type} found for key '{key}'")
+        logger.info(f"No {sdp_type} found for key '{key}'")
         return None
 
     async def consume_offer(self, sid: int) -> Optional[Dict[str, Any]]:

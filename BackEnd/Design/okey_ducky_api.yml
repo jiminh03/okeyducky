@@ -288,6 +288,25 @@ components:
         - report_id
         - child_id
         - date
+    
+    ChatRequest:
+        type: object
+        properties:
+          text:
+            type: string
+            description: "AI에게 전달할 발화 텍스트"
+        required:
+          - text
+
+    ChatTriggerResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "processing"
+        message:
+          type: string
+          example: "AI가 요청을 처리 중입니다..."
 
 paths:
   # --- 인증 (Authentication) ---
@@ -477,6 +496,70 @@ paths:
           description: "해당 어린이 정보에 접근할 권한이 없습니다."
         '404':
           description: "이미지를 찾을 수 없습니다."
+
+  /chat/parent_start/{child_id}:
+    post:
+      tags: ["ai와의 채팅 요청"]
+      summary: "[부모 발화] AI 대화 요청 (백그라운드 트리거)"
+      description: "'부모'의 발화를 접수하고, AI 처리를 백그라운드 작업으로 위임합니다."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: child_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "대화 대상 아이의 ID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "202":
+          description: "요청 접수 성공. AI 처리 중."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatTriggerResponse"
+        "401":
+          description: "인증 필요"
+        "404":
+          description: "아이를 찾을 수 없음"
+
+  /chat/child_start/{child_id}:
+    post:
+      tags: ["ai와의 채팅 요청"]
+      summary: "[아이 발화] AI 대화 요청 (백그라운드 트리거)"
+      description: "'아이'의 발화(STT 텍스트)를 접수하고, AI 처리를 백그라운드 작업으로 위임합니다. (로봇 호출용)"
+      security:
+        - bearerAuth: [] # 로봇도 토큰 인증을 사용한다고 가정
+      parameters:
+        - name: child_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "대화 주체 아이의 ID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "202":
+          description: "요청 접수 성공. AI 처리 중."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatTriggerResponse"
+        "401":
+          description: "인증 필요"
+        "404":
+          description: "아이를 찾을 수 없음"
   # --- 대화 및 리포트 (R3 신규) ---
   /reports/log/{date}:
     get:

@@ -1,3 +1,5 @@
+from loguru import logger
+
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -108,5 +110,5 @@ class CryptModule:
 # --- 싱글톤 인스턴스 생성 ---
 # 이 모듈(파일)이 임포트될 때, AuthService의 __init__이 *단 한 번* 실행되어
 # auth_service라는 전역 인스턴스를 생성합니다.
-print("CryptModule 싱글톤 인스턴스를 생성합니다...")
+logger.info("CryptModule 싱글톤 인스턴스를 생성합니다...")
 crypt_module = CryptModule()
