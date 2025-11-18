@@ -58,6 +58,20 @@ class FaceEvent(str, Enum):
     # [S->C] 슬픈 얼굴 (입 움직임)
     FACE_SAD = "server:face_sad"
 
+class FaceRequestEvent(str, Enum):
+    """
+    클라이언트(로봇)가 서버에게 얼굴 표정 변경을 요청하는 이벤트
+    """
+
+    # [C->S] 평소 얼굴 요청
+    REQUEST_FACE_NORMAL = "client:request_face_normal"
+    # [C->S] 말하는 얼굴 요청
+    REQUEST_FACE_TALKING = "client:request_face_talking"
+    # [C->S] 하트눈 얼굴 요청
+    REQUEST_FACE_HEART = "client:request_face_heart"
+    # [C->S] 슬픈 얼굴 요청
+    REQUEST_FACE_SAD = "client:request_face_sad"
+
 # --- [신규] TTS 오디오 스트리밍 이벤트 ---
 
 class TTSEvents(str, Enum):
