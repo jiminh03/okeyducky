@@ -56,30 +56,6 @@ async def on_request_face_normal(sid, robot_clnt_type: SessionType, robot_clnt_i
         logger.warning(f"FaceEvent log: Robot {robot_clnt_id} session not found.")
 
 
-@sio.on(FaceRequestEvent.REQUEST_FACE_TALKING)
-async def on_request_face_talking(sid, robot_clnt_type: SessionType, robot_clnt_id: int):
-    """
-    [C->S] 클라이언트(FE)가 서버에 '말하는 얼굴'을 요청
-    서버는 이 요청을 받아 [S->C] 'FACE_TALKING' 이벤트를 로봇에게 전송
-    """
-    logger.info(f"FaceEvent log: Request for FACE_TALKING from {sid} for robot {robot_clnt_id}")
-    redis_client = await red.get_redis_client()
-    sess_man = SessionManager(redis_client)
-    
-    robot_session_info = await _get_head_session_info(
-        sess_man, robot_clnt_type, robot_clnt_id
-    )
-
-    if robot_session_info:
-        logger.info(f"Emitting FACE_TALKING to robot {robot_clnt_id} at sid {robot_session_info.sid}")
-        await sio.emit(
-            FaceEvent.FACE_TALKING,
-            to=robot_session_info.sid,
-        )
-    else:
-        logger.warning(f"FaceEvent log: Robot {robot_clnt_id} session not found.")
-
-
 @sio.on(FaceRequestEvent.REQUEST_FACE_HEART)
 async def on_request_face_heart(sid, robot_clnt_type: SessionType, robot_clnt_id: int):
     """

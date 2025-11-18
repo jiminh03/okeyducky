@@ -49,14 +49,16 @@ class FaceEvent(str, Enum):
     서버가 프론트엔드(로봇 얼굴)로 보내는 얼굴 표정 변경 이벤트
     """
 
-    # [S->C] 평소 얼굴 (입 안 움직임)
+    # [S->C] 평소 얼굴
     FACE_NORMAL = "server:face_normal"
-    # [S->C] 말하는 얼굴 (입 움직임)
-    FACE_TALKING = "server:face_talking"
-    # [S->C] 하트눈 얼굴 (입 움직임)
+    # [S->C] 하트눈 얼굴
     FACE_HEART = "server:face_heart"
-    # [S->C] 슬픈 얼굴 (입 움직임)
+    # [S->C] 슬픈 얼굴
     FACE_SAD = "server:face_sad"
+    # [S->C] 말하는 얼굴
+    FACE_SPEAKING = "server:face_speaking"
+    # [S->C] 말하지 않는 얼굴
+    FACE_NOT_SPEAKING = "server:face_not_speaking"
 
 class FaceRequestEvent(str, Enum):
     """
@@ -65,12 +67,14 @@ class FaceRequestEvent(str, Enum):
 
     # [C->S] 평소 얼굴 요청
     REQUEST_FACE_NORMAL = "client:request_face_normal"
-    # [C->S] 말하는 얼굴 요청
-    REQUEST_FACE_TALKING = "client:request_face_talking"
     # [C->S] 하트눈 얼굴 요청
     REQUEST_FACE_HEART = "client:request_face_heart"
     # [C->S] 슬픈 얼굴 요청
     REQUEST_FACE_SAD = "client:request_face_sad"
+    # [C->S] 말하는 얼굴 요청
+    REQUEST_FACE_SPEAKING = "server:face_speaking"
+    # [C->S] 말하지 않는 얼굴 요청
+    REQUEST_FACE_NOT_SPEAKING = "server:face_not_speaking"
 
 # --- [신규] TTS 오디오 스트리밍 이벤트 ---
 
