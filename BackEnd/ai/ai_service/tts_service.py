@@ -12,15 +12,25 @@ CHUNK_SIZE = 1024
 # (가상) 실제 TTS 변환 및 웹소켓 전송 로직
 async def _actual_tts_and_send(child_id: str, sentence: str):
     """
-    [가상] 실제 TTS API를 호출하고 오디오를 전송하는 느린 작업
+    [수정됨] 이 함수가 TTS 작업의 시작과 끝을 모두 알립니다.
     """
-    logger.info(f"   [TTS WORKER {child_id}] 🔊 START: '{sentence}'")
-    response = await request_tts(sentence)
+    try:
+        logger.info(f"   [TTS WORKER {child_id}] 🔊 START: '{sentence}'")
+        # [수정] 작업 시작 시 STREAM_START 전송
+        await send_stream_start(child_id) 
 
-    for chunk in response.iter_bytes(chunk_size=CHUNK_SIZE):
-        if chunk:
-            await send_audio_chunk(chunk)
-    logger.info(f"   [TTS WORKER {child_id}] 🏁 END: '{sentence}'")
+        response = await request_tts(sentence)
+
+        for chunk in response.iter_bytes(chunk_size=CHUNK_SIZE):
+            if chunk:
+                await send_audio_chunk(child_id, chunk)
+        
+    except Exception as e:
+        logger.error(f"   [TTS WORKER {child_id}] _actual_tts_and_send 오류: {e}")
+    finally:
+        # [수정] 작업 완료 시(성공/실패 무관) STREAM_END 전송
+        logger.info(f"   [TTS WORKER {child_id}] 🏁 END: '{sentence}'")
+        await send_stream_end(child_id)
 
 
 class TTSService:
@@ -36,16 +46,14 @@ class TTSService:
         """
         queue = self.queues[child_id]
         logger.info(f"   [TTS SERVICE] ✨ 워커 시작 (Child: {child_id})")
-        await send_stream_start(child_id)
+        # [삭제] await send_stream_start(child_id)
         try:
             while True:
-                # 큐에서 문장이 들어올 때까지 대기
                 sentence = await queue.get()
                 if sentence is None:  # 종료 신호
                     break
 
                 try:
-                    # [순차 실행] 실제 TTS 작업을 순서대로 실행
                     await _actual_tts_and_send(child_id, sentence)
                 except Exception as e:
                     logger.error(
@@ -58,7 +66,7 @@ class TTSService:
             logger.info(f"   [TTS WORKER {child_id}] 중단됨.")
         finally:
             logger.info(f"   [TTS WORKER {child_id}] 종료됨.")
-            await send_stream_end(child_id)
+            # [삭제] await send_stream_end(child_id)
 
     async def submit_task(self, child_id: str, sentence: str):
         """
