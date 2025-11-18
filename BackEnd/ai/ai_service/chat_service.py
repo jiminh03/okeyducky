@@ -8,6 +8,7 @@ from langchain_core.messages import HumanMessage
 from ai.ai_service.ai_core.chain import chat_chain_with_history
 from ai.ai_service.ai_core.memory import get_chat_history
 from ai.ai_service.tts_service import tts_service
+from ai.request import send_face_request
 from common.schemas.dialogue_schema import DialogueLogBase
 from typing import Callable, Awaitable, AsyncGenerator, List, Any
 
@@ -98,6 +99,9 @@ async def process_child_interaction(
             emotion_tag = await anext(response_generator)
             if emotion_tag:
                 logger.info(f"[AI 감정 태그] {emotion_tag}")
+                await send_face_request(child_id, emotion_tag)
+            else:
+                logger.info("[AI 감정 태그] 감정 태그가 없습니다.")
             
         except StopAsyncIteration:
             logger.info("[AI 응답] 스트림이 비어있습니다.")
