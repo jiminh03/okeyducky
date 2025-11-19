@@ -22,7 +22,7 @@ from common.schemas.dialogue_schema import (
 )
 
 # --- AI 서비스 임포트 ---
-from ai.ai_service.report_service import create_daily_report
+from ai.ai_service.report_service import write_daily_report
 
 # --- DB 서비스 프로바이더 임포트 (dialogue_service.py에서 사용) ---
 from ai.providers.dialogue_providers import (

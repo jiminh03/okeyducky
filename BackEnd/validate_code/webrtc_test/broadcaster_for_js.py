@@ -39,9 +39,17 @@ logger = logging.getLogger("broadcaster")
 BASE_URL = os.getenv("TEST_SERV")
 DEBUG_PREFIX = "/_manual_test" 
 
-TEST_EMAIL = f"webrtc@example.com"
-TEST_PASSWORD = "pw123"
-TEST_ROBOT_SN = f"SN-WEBRTC-WEBRTC"
+ACCESS_TOKEN = "YOUR_VALID_JWT_TOKEN_HERE" # ⬅️ (필수) 로봇 로그인 토큰
+
+TEST_ROBOT_SN = f"408"
+ROBOT_ID = 31 # ⬅️ (필수) 이 브로드캐스터(로봇) 자신의 ID
+PARENT_ID = 34
+
+# TEST_ROBOT_SN = f"SN-WEBRTC-WEBRTC"
+# ROBOT_ID = 1 # ⬅️ (필수) 이 브로드캐스터(로봇) 자신의 ID
+# PARENT_ID = 1 # ⬅️ (필수) 이 뷰어(부모) 의 ID
+
+SESSION_TYPE = "robot" # ⬅️ (필수)
 
 # [변경] 단일 PeerConnection
 sio = socketio.AsyncClient(logger=True, engineio_logger=False)
@@ -55,11 +63,7 @@ pc = RTCPeerConnection()
 ice_candidates_buffer = []
 
 
-# ⬇️ [추가] 플레이스홀더: 이 값들은 broadcaster가 알아야 함
-ACCESS_TOKEN = "YOUR_VALID_JWT_TOKEN_HERE" # ⬅️ (필수) 로봇 로그인 토큰
-PARENT_ID = 1 # ⬅️ (필수) 이 브로드캐스터(로봇)가 통화할 부모의 ID
-ROBOT_ID = 1 # ⬅️ (필수) 이 브로드캐스터(로봇) 자신의 ID
-SESSION_TYPE = "robot" # ⬅️ (필수)
+
 
 # --- 미디어 트랙 (원본 코드와 동일) ---
 FORMAT = pyaudio.paInt16
@@ -371,23 +375,13 @@ async def main():
 if __name__ == "__main__":
     parent_id, child_id, robot_id, access_token = None, None, None, None
 
-    # 부모, 자녀, 로봇 모두 등록된 것 사용하기
-
-    logger.info("--- [HTTP 2] 로그인 (토큰 획득) ---")
-    log_data = {"email": TEST_EMAIL, "password": TEST_PASSWORD}
-    resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/auth/login", json=log_data)
-    assert resp.status_code == 200, f"로그인 실패: {resp.text} (auth_service.py 수정 필요)"
-    access_token = resp.json()["access_token"]
-    logger.info(f"✅ 로그인 성공 (Token: {access_token})")
-
     logger.info("--- [HTTP 5] 로봇 로그인 (토큰 획득) ---")
     robot_id=ROBOT_ID
     log_data = {"robot_id": robot_id, "serial_number": TEST_ROBOT_SN}
     resp = http_client.post(f"{BASE_URL}{DEBUG_PREFIX}/auth/login/robot", json=log_data)
     assert resp.status_code == 200, f"로그인 실패: {resp.text} (auth_service.py 수정 필요)"
     robot_access_token = resp.json()["access_token"]
-    logger.info(f"✅ 로그인 성공 (Token: {robot_access_token[:10]}...)")
-    ROBOT_ID = robot_id
+    logger.info(f"✅ 로그인 성공 (ID:{robot_id}, SN:{TEST_ROBOT_SN} ,Token: {robot_access_token[:10]}...)")
     ACCESS_TOKEN = robot_access_token
 
     try:

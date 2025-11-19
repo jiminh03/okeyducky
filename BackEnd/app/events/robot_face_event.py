@@ -22,21 +22,26 @@ async def _get_head_session_info(
 
 # --- 로봇 얼굴 표정 이벤트 핸들러 ---
 
+
 @sio.on(FaceRequestEvent.REQUEST_FACE_NORMAL)
 async def on_request_face_normal(sid, data: dict):
     """
     [C->S] 클라이언트(FE)가 서버에 '평소 얼굴'을 요청
     """
     child_id = data.get("child_id")
-    logger.info(f"FaceEvent log: Request for FACE_NORMAL from {sid}, child_id: {child_id}")
-    
+    logger.info(
+        f"FaceEvent log: Request for FACE_NORMAL from {sid}, child_id: {child_id}"
+    )
+
     redis_client = await red.get_redis_client()
     sess_man = SessionManager(redis_client)
-    
+
     robot_session_info = await _get_head_session_info(sess_man, child_id)
 
     if robot_session_info:
-        logger.info(f"Emitting FACE_NORMAL to robot {child_id} at sid {robot_session_info.sid}")
+        logger.info(
+            f"Emitting FACE_NORMAL to robot {child_id} at sid {robot_session_info.sid}"
+        )
         await sio.emit(
             FaceEvent.FACE_NORMAL,
             to=robot_session_info.sid,
@@ -51,15 +56,19 @@ async def on_request_face_heart(sid, data: dict):
     [C->S] 클라이언트(FE)가 서버에 '하트눈 얼굴'을 요청
     """
     child_id = data.get("child_id")
-    logger.info(f"FaceEvent log: Request for FACE_HEART from {sid} for robot {child_id}")
-    
+    logger.info(
+        f"FaceEvent log: Request for FACE_HEART from {sid} for robot {child_id}"
+    )
+
     redis_client = await red.get_redis_client()
     sess_man = SessionManager(redis_client)
-    
+
     robot_session_info = await _get_head_session_info(sess_man, child_id)
 
     if robot_session_info:
-        logger.info(f"Emitting FACE_HEART to robot {child_id} at sid {robot_session_info.sid}")
+        logger.info(
+            f"Emitting FACE_HEART to robot {child_id} at sid {robot_session_info.sid}"
+        )
         await sio.emit(
             FaceEvent.FACE_HEART,
             to=robot_session_info.sid,
@@ -75,16 +84,72 @@ async def on_request_face_sad(sid, data: dict):
     """
     child_id = data.get("child_id")
     logger.info(f"FaceEvent log: Request for FACE_SAD from {sid} for robot {child_id}")
-    
+
     redis_client = await red.get_redis_client()
     sess_man = SessionManager(redis_client)
-    
+
     robot_session_info = await _get_head_session_info(sess_man, child_id)
 
     if robot_session_info:
-        logger.info(f"Emitting FACE_SAD to robot {child_id} at sid {robot_session_info.sid}")
+        logger.info(
+            f"Emitting FACE_SAD to robot {child_id} at sid {robot_session_info.sid}"
+        )
         await sio.emit(
             FaceEvent.FACE_SAD,
+            to=robot_session_info.sid,
+        )
+    else:
+        logger.warning(f"FaceEvent log: Robot {child_id} session not found.")
+
+
+@sio.on(FaceRequestEvent.REQUEST_FACE_SPEAKING)
+async def on_request_face_speaking(sid, data: dict):
+    """
+    [C->S] 클라이언트(FE)가 서버에 '말하는 얼굴'을 요청
+    """
+    child_id = data.get("child_id")
+    logger.info(
+        f"FaceEvent log: Request for FACE_SPEAKING from {sid} for robot {child_id}"
+    )
+
+    redis_client = await red.get_redis_client()
+    sess_man = SessionManager(redis_client)
+
+    robot_session_info = await _get_head_session_info(sess_man, child_id)
+
+    if robot_session_info:
+        logger.info(
+            f"Emitting FACE_SPEAKING to robot {child_id} at sid {robot_session_info.sid}"
+        )
+        await sio.emit(
+            FaceEvent.FACE_SPEAKING,
+            to=robot_session_info.sid,
+        )
+    else:
+        logger.warning(f"FaceEvent log: Robot {child_id} session not found.")
+
+
+@sio.on(FaceRequestEvent.REQUEST_FACE_NOT_SPEAKING)
+async def on_request_face_not_speaking(sid, data: dict):
+    """
+    [C->S] 클라이언트(FE)가 서버에 '말하지 않는 얼굴(입 다뭄)'을 요청
+    """
+    child_id = data.get("child_id")
+    logger.info(
+        f"FaceEvent log: Request for FACE_NOT_SPEAKING from {sid} for robot {child_id}"
+    )
+
+    redis_client = await red.get_redis_client()
+    sess_man = SessionManager(redis_client)
+
+    robot_session_info = await _get_head_session_info(sess_man, child_id)
+
+    if robot_session_info:
+        logger.info(
+            f"Emitting FACE_NOT_SPEAKING to robot {child_id} at sid {robot_session_info.sid}"
+        )
+        await sio.emit(
+            FaceEvent.FACE_NOT_SPEAKING,
             to=robot_session_info.sid,
         )
     else:

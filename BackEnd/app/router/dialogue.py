@@ -55,6 +55,34 @@ async def get_daily_log_endpoint(
         "logs": report.dialogue_logs
     }
 
+@router.get("/analysis/{date}", summary="일일 AI 분석 리포트 조회 (R3-2)")
+async def get_daily_analysis_endpoint(
+    date: date,
+    child_list: List[ChildInfoResponse] = Depends(get_child_list),
+    get_daily_report_by_child_id_service=Depends(get_daily_report_by_child_id_service),
+):
+    """
+    특정 날짜(YYYY-MM-DD)를 지정하여, AI가 비동기 분석한 리포트(analysis_summary, keywords, notes)를 조회합니다.
+    
+    서비스: `get_daily_report_by_child_id` (날짜 범위를 같은 날짜로 설정)
+    - (성공) 200 OK
+    - (실패) 401 Unauthorized (인증 필요)
+    - (실패) 404 Not Found (해당 날짜의 데이터가 없음)
+    """
+    # 계정당 1명만 등록 가능하므로 리스트의 첫 번째 아이 사용
+    if not child_list or len(child_list) == 0:
+        raise ChildNotFound
+    
+    child_id = child_list[0].child_id
+    # 같은 날짜로 범위 설정
+    reports = await get_daily_report_by_child_id_service(child_id, date, date)
+    
+    if not reports or len(reports) == 0:
+        raise ReportNotFound
+    
+    # DailyReportResponse 반환 (첫 번째 리포트 사용)
+    return reports[0]
+
 
 @router.get("/{year}/{month}", summary="월별 일일 대화 로그 및 리포트 조회")
 async def get_monthly_reports_endpoint(
@@ -98,31 +126,4 @@ async def get_monthly_reports_endpoint(
     return reports
 
 
-@router.get("/analysis/{date}", summary="일일 AI 분석 리포트 조회 (R3-2)")
-async def get_daily_analysis_endpoint(
-    date: date,
-    child_list: List[ChildInfoResponse] = Depends(get_child_list),
-    get_daily_report_by_child_id_service=Depends(get_daily_report_by_child_id_service),
-):
-    """
-    특정 날짜(YYYY-MM-DD)를 지정하여, AI가 비동기 분석한 리포트(analysis_summary, keywords, notes)를 조회합니다.
-    
-    서비스: `get_daily_report_by_child_id` (날짜 범위를 같은 날짜로 설정)
-    - (성공) 200 OK
-    - (실패) 401 Unauthorized (인증 필요)
-    - (실패) 404 Not Found (해당 날짜의 데이터가 없음)
-    """
-    # 계정당 1명만 등록 가능하므로 리스트의 첫 번째 아이 사용
-    if not child_list or len(child_list) == 0:
-        raise ChildNotFound
-    
-    child_id = child_list[0].child_id
-    # 같은 날짜로 범위 설정
-    reports = await get_daily_report_by_child_id_service(child_id, date, date)
-    
-    if not reports or len(reports) == 0:
-        raise ReportNotFound
-    
-    # DailyReportResponse 반환 (첫 번째 리포트 사용)
-    return reports[0]
 

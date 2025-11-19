@@ -36,7 +36,7 @@ from app.modules.websocket_module import sio
 from app.events.connection_event import *
 from app.events.webrtc_event import *
 from app.events.tts_event import *
-from app.events.robot_head_event import *
+from app.events.robot_face_event import *
 
 from common.modules.db_instance import db, red
 import socketio
