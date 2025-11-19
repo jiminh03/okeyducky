@@ -6,8 +6,10 @@ from loguru import logger
 from common.schemas.session_schema import ConnectionInfo, SessionType
 from common.schemas.socket_event_schema import FaceEvent, FaceRequestEvent
 from common.modules.session_manager import SessionManager
-from common.modules.db_instance import red
+from common.modules.db_instance import red, db
 from app.modules.websocket_module import sio
+
+from common.repo.user_repo import ParentRepo
 
 
 # --- 헬퍼 함수 ---
@@ -16,7 +18,11 @@ async def _get_head_session_info(
 ) -> Optional[ConnectionInfo]:
     """클라이언트 타입과 ID를 기반으로 세션 정보를 가져오는 헬퍼 함수"""
     # TODO: 어린이 아이디로 머리 아이디(부모 아이디로 사용중)조회하는 기능 필요
-    session_info = await sess_man.get_session_by_robot_head_id(1)
+    async_session_maker = db.get_session_maker()
+    async with async_session_maker() as session:
+        repo = ParentRepo(session=session)
+        parent_info = await repo.get_parent_by_child_id(child_id=child_id)
+    session_info = await sess_man.get_session_by_robot_head_id(parent_info.parent_id)
     return session_info
 
 
