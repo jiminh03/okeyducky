@@ -72,6 +72,20 @@ components:
       required:
         - email
         - password
+    
+    RobotLoginRequest:
+      type: object
+      description: "로봇 로그인을 위한 요청 정보"
+      properties:
+        robot_id:
+          type: integer
+          description: "로봇의 고유 ID (DB PK)"
+        serial_number:
+          type: string
+          description: "로봇의 시리얼 번호"
+      required:
+        - robot_id
+        - serial_number
 
     LoginResponse:
       type: object
@@ -352,6 +366,28 @@ paths:
         "401":
           description: "인증 실패"
 
+  /auth/login/robot:
+    post:
+      tags: ["인증 (Authentication)"]
+      summary: "로봇 전용 로그인"
+      description: "로봇 ID와 시리얼 번호로 로그인하고 로봇용 Access Token을 발급받습니다."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RobotLoginRequest"
+      responses:
+        "200":
+          description: "로그인 성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: "인증 실패 (ID 또는 시리얼 번호 불일치)"
+        "404":
+          description: "존재하지 않는 로봇"
   # --- 사용자 (Parent & Child) (R2 신규/수정) ---
   /users/me:
     get:
@@ -686,3 +722,41 @@ paths:
           description: "연동 해제 성공"
         "401":
           description: "인증 필요"
+    
+  /robot/self:
+    post:
+      tags: ["로봇 (Device)"]
+      summary: "[로봇 전용] 로봇 자체 정보 조회"
+      description: "로그인된 로봇이 자기 자신의 정보(시리얼 번호, 연결된 아이 ID 등)를 조회합니다. (로봇 토큰 인증 필요)"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: "조회 성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RobotInfoResponse"
+        "401":
+          description: "인증 실패 (유효하지 않은 로봇 토큰)"
+        "404":
+          description: "로봇 정보를 찾을 수 없음"
+
+  /robot/parent:
+    get:
+      tags: ["로봇 (Device)"]
+      summary: "[로봇 전용] 연결된 부모 정보 조회"
+      description: "로그인된 로봇과 연결된 아이의 부모님 정보를 조회합니다. (로봇 토큰 인증 필요)"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: "조회 성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParentInfoResponse"
+        "401":
+          description: "인증 실패 (유효하지 않은 로봇 토큰)"
+        "404":
+          description: "연결된 부모 정보를 찾을 수 없음 (또는 아이가 연결되지 않음)"

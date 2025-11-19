@@ -138,4 +138,4 @@ if __name__ == "__main__":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     # 2025년 11월 1일부터 18일까지 생성
-    asyncio.run(generate_and_save_dummy_data_range("2025-11-01", "2025-11-18", child_id=1))
+    asyncio.run(generate_and_save_dummy_data_range("2025-11-01", "2025-11-19", child_id=28))

@@ -3,6 +3,7 @@ from fastapi.responses import Response
 from typing import List
 
 # --- 모든 서비스, 스키마, 예외 임포트 ---
+from app.services.auth_service import get_current_robot
 from app.services.robot_service import *
 from app.services.child_service import *
 from common.schemas.robot_schema import *
@@ -12,7 +13,7 @@ from app.providers.robot_providers import *
 
 # --- 라우터 생성 ---
 router = APIRouter(
-    prefix="/robot/me",
+    prefix="/robot",
     tags=["로봇 (Device)"],
     include_in_schema=True,
 )
@@ -21,7 +22,7 @@ router = APIRouter(
 # RobotService (로봇)
 # ===================================================================
 
-@router.get("", summary="내 로봇 정보/상태 조회")
+@router.get("/me", summary="내 로봇 정보/상태 조회")
 async def get_current_robot_endpoint(
     child_list: List[ChildInfoResponse] = Depends(get_child_list),
     get_robot_by_child_id_service=Depends(get_robot_by_child_id_service),
@@ -47,7 +48,7 @@ async def get_current_robot_endpoint(
     return robot
 
 
-@router.delete("", status_code=status.HTTP_204_NO_CONTENT, summary="로봇 연동 해제")
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT, summary="로봇 연동 해제")
 async def delete_current_robot_endpoint(
     child_list: List[ChildInfoResponse] = Depends(get_child_list),
     get_robot_by_child_id_service=Depends(get_robot_by_child_id_service),
@@ -79,3 +80,34 @@ async def delete_current_robot_endpoint(
     
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
+@router.post("/self", summary="로봇 자체 정보 조회")
+async def get_robot_self_endpoint(
+    robot: RobotInfoResponse = Depends(get_current_robot),
+):
+    """
+    내 로봇의 자체 정보를 조회합니다. (로봇 인증 필요)
+    
+    서비스: `get_current_robot`
+    - (성공) 200 OK
+    - (실패) 401 Unauthorized (인증 필요)
+    - (실패) 404 Not Found (등록된 로봇이 없음)
+    """
+    return robot
+
+@router.get("/parent", summary="로봇에 연결된 부모 정보 조회")
+async def get_robot_parent_endpoint(
+    robot: RobotInfoResponse = Depends(get_current_robot),
+    get_parent_by_child_id_service=Depends(get_parent_by_child_id_service),
+):
+    """
+    내 로봇에 연결된 부모님의 정보를 조회합니다. (로봇 인증 필요)
+    
+    서비스: `get_parent_by_id_service`
+    - (성공) 200 OK
+    - (실패) 401 Unauthorized (인증 필요)
+    - (실패) 404 Not Found (부모 정보가 없음)
+    """
+    parent = await get_parent_by_child_id_service(robot.child_id)
+    if not parent:
+        raise ParentNotFound
+    return parent

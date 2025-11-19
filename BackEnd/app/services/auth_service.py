@@ -125,7 +125,7 @@ async def get_current_robot(
     """
     payload = crypt_module.decode_jwt_payload(token)
     parsed_payload = RobotTokenPayload.model_validate(payload)
-    robot = await get_robot_by_id_service(parsed_payload.parent_id)
+    robot = await get_robot_by_id_service(parsed_payload.robot_id)
     if not robot:
         raise InvalidCredentialsError
     return robot
