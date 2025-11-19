@@ -260,6 +260,16 @@ export interface DailyAnalysisReport {
   analysis_summary: string;
 }
 
+// 월별 리포트 항목 인터페이스
+export interface MonthlyReportItem {
+  report_id: number;
+  child_id: number;
+  date: string; // YYYY-MM-DD 형식
+  daily_summary: string;
+  analysis_summary: string;
+  dialogue_logs: ConversationLog[];
+}
+
 // 인증 API
 export const authApi = {
   login: (payload: LoginRequest) =>
@@ -1361,6 +1371,125 @@ export const reportApi = {
           return {
             success: false,
             message: '서버에 연결할 수 없습니다. 네트워크 연결을 확인하거나 백엔드 서버가 실행 중인지 확인해주세요.',
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+
+  // 월별 대화 로그 및 리포트 통합 조회
+  // 백엔드 API 엔드포인트: GET /reports/monthly/{year}/{month}
+  getMonthlyReports: async (year: number, month: number): Promise<ApiResponse<MonthlyReportItem[]>> => {
+    const url = `${API_BASE_URL}/reports/monthly/${year}/${month}`;
+    const token = getAccessToken();
+    
+    if (!token) {
+      return {
+        success: false,
+        message: LOGIN_REQUIRED_MESSAGE,
+      };
+    }
+
+    // 월 유효성 검사
+    if (month < 1 || month > 12) {
+      return {
+        success: false,
+        message: '월은 1부터 12 사이의 값이어야 합니다.',
+      };
+    }
+
+    console.log('월별 리포트 조회 API 호출:', { url, year, month });
+    
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      // 200: 조회 성공
+      if (response.status === 200) {
+        const responseData: MonthlyReportItem[] = await response.json();
+        return {
+          success: true,
+          data: responseData,
+          status: response.status,
+        };
+      }
+
+      // 400: 잘못된 요청 (예: 월 범위 오류)
+      if (response.status === 400) {
+        const errorData: ErrorResponse = await response.json().catch(() => ({
+          errorCode: 'BAD_REQUEST',
+          message: '잘못된 요청입니다. 연도와 월을 확인해주세요.',
+        }));
+        return {
+          success: false,
+          message: errorData.message || '잘못된 요청입니다.',
+          status: response.status,
+        };
+      }
+
+      // 401: 인증 필요
+      if (response.status === 401) {
+        clearAccessToken();
+        return {
+          success: false,
+          message: UNAUTHORIZED_MESSAGE,
+          status: response.status,
+        };
+      }
+
+      // 404: 등록된 아이가 없음
+      if (response.status === 404) {
+        return {
+          success: false,
+          message: '등록된 아이가 없습니다.',
+          status: response.status,
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '월별 리포트 조회 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '월별 리포트 조회 중 오류가 발생했습니다.',
+        status: response.status,
+      };
+    } catch (error) {
+      console.error('월별 리포트 조회 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: NETWORK_ERROR_FRIENDLY_MESSAGE,
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: NETWORK_ERROR_FRIENDLY_MESSAGE,
           };
         }
         return {

@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { reportApi, MonthlyReportItem } from '@/services/api';
 import './CalendarScreen.css';
 
 interface CalendarScreenProps {
@@ -61,22 +62,42 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ onHome, onVideo, onCale
   const [isPanelExpanded, setIsPanelExpanded] = useState(false);
   const [dragStartY, setDragStartY] = useState<number | null>(null);
   const [dragDelta, setDragDelta] = useState(0);
+  const [monthlyReports, setMonthlyReports] = useState<MonthlyReportItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // mock 저장 데이터 (키: YYYY-MM-DD)
-  const savedData: Record<string, { conversation?: string; report?: string }> = {
-    '2025-10-18': {
-      conversation:
-        '응! 오늘 음악 시간에 노래 불렀는데, 선생님이 목소리 예쁘대!\n친구들도 박수 쳐줬어! 그래서 진짜 신났어! 그때 생각했어. 아, 나 진짜 노래가 좋구나!\n그래서… 나 커서 가수가 될래! 무대에서 노래 부르고, 엄마 아빠랑 무키도 보러 오면 진짜 좋겠다!',
-      report:
-        '음악 시간의 긍정적 경험으로 자신감 향상. 친구들과의 상호작용 양호. 미래 꿈(가수)에 대한 구체적 표현 관찰됨.'
-    },
-    '2025-10-22': {
-      conversation:
-        '오늘은 체육 시간에 축구했어! 내가 골 넣었어. 친구들이랑 하이파이브 했지!',
-      report:
-        '활동적 참여도 높음. 팀워크 향상. 긍정적 정서 표현 다수.'
-    }
-  };
+  // 월별 리포트 데이터를 날짜별로 매핑 (키: YYYY-MM-DD)
+  const reportsByDate = useMemo(() => {
+    const map: Record<string, MonthlyReportItem> = {};
+    monthlyReports.forEach(report => {
+      map[report.date] = report;
+    });
+    return map;
+  }, [monthlyReports]);
+
+  // 현재 표시 중인 월의 리포트 조회
+  useEffect(() => {
+    const fetchMonthlyReports = async () => {
+      const year = current.getFullYear();
+      const month = current.getMonth() + 1; // getMonth()는 0-11이므로 +1
+      
+      setIsLoading(true);
+      setErrorMessage(null);
+      
+      const result = await reportApi.getMonthlyReports(year, month);
+      
+      if (result.success && result.data) {
+        setMonthlyReports(result.data);
+      } else {
+        setErrorMessage(result.message || '리포트를 불러오는데 실패했습니다.');
+        setMonthlyReports([]);
+      }
+      
+      setIsLoading(false);
+    };
+
+    fetchMonthlyReports();
+  }, [current]);
 
   const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -121,7 +142,8 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ onHome, onVideo, onCale
               const weekIdx = i % 7;
               const label = cell.date.getDate();
               const cellKey = toKey(cell.date);
-              const hasData = savedData[cellKey] && (savedData[cellKey].conversation || savedData[cellKey].report);
+              const report = reportsByDate[cellKey];
+              const hasData = report !== undefined;
               return (
                 <div
                   key={i}
@@ -181,13 +203,67 @@ const CalendarScreen: React.FC<CalendarScreenProps> = ({ onHome, onVideo, onCale
           <h3 className="panel-title">{selected ? `${selected.getMonth() + 1}월 ${selected.getDate()}일 ${activeTab === 'conversation' ? '대화' : '리포트'}` : ''}</h3>
           <div className="panel-text">
             {(() => {
-              const key = selected ? toKey(selected) : '';
-              const data = key ? savedData[key] : undefined;
-              const text = activeTab === 'conversation' ? data?.conversation : data?.report;
-              if (text) {
-                return text.split('\n').map((line, idx) => <p key={idx}>{line}</p>);
+              if (isLoading) {
+                return <p>로딩 중...</p>;
               }
-              return <p>저장된 내용이 없습니다.</p>;
+              
+              if (errorMessage) {
+                return <p style={{ color: '#ff4444' }}>{errorMessage}</p>;
+              }
+              
+              const key = selected ? toKey(selected) : '';
+              const report = key ? reportsByDate[key] : undefined;
+              
+              if (activeTab === 'conversation') {
+                if (!report) {
+                  return <p>저장된 대화가 없습니다.</p>;
+                }
+                
+                // 대화 로그를 시간순으로 정렬하여 표시
+                const sortedLogs = [...(report.dialogue_logs || [])].sort((a, b) => 
+                  new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+                );
+                
+                if (sortedLogs.length === 0) {
+                  return <p>저장된 대화가 없습니다.</p>;
+                }
+                
+                // 대화 로그를 메시지 형식으로 변환
+                const conversationText = sortedLogs
+                  .map(log => {
+                    const speakerName = log.speaker === 'child' ? '아이' : log.speaker === 'parent' ? '부모' : '로봇';
+                    return `${speakerName}: ${log.message}`;
+                  })
+                  .join('\n');
+                
+                if (report.daily_summary) {
+                  return (
+                    <>
+                      <div style={{ marginBottom: '16px' }}>
+                        <strong>일일 요약:</strong>
+                        <p>{report.daily_summary}</p>
+                      </div>
+                      <div>
+                        <strong>대화 내용:</strong>
+                        {conversationText.split('\n').map((line, idx) => <p key={idx}>{line}</p>)}
+                      </div>
+                    </>
+                  );
+                }
+                
+                return conversationText.split('\n').map((line, idx) => <p key={idx}>{line}</p>);
+              } else {
+                // 리포트 탭
+                if (!report) {
+                  return <p>저장된 리포트가 없습니다.</p>;
+                }
+                
+                if (!report.analysis_summary) {
+                  return <p>저장된 리포트가 없습니다.</p>;
+                }
+                
+                return report.analysis_summary.split('\n').map((line, idx) => <p key={idx}>{line}</p>);
+              }
             })()}
           </div>
         </div>
