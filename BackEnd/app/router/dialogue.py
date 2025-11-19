@@ -84,7 +84,7 @@ async def get_daily_analysis_endpoint(
     return reports[0]
 
 
-@router.get("/{year}/{month}", summary="월별 일일 대화 로그 및 리포트 조회")
+@router.get("/monthly/{year}/{month}", summary="월별 일일 대화 로그 및 리포트 조회")
 async def get_monthly_reports_endpoint(
     year: int,
     month: int,
