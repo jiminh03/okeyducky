@@ -958,7 +958,131 @@ export const robotApi = {
   },
 };
 
-// 로봇 메시지 전송 API
+// 채팅 API
+export interface ParentStartChatResponse {
+  status: string;
+  message: string;
+}
+
+export const chatApi = {
+  // 부모 발화 AI 대화 요청 (백그라운드 트리거)
+  // 백엔드 API 엔드포인트: POST /chat/parent_start/{child_id}
+  parentStart: async (childId: number, text: string): Promise<ApiResponse<ParentStartChatResponse>> => {
+    const token = getAccessToken();
+    
+    if (!token) {
+      return {
+        success: false,
+        message: LOGIN_REQUIRED_MESSAGE,
+      };
+    }
+
+    if (!childId || typeof childId !== 'number') {
+      return {
+        success: false,
+        message: '아이 ID가 필요합니다.',
+      };
+    }
+
+    const trimmedText = text.trim();
+    if (!trimmedText) {
+      return {
+        success: false,
+        message: '메시지를 입력해주세요.',
+      };
+    }
+
+    const url = `${API_BASE_URL}/chat/parent_start/${childId}`;
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text: trimmedText }),
+      });
+
+      // 202: 요청 접수 성공 (AI 처리 중)
+      if (response.status === 202) {
+        const responseData: ParentStartChatResponse = await response.json().catch(() => ({
+          status: 'processing',
+          message: 'AI가 요청을 처리 중입니다...',
+        }));
+        return {
+          success: true,
+          data: responseData,
+          status: response.status,
+        };
+      }
+
+      // 401: 인증 필요
+      if (response.status === 401) {
+        clearAccessToken();
+        return {
+          success: false,
+          message: UNAUTHORIZED_MESSAGE,
+          status: response.status,
+        };
+      }
+
+      // 404: 아이를 찾을 수 없음
+      if (response.status === 404) {
+        return {
+          success: false,
+          message: '아이를 찾을 수 없습니다.',
+          status: response.status,
+        };
+      }
+
+      // 기타 에러
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        errorCode: 'UNKNOWN',
+        message: '메시지 전송 중 오류가 발생했습니다.',
+      }));
+
+      return {
+        success: false,
+        message: errorData.message || '메시지 전송 중 오류가 발생했습니다.',
+        status: response.status,
+      };
+    } catch (error) {
+      console.error('부모 발화 API 오류:', error);
+      
+      // 네트워크 연결 오류 감지
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: NETWORK_ERROR_FRIENDLY_MESSAGE,
+        };
+      }
+      
+      // 기타 네트워크 오류
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_CONNECTION_REFUSED') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('Failed to fetch')) {
+          return {
+            success: false,
+            message: NETWORK_ERROR_FRIENDLY_MESSAGE,
+          };
+        }
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+      
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+  },
+};
+
+// 로봇 메시지 전송 API (하위 호환성을 위해 유지)
 export const robotMessageApi = {
   // 부모가 로봇에게 메시지 전송
   // 백엔드 API 엔드포인트: POST /api/robot/message 또는 POST /api/dialogue/send
