@@ -80,7 +80,7 @@ async def delete_current_robot_endpoint(
     
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@router.post("/self", summary="로봇 자체 정보 조회")
+@router.get("/self", summary="로봇 자체 정보 조회")
 async def get_robot_self_endpoint(
     robot: RobotInfoResponse = Depends(get_current_robot),
 ):

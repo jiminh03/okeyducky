@@ -724,7 +724,7 @@ paths:
           description: "인증 필요"
     
   /robot/self:
-    post:
+    get:
       tags: ["로봇 (Device)"]
       summary: "[로봇 전용] 로봇 자체 정보 조회"
       description: "로그인된 로봇이 자기 자신의 정보(시리얼 번호, 연결된 아이 ID 등)를 조회합니다. (로봇 토큰 인증 필요)"
