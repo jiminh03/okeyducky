@@ -30,11 +30,11 @@ async def send_face_request(child_id: int, emotion_tag: str):
     # [로그 추가]
     logger.info(f"<- [Socket Emit] 'FACE_REQUEST' 전송 (Child: {child_id}, Face: {emotion_tag})")
 
-    if emotion_tag == "기본 표정":
+    if emotion_tag == "(기본 표정)":
         await sio_ai.emit(FaceRequestEvent.REQUEST_FACE_NORMAL, {"child_id": child_id}, )
-    elif emotion_tag == "하트눈 표정":
+    elif emotion_tag == "(하트눈 표정)":
         await sio_ai.emit(FaceRequestEvent.REQUEST_FACE_HEART, {"child_id": child_id}, )
-    elif emotion_tag == "슬픈 표정":
+    elif emotion_tag == "(슬픈 표정)":
         await sio_ai.emit(FaceRequestEvent.REQUEST_FACE_SAD, {"child_id": child_id}, )
     else:
         print(f"알 수 없는 표정입니다: {emotion_tag}")

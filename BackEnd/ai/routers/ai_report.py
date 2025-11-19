@@ -14,7 +14,7 @@ from common.schemas.dialogue_schema import (
 )
 
 # --- AI 서비스 임포트 ---
-from ai.ai_service.report_service import create_daily_report
+from ai.ai_service.report_service import write_daily_report
 
 # --- DB 서비스 프로바이더 임포트 (dialogue_service.py에서 사용) ---
 from ai.providers.dialogue_providers import (
@@ -42,7 +42,7 @@ async def update_daily_report(
     """
 
     logger.info(f"AI 리포트 생성 중... (Child ID: {child_id})")
-    ai_content = await create_daily_report(str(child_id))
+    ai_content = await write_daily_report(str(child_id))
 
     # --- 3. DB 저장을 위해 데이터 가공 ---
     # summary_list (JSON 리스트)를 DB 저장을 위해 하나의 문자열로 합칩니다.

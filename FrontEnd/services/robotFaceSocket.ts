@@ -200,7 +200,7 @@ export const useRobotFaceSocket = (options?: UseRobotFaceSocketOptions): UseRobo
       },
       auth: {
         token,
-        session_type: 'parent', // 부모가 로봇 얼굴을 보는 것이므로 parent
+        session_type: 'robot_head',
       },
     });
 

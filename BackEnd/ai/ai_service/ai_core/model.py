@@ -21,7 +21,7 @@ report_llm = ChatOpenAI(
 
 _client = OpenAI(base_url=os.getenv("AI_BASE_URL"), api_key=os.getenv("OPENAI_API_KEY"))
 MODEL = "gpt-4o-mini-tts"
-VOICE = "nova"
+VOICE = "sage"
 
 async def request_tts(sentence)->HttpxBinaryResponseContent:
     return _client.audio.speech.create(
