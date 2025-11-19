@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { ChildInfo, robotMessageApi } from '@/services/api';
+import { ChildInfo, chatApi } from '@/services/api';
 import { useWebRTCViewer } from '@/services/webrtcViewer';
 import './VideoScreen.css';
 
@@ -61,19 +61,23 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
     setSendError(null);
 
     try {
-      const result = await robotMessageApi.sendMessage(trimmedMessage, childInfo.child_id);
+      const result = await chatApi.parentStart(childInfo.child_id, trimmedMessage);
       
       if (result.success) {
         setMessage('');
-        console.log('메시지 전송 성공:', trimmedMessage);
+        console.log('부모 발화 전송 성공:', trimmedMessage);
+        // 202 응답이므로 백그라운드 처리 중임을 알림
+        if (result.data?.message) {
+          console.log('AI 처리 상태:', result.data.message);
+        }
       } else {
         setSendError(result.message || '메시지 전송에 실패했습니다.');
-        console.error('메시지 전송 실패:', result.message);
+        console.error('부모 발화 전송 실패:', result.message);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '메시지 전송 중 오류가 발생했습니다.';
       setSendError(errorMessage);
-      console.error('메시지 전송 중 예외 발생:', error);
+      console.error('부모 발화 전송 중 예외 발생:', error);
     } finally {
       setIsSending(false);
     }
