@@ -1,16 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { childApi, ChildInfo } from '@/services/api';
+import { childApi, robotApi, ChildInfo } from '@/services/api';
 
 const SIGNALING_BASE_URL =
   'https://k13a408.p.ssafy.io';
 
 const TEST_ACCESS_TOKEN = process.env.NEXT_PUBLIC_WEBRTC_TEST_TOKEN || null;
 const TEST_ROBOT_ID_ENV = process.env.NEXT_PUBLIC_WEBRTC_TEST_ROBOT_ID;
-const DEFAULT_FALLBACK_ROBOT_ID =
-  typeof TEST_ROBOT_ID_ENV === 'string' && TEST_ROBOT_ID_ENV.length > 0
-    ? Number(TEST_ROBOT_ID_ENV)
-    : 1;
 
 const ConnectEvents = {
   AUTH_SUCCESS: 'auth_success',
@@ -148,32 +144,47 @@ export const useWebRTCViewer = ({
       return robotIdRef.current;
     }
 
+    // 1. fallbackRobotId가 명시적으로 전달된 경우 우선 사용
     if (typeof fallbackRobotId === 'number' && !Number.isNaN(fallbackRobotId)) {
       robotIdRef.current = fallbackRobotId;
       setRobotSource('fallback');
       return robotIdRef.current;
     }
 
-    if (!Number.isNaN(DEFAULT_FALLBACK_ROBOT_ID) && DEFAULT_FALLBACK_ROBOT_ID !== null) {
-      robotIdRef.current = DEFAULT_FALLBACK_ROBOT_ID;
-      setRobotSource('fallback');
-      return robotIdRef.current;
+    // 2. 환경 변수로 지정된 경우 사용
+    if (typeof TEST_ROBOT_ID_ENV === 'string' && TEST_ROBOT_ID_ENV.length > 0) {
+      const testRobotId = Number(TEST_ROBOT_ID_ENV);
+      if (!Number.isNaN(testRobotId)) {
+        robotIdRef.current = testRobotId;
+        setRobotSource('fallback');
+        return robotIdRef.current;
+      }
     }
 
+    // 3. childInfo에서 로봇 ID 가져오기
     if (typeof memoizedChildRobotId === 'number') {
       robotIdRef.current = memoizedChildRobotId;
       setRobotSource('child');
       return robotIdRef.current;
     }
 
-    const childResponse = await childApi.getChild();
-    if (!childResponse.success || !childResponse.data?.robot?.robot_id) {
-      throw new Error(childResponse.message || '연결할 로봇을 찾을 수 없습니다.');
+    // 4. /robot/me API로 로봇 정보 가져오기
+    const robotResponse = await robotApi.getMe();
+    if (robotResponse.success && robotResponse.data?.robot_id) {
+      robotIdRef.current = robotResponse.data.robot_id;
+      setRobotSource('child');
+      return robotIdRef.current;
     }
 
-    robotIdRef.current = childResponse.data.robot.robot_id;
-    setRobotSource('child');
-    return robotIdRef.current;
+    // 5. /users/child API로 아이 정보 가져오기 (하위 호환성)
+    const childResponse = await childApi.getChild();
+    if (childResponse.success && childResponse.data?.robot?.robot_id) {
+      robotIdRef.current = childResponse.data.robot.robot_id;
+      setRobotSource('child');
+      return robotIdRef.current;
+    }
+
+    throw new Error(robotResponse.message || childResponse.message || '연결할 로봇을 찾을 수 없습니다.');
   }, [fallbackRobotId, memoizedChildRobotId]);
 
   const createPeerConnection = useCallback(() => {
