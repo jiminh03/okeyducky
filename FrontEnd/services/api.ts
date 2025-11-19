@@ -906,6 +906,58 @@ export const childApi = {
   },
 };
 
+// 로봇 API
+export const robotApi = {
+  // 내 로봇 정보/상태 조회
+  // 백엔드 API 엔드포인트: GET /robot/me
+  getMe: async (): Promise<ApiResponse<RobotInfo>> => {
+    const token = getAccessToken();
+
+    if (!token) {
+      return {
+        success: false,
+        message: LOGIN_REQUIRED_MESSAGE,
+      };
+    }
+
+    console.log('로봇 정보 API 호출:', { endpoint: '/robot/me' });
+
+    const response = await apiRequest<RobotInfo>('/robot/me', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.success) {
+      return response;
+    }
+
+    if (response.status === 401) {
+      clearAccessToken();
+      return {
+        ...response,
+        message: UNAUTHORIZED_MESSAGE,
+      };
+    }
+
+    if (response.status === 404) {
+      return {
+        ...response,
+        message: '등록된 로봇이 없습니다.',
+      };
+    }
+
+    return {
+      ...response,
+      message: normalizeErrorMessage(
+        response.message,
+        '로봇 정보를 불러오는 중 오류가 발생했습니다.',
+      ),
+    };
+  },
+};
+
 // 로봇 메시지 전송 API
 export const robotMessageApi = {
   // 부모가 로봇에게 메시지 전송
