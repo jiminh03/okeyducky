@@ -21,8 +21,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # ⬇️ 새로 만든 디버그 라우터 임포트
-from app.router.debug_repo import router as debug_repo
-from app.router.manual_debug_router import router as manual_debug_router
+from app.router.debug.debug_repo import router as debug_repo
+from app.router.debug.manual_debug_router import router as manual_debug_router
 
 from app.router import auth
 from app.router import child

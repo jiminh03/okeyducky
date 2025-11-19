@@ -27,7 +27,7 @@ class CryptModule:
             raise ValueError("SECRET_KEY 환경 변수가 설정되지 않았습니다.")
 
         self.ALGORITHM: str = "HS256"
-        self.ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+        self.ACCESS_TOKEN_EXPIRE_MINUTES: int = 52560000
 
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         

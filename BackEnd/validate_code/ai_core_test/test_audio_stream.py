@@ -19,8 +19,8 @@ class RobotTTSEvents:
 # --- 설정 ---
 BASE_URL = "http://k13a408.p.ssafy.io:8000"
 DEBUG_PREFIX = "/_manual_test"
-ROBOT_ID = 1
-TEST_ROBOT_SN = "SN-WEBRTC-WEBRTC"
+ROBOT_ID = 31
+TEST_ROBOT_SN = "408"
 
 # --- HTTP 클라이언트 ---
 http_client = requests.Session()
@@ -194,7 +194,9 @@ def main():
         stream = p.open(format=FORMAT,
                         channels=CHANNELS,
                         rate=RATE,
-                        output=True)
+                        output=True,
+                        frames_per_buffer=4096,
+                        )
         logger.info("🔊 PyAudio 스트림 열기 성공.")
 
         # --- [신규] 재생 작업자 스레드 시작 ---

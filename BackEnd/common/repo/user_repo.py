@@ -89,6 +89,29 @@ class ParentRepo:
             await self.session.rollback()
             raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
 
+    async def get_parent_by_child_id(self, child_id: int) -> Optional[ParentInfoResponse]:
+        """
+        Child ID로 Parent 정보를 조회합니다.
+        """
+        try:
+            statement = (
+                select(
+                    Parent.parent_id,
+                    Parent.parent_name,
+                    Parent.email
+                )
+                .join(Child, Child.parent_id == Parent.parent_id)
+                .where(Child.child_id == child_id)
+            )
+            result = await self.session.execute(statement)
+            row = result.mappings().one_or_none()
+
+            return ParentInfoResponse.model_validate(row) if row else None
+
+        except DBAPIError as e:
+            await self.session.rollback()
+            raise DatabaseError(detail=f"DB 오류 발생: {str(e)}") from e
+        
     async def update_parent(
         self, parent_id: int, parent_update: ParentUpdateRequest
     ) -> Optional[ParentInfoResponse]: # ⬅️ [변경] 반환 타입을 DTO로

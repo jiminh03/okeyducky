@@ -50,3 +50,25 @@ async def get_parent_info(
     if parent is None:
         raise ParentNotFound
     return parent
+
+async def get_parent_info_by_child_id(
+    child_id: int,
+    get_parent_by_child_id_service=Depends(get_parent_by_child_id_service),
+) -> ParentInfoResponse:
+    """
+    자녀 ID로 부모님 정보를 가져옵니다.
+
+    Args:
+        child_id (int): 자녀 ID
+        get_parent_by_child_id_service (Depends, optional): 자녀 ID로 부모님 정보를 가져오는 서비스. Defaults to Depends(get_parent_by_child_id_service).
+
+    Raises:
+        ParentNotFound: 해당 자녀 ID로 부모님을 찾을 수 없을 경우 발생
+
+    Returns:
+        ParentInfoResponse: 부모님 정보
+    """
+    parent = await get_parent_by_child_id_service(child_id)
+    if parent is None:
+        raise ParentNotFound
+    return parent

@@ -42,3 +42,13 @@ async def login_parent_endpoint(
     """
     return result
 
+@router.post("/login/robot", summary="로봇 인증")
+async def test_login_robot(
+    result: LoginResponse = Depends(login_robot)
+):
+    """
+    서비스: `login_robot`
+    - (성공) 200 OK
+    - (실패) 401 Unauthorized (InvalidCredentialsError)
+    """
+    return result

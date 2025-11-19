@@ -3,3 +3,4 @@ sqlalchemy
 pydantic
 redis
 loguru
+alembic

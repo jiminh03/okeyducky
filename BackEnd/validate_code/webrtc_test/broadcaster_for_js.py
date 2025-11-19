@@ -41,13 +41,13 @@ DEBUG_PREFIX = "/_manual_test"
 
 ACCESS_TOKEN = "YOUR_VALID_JWT_TOKEN_HERE" # ⬅️ (필수) 로봇 로그인 토큰
 
-TEST_ROBOT_SN = f"408"
-ROBOT_ID = 31 # ⬅️ (필수) 이 브로드캐스터(로봇) 자신의 ID
-PARENT_ID = 34
+# TEST_ROBOT_SN = f"408"
+# ROBOT_ID = 31 # ⬅️ (필수) 이 브로드캐스터(로봇) 자신의 ID
+# PARENT_ID = 34
 
-# TEST_ROBOT_SN = f"SN-WEBRTC-WEBRTC"
-# ROBOT_ID = 1 # ⬅️ (필수) 이 브로드캐스터(로봇) 자신의 ID
-# PARENT_ID = 1 # ⬅️ (필수) 이 뷰어(부모) 의 ID
+TEST_ROBOT_SN = f"SN-WEBRTC-WEBRTC"
+ROBOT_ID = 1 # ⬅️ (필수) 이 브로드캐스터(로봇) 자신의 ID
+PARENT_ID = 1 # ⬅️ (필수) 이 뷰어(부모) 의 ID
 
 SESSION_TYPE = "robot" # ⬅️ (필수)
 

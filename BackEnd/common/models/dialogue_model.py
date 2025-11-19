@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import Column, Enum as SAEnum
+from sqlalchemy import Column, Enum as SAEnum, Text
 from sqlmodel import Field, Relationship, SQLModel
 
 from common.models.enums import Speaker
@@ -13,8 +13,8 @@ if TYPE_CHECKING:
 class DailyReport(SQLModel, table=True):
     report_id: Optional[int] = Field(default=None, primary_key=True)
     date: date
-    daily_summary: Optional[str] = None
-    analysis_summary: Optional[str] = None
+    daily_summary: Optional[str] = Field(default=None, sa_column=Column(Text))
+    analysis_summary: Optional[str] = Field(default=None, sa_column=Column(Text))
 
     child_id: Optional[int] = Field(default=None, foreign_key="child.child_id")
     child: Optional["Child"] = Relationship(back_populates="daily_reports")
