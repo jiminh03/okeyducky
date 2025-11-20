@@ -1,0 +1,6 @@
+setup.py
+duck_msgs/__init__.py
+duck_msgs.egg-info/PKG-INFO
+duck_msgs.egg-info/SOURCES.txt
+duck_msgs.egg-info/dependency_links.txt
+duck_msgs.egg-info/top_level.txt

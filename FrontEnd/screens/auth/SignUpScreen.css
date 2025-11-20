@@ -1,0 +1,428 @@
+.signup-container {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 상단 헤더 */
+.signup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.back-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.header-spacer {
+  width: 40px;
+}
+
+/* 메인 콘텐츠 */
+.signup-content {
+  flex: 1;
+  padding: 20px 20px 20px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* 오키더키 로고 */
+.signup-logo {
+  margin-bottom: 0;
+  margin-top: -70px;
+}
+
+.signup-title-img {
+  width: 300px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  min-height: 100px;
+  max-width: 100%;
+}
+
+/* 브랜드 제목 */
+.signup-brand-title {
+  font-family: 'OkDanDan', sans-serif;
+  font-size: 65px;
+  font-weight: 700;
+  color: #FFE300;
+  margin: -15px 0 0 0;
+  text-align: center;
+  min-height: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* 페이지 제목 */
+.signup-page-title {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin: -30px 0 15px 0;
+  text-align: center;
+}
+
+/* 폼 */
+.signup-form {
+  width: 100%;
+  max-width: 500px;
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+
+.form-error {
+  color: #ff4d4f;
+  font-size: 14px;
+  margin-bottom: 16px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* 폼 그룹 */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.required-star {
+  color: red;
+}
+
+.form-input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 18px;
+  color: #333;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #FFE300;
+  box-shadow: 0 0 0 3px rgba(255, 227, 0, 0.1);
+}
+
+.form-input::placeholder {
+  color: #999;
+}
+
+/* 회원가입 버튼 */
+.signup-submit-btn {
+  width: 100%;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 18px 24px;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.signup-submit-btn:hover {
+  background: #333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.signup-submit-btn:active {
+  transform: translateY(0);
+}
+
+/* 로그인 링크 섹션 */
+.login-link-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: -10px;
+}
+
+.login-text {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 14px;
+  color: #666;
+}
+
+.login-link-btn {
+  background: none;
+  border: none;
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 14px;
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.login-link-btn:hover {
+  color: #0052a3;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  .signup-content {
+    padding: 5px 16px 16px 16px;
+  }
+  
+  .signup-logo {
+    margin-top: -70px;
+  }
+  
+  .signup-form {
+    max-width: 100%;
+    margin-top: 20px;
+  }
+  
+  .signup-page-title {
+    font-size: 28px;
+    margin: -25px 0 12px 0;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-input {
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+  
+  .signup-submit-btn {
+    padding: 16px 20px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .signup-header {
+    padding: 12px 16px;
+  }
+  
+  .signup-content {
+    padding: 5px 12px 20px 12px;
+  }
+  
+  .signup-title-img {
+    max-width: 260px;
+  }
+  
+  .signup-brand-title {
+    font-size: 50px;
+    margin: -10px 0 0 0;
+    min-height: 50px;
+    height: 50px;
+  }
+  
+  .signup-page-title {
+    font-size: 26px;
+    margin: -20px 0 10px 0;
+  }
+  
+  .form-group {
+    margin-bottom: 18px;
+  }
+  
+  .form-input {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  
+  .signup-submit-btn {
+    font-size: 16px;
+  }
+  
+  .login-text,
+  .login-link-btn {
+    font-size: 13px;
+  }
+}
+
+/* 태블릿 */
+@media (min-width: 768px) {
+  .signup-content {
+    padding: 32px;
+  }
+  
+  .signup-logo {
+    margin-top: -70px;
+  }
+  
+  .signup-title-img {
+    max-width: 300px;
+  }
+  
+  .signup-brand-title {
+    font-size: 65px;
+    margin: -15px 0 0 0;
+    min-height: 56px;
+    height: 56px;
+  }
+  
+  .signup-form {
+    max-width: 500px;
+    margin-top: 10px;
+  }
+  
+  .signup-page-title {
+    font-size: 36px;
+    margin: -30px 0 20px 0;
+  }
+  
+  .form-group {
+    margin-bottom: 28px;
+  }
+  
+  .form-input {
+    padding: 14px 18px;
+    font-size: 17px;
+  }
+  
+  .signup-submit-btn {
+    padding: 18px 24px;
+    font-size: 18px;
+  }
+}
+
+/* 데스크톱 */
+@media (min-width: 1024px) {
+  .signup-content {
+    padding: 40px 40px 80px 40px;
+    justify-content: center;
+  }
+  
+  .signup-logo {
+    margin-top: -70px;
+  }
+  
+  .signup-title-img {
+    max-width: 300px;
+  }
+  
+  .signup-brand-title {
+    font-size: 65px;
+    margin: -15px 0 0 0;
+    min-height: 56px;
+    height: 56px;
+  }
+  
+  .signup-form {
+    max-width: 600px;
+    margin-top: 10px;
+  }
+  
+  .signup-page-title {
+    font-size: 44px;
+    margin: -10px 0 25px 0;
+  }
+  
+  .form-group {
+    margin-bottom: 32px;
+  }
+  
+  .form-input {
+    padding: 16px 20px;
+    font-size: 18px;
+  }
+  
+  .signup-submit-btn {
+    padding: 20px 32px;
+    font-size: 20px;
+  }
+}
+
+/* 대형 데스크톱 */
+@media (min-width: 1440px) {
+  .signup-content {
+    padding: 60px 60px 100px 60px;
+  }
+  
+  .signup-logo {
+    margin-top: -40px;
+  }
+  
+  .signup-title-img {
+    max-width: 300px;
+  }
+  
+  .signup-brand-title {
+    font-size: 65px;
+    margin: -15px 0 0 0;
+    min-height: 56px;
+    height: 56px;
+  }
+  
+  .signup-form {
+    max-width: 700px;
+    margin-top: 10px;
+  }
+  
+  .signup-page-title {
+    font-size: 40px;
+    margin: -10px 0 30px 0;
+  }
+  
+  .form-group {
+    margin-bottom: 36px;
+  }
+  
+  .form-input {
+    padding: 18px 24px;
+    font-size: 20px;
+  }
+  
+  .signup-submit-btn {
+    padding: 22px 40px;
+    font-size: 22px;
+  }
+}

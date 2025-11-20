@@ -1,0 +1,113 @@
+[0.240s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--packages-select', 'duck_msgs']
+[0.240s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=6, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=['duck_msgs'], packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0xffffb78bb5e0>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0xffffb7ab51b0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0xffffb7ab51b0>>)
+[0.635s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.635s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.635s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.636s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.636s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.636s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.636s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs'
+[0.636s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.636s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.637s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.637s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.637s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.637s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.637s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.637s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.637s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.667s] DEBUG:colcon.colcon_core.package_identification:Package '.' with type 'ros.ament_cmake' and name 'duck_msgs'
+[0.668s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.668s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.668s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.668s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.668s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.741s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.741s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.746s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 274 installed packages in /opt/ros/humble
+[0.749s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.832s] Level 5:colcon.colcon_core.verb:set package 'duck_msgs' build argument 'cmake_args' from command line to 'None'
+[0.832s] Level 5:colcon.colcon_core.verb:set package 'duck_msgs' build argument 'cmake_target' from command line to 'None'
+[0.832s] Level 5:colcon.colcon_core.verb:set package 'duck_msgs' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.832s] Level 5:colcon.colcon_core.verb:set package 'duck_msgs' build argument 'cmake_clean_cache' from command line to 'False'
+[0.832s] Level 5:colcon.colcon_core.verb:set package 'duck_msgs' build argument 'cmake_clean_first' from command line to 'False'
+[0.833s] Level 5:colcon.colcon_core.verb:set package 'duck_msgs' build argument 'cmake_force_configure' from command line to 'False'
+[0.833s] Level 5:colcon.colcon_core.verb:set package 'duck_msgs' build argument 'ament_cmake_args' from command line to 'None'
+[0.833s] Level 5:colcon.colcon_core.verb:set package 'duck_msgs' build argument 'catkin_cmake_args' from command line to 'None'
+[0.833s] Level 5:colcon.colcon_core.verb:set package 'duck_msgs' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.833s] DEBUG:colcon.colcon_core.verb:Building package 'duck_msgs' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs', 'merge_install': False, 'path': '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs', 'symlink_install': False, 'test_result_base': None}
+[0.833s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.836s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.836s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs' with build type 'ament_cmake'
+[0.837s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs'
+[0.841s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.841s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.841s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.854s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/bmj426/ai-duck/ros2_ws/src/duck_msgs -DCMAKE_INSTALL_PREFIX=/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs
+[3.684s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/bmj426/ai-duck/ros2_ws/src/duck_msgs -DCMAKE_INSTALL_PREFIX=/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs
+[3.689s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs -- -j6 -l6
+[7.972s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs -- -j6 -l6
+[7.996s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs
+[8.141s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(duck_msgs)
+[8.142s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs
+[8.150s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs' for CMake module files
+[8.154s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs' for CMake config files
+[8.155s] Level 1:colcon.colcon_core.shell:create_environment_hook('duck_msgs', 'cmake_prefix_path')
+[8.156s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/cmake_prefix_path.ps1'
+[8.158s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/cmake_prefix_path.dsv'
+[8.160s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/cmake_prefix_path.sh'
+[8.163s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/lib'
+[8.164s] Level 1:colcon.colcon_core.shell:create_environment_hook('duck_msgs', 'ld_library_path_lib')
+[8.165s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/ld_library_path_lib.ps1'
+[8.167s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/ld_library_path_lib.dsv'
+[8.168s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/ld_library_path_lib.sh'
+[8.169s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/bin'
+[8.170s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/lib/pkgconfig/duck_msgs.pc'
+[8.171s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/lib/python3.10/site-packages'
+[8.172s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/bin'
+[8.173s] INFO:colcon.colcon_core.shell:Creating package script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/package.ps1'
+[8.176s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/package.dsv'
+[8.178s] INFO:colcon.colcon_core.shell:Creating package script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/package.sh'
+[8.181s] INFO:colcon.colcon_core.shell:Creating package script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/package.bash'
+[8.184s] INFO:colcon.colcon_core.shell:Creating package script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/package.zsh'
+[8.186s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/colcon-core/packages/duck_msgs)
+[8.189s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(duck_msgs)
+[8.189s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs' for CMake module files
+[8.192s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs' for CMake config files
+[8.193s] Level 1:colcon.colcon_core.shell:create_environment_hook('duck_msgs', 'cmake_prefix_path')
+[8.193s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/cmake_prefix_path.ps1'
+[8.195s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/cmake_prefix_path.dsv'
+[8.196s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/cmake_prefix_path.sh'
+[8.198s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/lib'
+[8.198s] Level 1:colcon.colcon_core.shell:create_environment_hook('duck_msgs', 'ld_library_path_lib')
+[8.199s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/ld_library_path_lib.ps1'
+[8.200s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/ld_library_path_lib.dsv'
+[8.201s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/hook/ld_library_path_lib.sh'
+[8.202s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/bin'
+[8.203s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/lib/pkgconfig/duck_msgs.pc'
+[8.203s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/lib/python3.10/site-packages'
+[8.205s] Level 1:colcon.colcon_core.environment:checking '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/bin'
+[8.206s] INFO:colcon.colcon_core.shell:Creating package script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/package.ps1'
+[8.208s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/package.dsv'
+[8.209s] INFO:colcon.colcon_core.shell:Creating package script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/package.sh'
+[8.211s] INFO:colcon.colcon_core.shell:Creating package script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/package.bash'
+[8.212s] INFO:colcon.colcon_core.shell:Creating package script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/duck_msgs/package.zsh'
+[8.213s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs/share/colcon-core/packages/duck_msgs)
+[8.214s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[8.214s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[8.215s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[8.215s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[8.233s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[8.233s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[8.234s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[8.266s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[8.267s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/local_setup.ps1'
+[8.270s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/_local_setup_util_ps1.py'
+[8.274s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/setup.ps1'
+[8.277s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/local_setup.sh'
+[8.279s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/_local_setup_util_sh.py'
+[8.281s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/setup.sh'
+[8.284s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/local_setup.bash'
+[8.285s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/setup.bash'
+[8.288s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/local_setup.zsh'
+[8.289s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/setup.zsh'

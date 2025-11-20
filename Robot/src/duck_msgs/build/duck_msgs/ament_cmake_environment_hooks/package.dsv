@@ -1,0 +1,4 @@
+source;share/duck_msgs/local_setup.bash
+source;share/duck_msgs/local_setup.dsv
+source;share/duck_msgs/local_setup.sh
+source;share/duck_msgs/local_setup.zsh

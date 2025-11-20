@@ -1,0 +1,82 @@
+flowchart TD
+    %% --- 스타일 정의 ---
+    classDef input fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:black
+    classDef process fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:black
+    classDef logic fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,stroke-dasharray: 5 5,color:black
+    classDef storage fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,stroke-dasharray: 5 5,color:black
+    classDef llm fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:black
+    classDef output fill:#ffebee,stroke:#c62828,stroke-width:2px,color:black
+
+    %% --- 외부 행위자 ---
+    ChildUser([POST /ai_chat/child_start]):::input
+    ParentUser([POST /ai_chat/parent_start]):::input
+
+    %% --- FastAPI 서버 영역 ---
+    subgraph "FastAPI Server"
+        direction TB
+        
+        %% 1. 부모 발화 처리 파이프라인
+        subgraph "Pipeline A: 부모 발화 처리"
+            MsgFormatter[메시지 포맷팅<br/>Role: Human, Tag: 부모]:::process
+            BypassLLM[LLM Bypass<br/>응답 생성 없음]:::logic
+        end
+
+        %% 2. 아이 발화 처리 파이프라인 (Main Chain)
+        subgraph "Pipeline B: 아이 발화 처리"
+            
+            %% Chain Components
+            PromptTemplate[프롬프트 템플릿<br/>System: 오리 페르소나 + History]:::process
+            LLM_Model[LLM ChatOpenAI<br/>Streaming Mode]:::llm
+            
+            %% 스트림 처리 로직 (Custom Generator)
+            subgraph "Stream Processing Logic"
+                StreamGenerator[Custom Generator<br/>Iterate Once Process Twice]:::logic
+                SentenceSplitter[문장 단위 버퍼<br/>문장 완성 시 배출]:::process
+                TextAccumulator[전체 텍스트 수집기<br/>응답 완료 시 데이터 확보]:::process
+            end
+        end
+
+        %% 3. 후처리 파이프라인 (비동기 작업)
+        subgraph "Pipeline C: 후처리 및 요약 (Background Task)"
+            TriggerSave[저장 트리거]:::logic
+            SummaryChain[요약 체인<br/>Prompt: 1문장 요약 -> LLM]:::llm
+        end
+    end
+
+    %% --- 외부 서비스 (TTS) ---
+    TTS_Service[외부 TTS API]:::output
+
+    %% --- 인프라 영역 ---
+    subgraph "Infrastructure"
+        Redis[(Redis Cloud<br/>Context Memory)]:::storage
+        DB[(MySQL DB<br/>Data Logging)]:::storage
+    end
+
+    %% --- 흐름 연결: 부모 ---
+    ParentUser --> MsgFormatter
+    MsgFormatter -- 1. 대화 맥락 주입 --> Redis
+    MsgFormatter -- 2. 로그 저장 --> DB
+    MsgFormatter -- 3. 오디오 변환 요청 --> TTS_Service
+
+    %% --- 흐름 연결: 아이 ---
+    ChildUser --> PromptTemplate
+    Redis -.-> PromptTemplate
+    PromptTemplate --> LLM_Model
+    
+    %% 스트림 분기
+    LLM_Model -- Token Stream --> StreamGenerator
+    StreamGenerator -- Token Flow --> SentenceSplitter
+    StreamGenerator -- Token Flow --> TextAccumulator
+
+    %% 1. TTS 실시간 전송
+    SentenceSplitter -- 완성된 문장 Text --> TTS_Service
+    TTS_Service -- Audio Chunk Stream --> AudioOut(오디오 출력):::output
+
+    %% 2. 전체 텍스트 저장 및 요약 트리거
+    TextAccumulator -- 응답 완료 --> TriggerSave
+    TriggerSave -- 1. 전체 응답 저장 Context --> Redis
+    TriggerSave -- 2. 전체 응답 저장 Log --> DB
+    
+    %% 3. 요약 실행
+    TriggerSave -- 3. 전체 텍스트 전달 --> SummaryChain
+    SummaryChain -- 요약된 내용 저장 --> DB
