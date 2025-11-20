@@ -1,0 +1,206 @@
+.robot-face-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.robot-face-fullscreen[role='button'] {
+  cursor: pointer;
+}
+
+.robot-face-back {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  color: #333;
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+  z-index: 10;
+}
+
+.robot-face-back:hover {
+  background: rgba(0, 0, 0, 0.16);
+  transform: translateY(-1px);
+}
+
+/* 표정 선택 버튼 */
+.emotion-controls {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.emotion-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.emotion-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(0, 0, 0, 0.25);
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.emotion-btn.active {
+  background: rgba(74, 144, 226, 0.15);
+  border-color: rgba(74, 144, 226, 0.5);
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+}
+
+.emotion-btn.active:hover {
+  background: rgba(74, 144, 226, 0.25);
+  border-color: rgba(74, 144, 226, 0.7);
+}
+
+.emotion-emoji {
+  display: block;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.robot-face-stage {
+  position: relative;
+  width: min(90vw, 1300px);
+  max-width: 1500px;
+}
+
+.robot-face-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 눈 깜빡임 애니메이션 */
+.eye-group {
+  transition: transform 0.3s ease;
+}
+
+.eye {
+  transition: ry 0.15s ease-out, cy 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.eye-highlight {
+  transition: opacity 0.15s ease-out, cy 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 하트 눈 애니메이션 - 중심 고정 후 양옆위아래로 균등하게 커짐 */
+.eye-heart {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: heart-gentle-pulse 2s ease-in-out infinite,
+             heart-sparkle 3s ease-in-out infinite;
+  filter: blur(1px);
+}
+
+/* 하트 반짝임 효과 */
+.robot-face-stage.emotion-happy .eye-heart {
+  filter: blur(1px) drop-shadow(0 0 8px rgba(255, 23, 68, 0.6));
+}
+
+@keyframes heart-sparkle {
+  0%, 100% {
+    filter: blur(1px) drop-shadow(0 0 8px rgba(255, 23, 68, 0.6));
+  }
+  50% {
+    filter: blur(1px) drop-shadow(0 0 15px rgba(255, 23, 68, 0.9)) 
+            drop-shadow(0 0 25px rgba(255, 23, 68, 0.5));
+  }
+}
+
+@keyframes heart-gentle-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+/* 표정 변화 애니메이션 */
+.robot-face-stage {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 행복한 표정 */
+.robot-face-stage.emotion-happy .eye-group {
+  transform: translateY(-2px);
+}
+
+/* happy 표정 전환 시 하트 애니메이션은 heart-lively가 계속 실행되므로 별도 애니메이션 불필요 */
+
+/* 슬픈 표정 */
+.robot-face-stage.emotion-sad .eye-group {
+  transform: translateY(2px);
+}
+
+.robot-face-stage.emotion-sad .eye-sad {
+  animation: sad-tears-flow 2.5s ease-in-out infinite;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: visible;
+}
+
+@keyframes sad-tears-flow {
+  0% {
+    opacity: 0.85;
+    transform: translateY(0) scaleY(1);
+  }
+  30% {
+    opacity: 0.95;
+    transform: translateY(3px) scaleY(1.05);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(6px) scaleY(1.1);
+  }
+  100% {
+    opacity: 0.85;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+.robot-face-stage.emotion-sad .eye-line {
+  transition: opacity 0.3s ease;
+}
+
+/* 볼 홍조 - opacity만 변경, 움직임 없음 */
+.blush {
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  /* transform, scale 애니메이션 제거 - 고정 위치 유지 */
+}
+
+/* 부리 - 고정 위치 유지, 말할 때만 부드러운 전환 */
+.beak {
+  transition: opacity 0.1s ease-in-out;
+}

@@ -1,0 +1,6 @@
+sqlmodel
+sqlalchemy
+pydantic
+redis
+loguru
+alembic

@@ -1,0 +1,6 @@
+{
+  "package_name": "duck_msgs",
+  "non_idl_tuples": [
+    "/home/bmj426/ai-duck/ros2_ws/src/duck_msgs:msg/DuckTargetDetection.msg"
+  ]
+}

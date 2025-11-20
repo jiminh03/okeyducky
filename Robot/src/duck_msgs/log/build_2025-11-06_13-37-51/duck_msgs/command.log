@@ -1,0 +1,2 @@
+Invoking command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/bmj426/ai-duck/ros2_ws/src/duck_msgs -DCMAKE_INSTALL_PREFIX=/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs
+Invoked command in '/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/build/duck_msgs' returned '1': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/bmj426/ai-duck/ros2_ws/src/duck_msgs -DCMAKE_INSTALL_PREFIX=/home/bmj426/ai-duck/ros2_ws/src/duck_msgs/install/duck_msgs

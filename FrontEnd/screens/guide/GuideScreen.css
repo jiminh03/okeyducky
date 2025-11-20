@@ -1,0 +1,181 @@
+.guide-screen {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 메인 콘텐츠 영역 */
+.guide-content-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: 88px; /* 헤더 높이 */
+  padding-bottom: 88px; /* 푸터 높이 */
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.guide-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 24px 20px;
+  box-sizing: border-box;
+}
+
+/* 메인 제목 */
+.guide-main-title {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: #111;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+/* 부제목 */
+.guide-subtitle {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 15px;
+  color: #666;
+  margin: 0 0 32px 0;
+  line-height: 1.6;
+}
+
+/* 가이드 섹션들 */
+.guide-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.guide-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guide-section-title {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.guide-section-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 4px;
+}
+
+.guide-section-list li {
+  font-family: 'AppleSDGothicNeo', sans-serif;
+  font-size: 15px;
+  color: #333;
+  line-height: 1.6;
+  position: relative;
+  padding-left: 16px;
+}
+
+.guide-section-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #666;
+  font-weight: bold;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  .guide-content-area {
+    margin-top: 76px; /* 모바일 헤더 높이 */
+    padding-bottom: 88px;
+  }
+
+  .guide-container {
+    padding: 20px 16px;
+  }
+
+  .guide-main-title {
+    font-size: 22px;
+  }
+
+  .guide-subtitle {
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+
+  .guide-sections {
+    gap: 20px;
+  }
+
+  .guide-section {
+    gap: 10px;
+  }
+
+  .guide-section-title {
+    font-size: 17px;
+  }
+
+  .guide-section-list li {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  .guide-container {
+    padding: 32px 24px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .guide-main-title {
+    font-size: 28px;
+  }
+
+  .guide-subtitle {
+    font-size: 16px;
+  }
+
+  .guide-section-title {
+    font-size: 20px;
+  }
+
+  .guide-section-list li {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .guide-container {
+    padding: 40px 32px;
+    max-width: 900px;
+  }
+
+  .guide-main-title {
+    font-size: 32px;
+  }
+
+  .guide-subtitle {
+    font-size: 17px;
+  }
+
+  .guide-sections {
+    gap: 28px;
+  }
+}
+
