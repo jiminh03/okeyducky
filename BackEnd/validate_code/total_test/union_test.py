@@ -40,10 +40,12 @@ BASE_URL = "http://k13a408.p.ssafy.io:8000"
 DEBUG_PREFIX = "/_manual_test"
 
 # WebRTC/STT 설정
+TEST_EMAIL = "webrtc@example.com"
+TEST_PASSWORD = "pw123"
 RATE_STT_WEBRTC = 16000  # Azure STT에서 잘 쓰는 16kHz
 FORMAT_STT_WEBRTC = pyaudio.paInt16
 CHANNELS_STT_WEBRTC = 1
-FRAMES_PER_BUFFER = 320
+FRAMES_PER_BUFFER = 2048
 AUDIO_PTIME = 0.020
 DEVICE_INDEX = 0
 
@@ -52,10 +54,11 @@ RATE_TTS_PLAYBACK = 24000              # 24kHz
 FORMAT_TTS_PLAYBACK = pyaudio.paInt16  # 16-bit
 CHANNELS_TTS_PLAYBACK = 1             # 1-channel (모노)
 
+CHILD_ID = 1
 
 # --- Socket.IO / WebRTC 공통 ---
 http_client = requests.Session()
-sio = socketio.AsyncClient(logger=True, engineio_logger=False)
+sio = socketio.AsyncClient(logger=False, engineio_logger=False)
 
 ice_servers = [RTCIceServer(urls=["stun:stun.l.google.com:19302"])]
 config = RTCConfiguration(iceServers=ice_servers)
@@ -65,9 +68,9 @@ ice_candidates_buffer = []
 
 # ⬇️ broadcaster(로봇)가 알아야 하는 값들
 ACCESS_TOKEN = "YOUR_VALID_JWT_TOKEN_HERE"  # (필수) 로봇 로그인 토큰
-PARENT_ID = 34  # (필수) 이 브로드캐스터(로봇)가 통화할 부모의 ID
-ROBOT_ID = 31  # (필수) 이 브로드캐스터(로봇) 자신의 ID
-TEST_ROBOT_SN = "408"
+PARENT_ID = 1  # (필수) 이 브로드캐스터(로봇)가 통화할 부모의 ID
+ROBOT_ID = 1  # (필수) 이 브로드캐스터(로봇) 자신의 ID
+TEST_ROBOT_SN = "SN-WEBRTC-WEBRTC"
 SESSION_TYPE = "robot"  # (필수)
 
 # STT / 마이크 공유 객체 (전역)
@@ -88,6 +91,21 @@ is_tts_playing = False
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("unified_broadcaster")
 
+
+class FaceRequestEvent(str, Enum):
+    """
+    클라이언트(로봇)가 서버에게 얼굴 표정 변경을 요청하는 이벤트
+    """
+    # [C->S] 평소 얼굴 요청
+    REQUEST_FACE_NORMAL = "client:request_face_normal"
+    # [C->S] 하트눈 얼굴 요청
+    REQUEST_FACE_HEART = "client:request_face_heart"
+    # [C->S] 슬픈 얼굴 요청
+    REQUEST_FACE_SAD = "client:request_face_sad"
+    # [C->S] 말하는 얼굴 요청
+    REQUEST_FACE_SPEAKING = "server:face_speaking"
+    # [C->S] 말하지 않는 얼굴 요청
+    REQUEST_FACE_NOT_SPEAKING = "server:face_not_speaking"
 
 class ConnectEvents(str, Enum):
     """소켓 통신에서 사용되는 이벤트 이름 목록"""
@@ -358,15 +376,19 @@ async def playback_worker_async():
                 continue
                 
             logger.info(f"🎧 [Playback Worker] 큐에서 {len(full_audio_data)} 바이트 묶음 재생 시작...")
-            
+           
+            is_tts_playing = True
+            await sio.emit(FaceRequestEvent.REQUEST_FACE_SPEAKING, {"child_id": CHILD_ID})
             # PyAudio 스트림에 전체 데이터 쓰기 (await asyncio.to_thread 사용)
             # 이 작업이 끝날 때까지 블로킹됨
             await asyncio.to_thread(stream_tts.write, full_audio_data)
             
-            is_tts_playing = False
-            logger.info("✅ [Playback Worker] 재생 완료.")
-            await asyncio.sleep(0.3)
+            await asyncio.sleep(0.5)
             playback_queue.task_done()
+
+            is_tts_playing = False
+            await sio.emit(FaceRequestEvent.REQUEST_FACE_NOT_SPEAKING,{"child_id": CHILD_ID})
+            logger.info("✅ [Playback Worker] 재생 완료.")
 
         except Exception as e:
             logger.error(f"🚨 [Playback Worker] 오류: {e}")
@@ -668,7 +690,6 @@ async def on_stream_start(data=None):
     async with streaming_lock: # 비동기 락 사용
         logger.info(f"🔊 [TTS] 'STREAM_START' 수신. 임시 청크 버퍼를 초기화합니다.")
         is_streaming = True
-        is_tts_playing = True
         chunk_buffer.clear() # 새 오디오를 받기 위해 리스트를 비움
     
     logger.debug("  - 임시 청크 버퍼 비우기 완료.")
@@ -753,7 +774,7 @@ async def disconnect():
 # ===================================================================
 
 async def main():
-    global azure_stt, mic_source, p_audio, stream_tts
+    global azure_stt, mic_source, p_audio, stream_tts, is_tts_playing
 
     loop = asyncio.get_running_loop()
     playback_task = None # [신규] 재생 작업자 Task 핸들
@@ -761,7 +782,8 @@ async def main():
     # STT 결과를 서버 대신 일단 print로만 출력
     def on_stt_result(text: str):
         if is_tts_playing: # Stop send text when playing tts
-            return 
+            return
+        print(f"[STT] {text}")
         resp = http_client.post(f"{BASE_URL}/chat/child_start/1", json={"text":text})
         
     try:
@@ -774,8 +796,7 @@ async def main():
                                   channels=CHANNELS_TTS_PLAYBACK,
                                   rate=RATE_TTS_PLAYBACK,
                                   output=True,
-                                  frames_per_buffer=8192,
-                                  )
+                                  frames_per_buffer=4096)
         logger.info(f"🔊 PyAudio TTS 스트림 ({RATE_TTS_PLAYBACK}Hz) 열기 성공.")
         
         # --- [신규] TTS 재생 작업자 Task 시작 ---
